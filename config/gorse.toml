@@ -1,6 +1,6 @@
 # This section declares settings for the server.
 [server]
-host = "127.0.0.1"      # server host
+host = "0.0.0.0"      # server host
 port = 8080             # server port
 
 # This section declares setting for the database.
