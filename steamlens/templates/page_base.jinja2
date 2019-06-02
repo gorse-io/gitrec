@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.loli.net/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.png"/>
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#212121">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>SteamLens</title>
+</head>
+<body class="blue-grey darken-4">
+<ul id="dropdown1" class="dropdown-content grey darken-4">
+  <li><a class="grey-text text-lighten-4" href="#!">Logout</a></li>
+</ul>
+<nav class="grey darken-4">
+    <div class="nav-wrapper container">
+        <a href="/" class="brand-logo">
+            <img width="48" style="vertical-align: middle;margin-bottom:10px;margin-right:10px;" src="/static/logo.png">
+        </a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="/pop">Popular</a></li>
+            <li><a href="/random">Random</a></li>
+            {% if nickname %}
+                <li><a href="/recommend">Recommend</a></li>
+                <li><a href="/user">Owned</a></li>
+                <li><a class="btn waves-effect waves-light btn green darken-2" href="/logout">
+                    zhenghaoz<i class="material-icons right">exit_to_app</i>
+                </a></li>
+            {% else %}
+                <li><a class="btn waves-effect waves-light btn green darken-2" href="/login">Login</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+<div class="sidenav grey darken-4" id="mobile-demo">
+    <ul>
+        {% if nickname %}
+            <li><a class="btn waves-effect waves-light btn green darken-2" href="/logout">
+                zhenghaoz<i class="material-icons right grey-text text-lighten-4">exit_to_app</i>
+            </a></li>
+        {% else %}
+            <li><a class="btn waves-effect waves-light btn green darken-2" href="/login">Login</a></li>
+        {% endif %}
+        <li><a class="grey-text text-lighten-4" href="/pop">Popular</a></li>
+        <li><a class="grey-text text-lighten-4" href="/random">Random</a></li>
+        {% if nickname %}
+            <li><a class="grey-text text-lighten-4" href="/recommend">Recommend</a></li>
+            <li><a class="grey-text text-lighten-4" href="/user">Owned</a></li>
+        {% endif %}
+    </ul>
+</div>
+<div class="container">
+    <div class="row">
+        {% block row %}
+        {% endblock %}
+    </div>
+</div>
+<footer class="page-footer grey darken-4">
+    <div class="container">
+        <div class="row">
+            <div class="col l6 s12">
+                <h5 class="white-text">About</h5>
+                <p class="grey-text text-lighten-4">SteamLens is a tutorial steam video game recommender system built to
+                    test the usability of the <a href="https://github.com/zhenghaoz/gorse">gorse</a> recommender system
+                    engine.</p>
+            </div>
+            <div class="col l4 offset-l2 s12">
+                <h5 class="white-text">Links</h5>
+                <ul>
+                    <li><a class="grey-text text-lighten-3" href="https://steam.internet.byu.edu/">Steam Dataset @
+                        BYU</a></li>
+                    <li><a class="grey-text text-lighten-3" href="https://www.kaggle.com/tamber/steam-video-games">Steam
+                        Video Games @ Kaggle</a></li>
+                    <li><a class="grey-text text-lighten-3"
+                           href="https://developer.valvesoftware.com/wiki/Steam_Web_API">Steam Web API @ Valve</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copyright">
+        <div class="container">
+            © {{ current_time.year }} Copyright <a href="https://github.com/zhenghaoz">Zhenghao Zhang</a>
+            <a class="grey-text text-lighten-4 right" href="https://github.com/zhenghaoz/SteamLens">GitHub</a>
+        </div>
+    </div>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    M.AutoInit();
+</script>
+</body>
+</html>
