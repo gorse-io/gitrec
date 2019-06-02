@@ -1,21 +1,21 @@
 import json
-import re
 import os.path
-import requests
-from urllib.parse import urlencode
+import re
 from datetime import datetime
+from urllib.parse import urlencode
 from urllib.request import urlopen
 
-from flask import Flask, render_template, redirect, session, flash, g
+import requests
+from flask import Flask, render_template, redirect, session, g
 from flask_openid import OpenID
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.urls import url_encode
 
 app = Flask(__name__)
 app.config.from_envvar('STEAMLENS_SETTINGS')
 
 oid = OpenID(app, os.path.join(os.path.dirname(__file__), app.config['OPENID_STIRE']))
 db = SQLAlchemy(app)
+
 
 #######################
 # Recommender Service #
@@ -38,7 +38,7 @@ def pop():
     if g.user:
         nickname = g.user.nickname
     # Get items
-    r = requests.get('http://127.0.0.1:8080/popular?number=30')
+    r = requests.get('%s/popular?number=%d' % (app.config['GORSE_API_URI'], app.config['GORSE_NUM_ITEMS']))
     items = [v['ItemId'] for v in r.json()]
     # Render page
     return render_template('page_gallery.jinja2', title='Popular Games', items=items, nickname=nickname)
@@ -51,7 +51,7 @@ def random():
     if g.user:
         nickname = g.user.nickname
     # Get items
-    r = requests.get('http://127.0.0.1:8080/random?number=30')
+    r = requests.get('%s/random?number=%d' % (app.config['GORSE_API_URI'], app.config['GORSE_NUM_ITEMS']))
     items = [v['ItemId'] for v in r.json()]
     # Render page
     return render_template('page_gallery.jinja2', title='Random Games', items=items, nickname=nickname)
@@ -63,7 +63,8 @@ def recommend():
     if g.user is None:
         return render_template('page_gallery.jinja2', title='Please login first', items=[])
     # Get items
-    r = requests.get('http://127.0.0.1:8080/recommends/%s?number=30' % g.user.steam_id)
+    r = requests.get('%s/recommends/%s?number=%s' %
+                     (app.config['GORSE_API_URI'], g.user.steam_id, app.config['GORSE_NUM_ITEMS']))
     # Render page
     if r.status_code == 200:
         items = [v['ItemId'] for v in r.json()]
@@ -78,7 +79,8 @@ def item(app_id: int):
     if g.user:
         nickname = g.user.nickname
     # Get items
-    r = requests.get('http://127.0.0.1:8080/neighbors/%d?number=30' % app_id)
+    r = requests.get('%s/neighbors/%d?number=%d' %
+                     (app.config['GORSE_API_URI'], app_id, app.config['GORSE_NUM_ITEMS']))
     items = [v['ItemId'] for v in r.json()]
     # Render page
     return render_template('page_app.jinja2', item_id=app_id, title='Similar Games', items=items, nickname=nickname)
@@ -90,12 +92,13 @@ def user():
     if g.user is None:
         return render_template('page_gallery.jinja2', title='Please login first', items=[])
     # Get items
-    r = requests.get('http://127.0.0.1:8080/user/%s' % g.user.steam_id)
+    r = requests.get('%s/user/%s' % (app.config['GORSE_API_URI'], g.user.steam_id))
     # Render page
     if r.status_code == 200:
         items = [v['ItemId'] for v in r.json()]
         return render_template('page_gallery.jinja2', title='Owned Games', items=items, nickname=g.user.nickname)
     return render_template('page_gallery.jinja2', title='Synchronizing Owned Games ...', items=[], nickname=g.user.nickname)
+
 
 #################
 # Steam Service #
@@ -143,7 +146,7 @@ def new_user(resp):
     _steam_id_re = re.compile('steamcommunity.com/openid/id/(.*?)$')
     match = _steam_id_re.search(resp.identity_url)
     g.user = User.get_or_create(match.group(1))
-    steamdata = get_steam_userinfo(g.user.steam_id)
+    steamdata = get_user_info(g.user.steam_id)
     g.user.nickname = steamdata['personaname']
     db.session.commit()
     session['user_id'] = g.user.id
@@ -155,7 +158,7 @@ def new_user(resp):
     return redirect(oid.get_next_url())
 
 
-def get_steam_userinfo(steam_id):
+def get_user_info(steam_id):
     options = {
         'key': app.secret_key,
         'steamids': steam_id
@@ -177,4 +180,5 @@ def get_owned_games(steam_id):
     return rv['response']['games']
 
 
+# Create tables if not exists.
 db.create_all()

@@ -15,10 +15,8 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 # Copy files
-VOLUME ["/root/data"]
 COPY steamlens steamlens
 COPY config config
-COPY data data
 
 # Startup steamlens
 COPY uwsgi.ini .
