@@ -50,12 +50,12 @@ Build the Docker image and run an instance. Remember to mount the data folder an
 
 ```bash
 # Build Docker image
-docker build -t zhenghaoz/SteamLens .
+docker build -t zhenghaoz/steamlens .
 
 # Run an instance
 docker run -d -v $(pwd)/data:/root/data \
     -p 5000:5000 \
-    zhenghaoz/SteamLens
+    zhenghaoz/steamlens
 ```
 
 ### Pass via Nginx 
