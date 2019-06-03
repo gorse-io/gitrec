@@ -1,11 +1,11 @@
 # This section declares settings for the server.
 [server]
-host = "0.0.0.0"      # server host
+host = "0.0.0.0"        # server host
 port = 8080             # server port
 
 # This section declares setting for the database.
 [database]
-file = "data/gorse.db"       # database file
+file = "data/gorse.db"  # database file
 
 # This section declares settings for recommendation.
 [recommend]
