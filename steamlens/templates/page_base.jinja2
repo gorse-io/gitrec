@@ -27,7 +27,7 @@
                 <li><a href="/recommend">Recommend</a></li>
                 <li><a href="/user">Owned</a></li>
                 <li><a class="btn waves-effect waves-light btn green darken-2" href="/logout">
-                    zhenghaoz<i class="material-icons right">exit_to_app</i>
+                    {{ nickname }}<i class="material-icons right">exit_to_app</i>
                 </a></li>
             {% else %}
                 <li><a class="btn waves-effect waves-light btn green darken-2" href="/login">Login</a></li>
@@ -39,7 +39,7 @@
     <ul>
         {% if nickname %}
             <li><a class="btn waves-effect waves-light btn green darken-2" href="/logout">
-                zhenghaoz<i class="material-icons right grey-text text-lighten-4">exit_to_app</i>
+                {{ nickname }}<i class="material-icons right grey-text text-lighten-4">exit_to_app</i>
             </a></li>
         {% else %}
             <li><a class="btn waves-effect waves-light btn green darken-2" href="/login">Login</a></li>
