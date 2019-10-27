@@ -55,6 +55,7 @@ docker build -t zhenghaoz/steamlens .
 # Run an instance
 docker run -d -v $(pwd)/data:/root/data \
     -p 5000:5000 \
+    -p 8080:8080 \
     zhenghaoz/steamlens
 ```
 
@@ -68,3 +69,14 @@ location / {
     uwsgi_pass 127.0.0.1:5000;
 }
 ```
+
+### Update Feedback
+
+The dataset used by SteamLens is quite old but could be update by running: 
+
+```bash
+ python3 update.py 127.0.0.1 8080 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+The `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` represents the secret key. Since most users' owned games are invisible, only few feedback are retrieved.
+
