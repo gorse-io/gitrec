@@ -44,6 +44,19 @@ def pop():
     return render_template('page_gallery.jinja2', title='Popular Games', items=items, nickname=nickname)
 
 
+@app.route('/latest')
+def latest():
+    # Get nickname
+    nickname = None
+    if g.user:
+        nickname = g.user.nickname
+    # Get items
+    r = requests.get('%s/latest?number=%d' % (app.config['GORSE_API_URI'], app.config['GORSE_NUM_ITEMS']))
+    items = [v['ItemId'] for v in r.json()]
+    # Render page
+    return render_template('page_gallery.jinja2', title='Latest Games', items=items, nickname=nickname)
+
+
 @app.route('/random')
 def random():
     # Get nickname
@@ -92,7 +105,7 @@ def user():
     if g.user is None:
         return render_template('page_gallery.jinja2', title='Please login first', items=[])
     # Get items
-    r = requests.get('%s/user/%s' % (app.config['GORSE_API_URI'], g.user.steam_id))
+    r = requests.get('%s/user/%s/feedback' % (app.config['GORSE_API_URI'], g.user.steam_id))
     # Render page
     if r.status_code == 200:
         items = [v['ItemId'] for v in r.json()]
@@ -178,6 +191,18 @@ def get_owned_games(steam_id):
     url = 'http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?%s' % urlencode(options)
     rv = json.load(urlopen(url))
     return rv['response']['games']
+
+
+def get_friend_list(steam_id: str):
+    options = {
+        'key': app.secret_key,
+        'steamid': steam_id,
+        'format': 'json',
+        'relationship': 'friend'
+    }
+    url = 'http://api.steampowered.com/IPlayerService/GetFriendList/v0001/?%s' % urlencode(options)
+    rv = json.load(urlopen(url))
+    return rv['friendslist']['friends']
 
 
 # Create tables if not exists.
