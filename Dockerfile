@@ -3,7 +3,7 @@ FROM golang
 RUN go get github.com/zhenghaoz/gorse/...
 
 # Create python environment
-FROM python
+FROM python:3.7
 EXPOSE 8080 5000
 WORKDIR /root
 
