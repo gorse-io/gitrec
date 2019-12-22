@@ -36,7 +36,7 @@ def main(host, port, steam_key):
     pb = progressbar.ProgressBar()
     for user in pb(users):
         games = get_owned_games(steam_key, user)
-        data = [{'UserId': int(user), 'ItemId': int(v['appid']), 'Feedback': float(v['playtime_forever'])} for v in games]
+        data = [{'UserId': user, 'ItemId': v['appid'], 'Feedback': float(v['playtime_forever'])} for v in games]
         headers = {"Content-Type": "application/json"}
         requests.put('http://%s:%s/feedback' % (host, port), data=json.dumps(data), headers=headers)
     print('DONE')
