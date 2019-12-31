@@ -5,7 +5,7 @@
             <div class="card">
                 <div class="card-image">
                     <a href="#">
-                        <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{ item_id }}/header.jpg"
+                        <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{ item_id|e }}/header.jpg"
                         onerror="this.src='https://img.sine-x.com/404.jpg';">
                     </a>
                 </div>
@@ -14,7 +14,7 @@
         <div class="col">
             <div class="card">
                 <a class="waves-effect waves-light btn green darken-2"
-                   href="https://store.steampowered.com/app/{{ item_id }}/" target="_blank">
+                   href="https://store.steampowered.com/app/{{ item_id|e }}/" target="_blank">
                     <i class="material-icons left">add_shopping_cart</i>Buy on Steam
                 </a>
             </div>

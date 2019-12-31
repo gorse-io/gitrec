@@ -5,8 +5,8 @@
     <div class="col s12 m6 l4">
         <div class="card">
             <div class="card-image">
-                <a href="/item/{{ item_id }}">
-                    <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{ item_id }}/header.jpg"
+                <a href="/item/{{ item_id|e }}">
+                    <img src="https://steamcdn-a.akamaihd.net/steam/apps/{{ item_id|e }}/header.jpg"
                     onerror="this.src='https://img.sine-x.com/404.jpg';" >
                 </a>
             </div>
