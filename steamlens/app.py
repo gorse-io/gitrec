@@ -165,7 +165,7 @@ def new_user(resp):
     session['user_id'] = g.user.id
     # Add games to gorse
     games = get_owned_games(g.user.steam_id)
-    data = [{'UserId': int(g.user.steam_id), 'ItemId': int(v['appid']), 'Feedback': float(v['playtime_forever'])} for v in games]
+    data = [{'UserId': str(g.user.steam_id), 'ItemId': str(v['appid']), 'Rating': float(v['playtime_forever'])} for v in games]
     headers = {"Content-Type": "application/json"}
     requests.put('http://127.0.0.1:8080/feedback', data=json.dumps(data), headers=headers)
     return redirect(oid.get_next_url())
