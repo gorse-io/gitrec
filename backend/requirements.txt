@@ -1,0 +1,4 @@
+Flask~=2.0.0
+requests~=2.25.1
+PyGithub~=1.55
+Markdown~=3.3.4
