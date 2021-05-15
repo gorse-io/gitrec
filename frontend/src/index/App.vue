@@ -1,76 +1,41 @@
 <template>
-  <div>
+  <div id="app">
     <div class="navbar-fixed">
       <nav :class="[primaryColor]">
         <div class="nav-wrapper container">
-            <span style="font-weight: 300; font-size: 1.5rem">zhenghaoz/gorse</span>
+          <span style="font-weight: 300; font-size: 1.5rem">{{ title }}</span>
         </div>
       </nav>
     </div>
-    <div v-if="!login" class="container sign-in-body">
-      <p class="center-align">
-        <img src="surftocat.png" width="256px" />
-      </p>
-      <h5 class="center-align">
-        Explore <a href="https://github.com" target="_blank">GitHub</a> with
-        <a href="https://gorse.io" target="_blank">Gorse</a> recommender system
-      </h5>
-      <p class="center-align">
-        <a :class="[primaryColor]" class="waves-effect waves-light btn"
-          ><i class="fab fa-github material-icons left"></i>Sign in with
-          GitHub</a
-        >
-      </p>
-    </div>
-    <div v-else class="container">
+    <div class="container">
       <article class="markdown-body" v-html="readme"></article>
     </div>
-    <footer v-if="!login" :class="[primaryColor]" class="page-footer">
-      <div class="container">
-        <div class="row">
-          <div class="col l6 s12">
-            <h5>About</h5>
-            <p :class="[textColor]">
-              GitRec is the missing discovery queue for GitHub built to test the
-              usability of the Gorse recommender system engine.
-            </p>
-          </div>
-          <div class="col l4 offset-l2 s12">
-            <h5 :class="[textColor]">Links</h5>
-            <ul>
-              <li>
-                <a
-                  :class="[textColor]"
-                  href="https://github.com/zhenghaoz/gitrec"
-                  target="_blank"
-                  >Source @ GitHub</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="footer-copyright">
-        <div class="container">© 2021 zhenghaoz</div>
-      </div>
-    </footer>
     <footer>
       <div class="toolbar-fixed" :class="[primaryColor]">
         <ul>
           <li class="waves-effect waves-light">
-            <a href="#!"><i class="fa-lg fas fa-star"></i>&nbsp;&nbsp;121</a>
+            <a :href="html_url + '/stargazers'" target="__blank"
+              ><i class="fa-lg fas fa-star"></i>&nbsp;&nbsp;{{ stargazers }}</a
+            >
           </li>
           <li class="waves-effect waves-light">
-            <a><i class="fa-lg fa fa-code-branch" aria-hidden="true"></i>&nbsp;&nbsp;121</a>
+            <a :href="html_url + 'network/members'" target="__blank"
+              ><i class="fa-lg fa fa-code-branch" aria-hidden="true"></i
+              >&nbsp;&nbsp;{{ forks }}</a
+            >
           </li>
           <li class="waves-effect waves-light">
-            <a href="#!"><i class="material-icons">open_in_new</i></a>
+            <a :href="html_url" target="__blank"
+              ><i class="material-icons">open_in_new</i></a
+            >
           </li>
           <li class="waves-effect waves-light">
-            <a href="#!"><i class="material-icons">favorite</i></a>
+            <a @click="like"
+              ><i class="material-icons" :class="[iconColoer]">favorite</i></a
+            >
           </li>
           <li class="waves-effect waves-light">
-            <a href="#!"><i class="material-icons">skip_next</i></a>
+            <a @click="next"><i class="material-icons">skip_next</i></a>
           </li>
         </ul>
       </div>
@@ -78,14 +43,12 @@
   </div>
 </template>
 
+
 <script>
+import M from "materialize-css";
 const axios = require("axios");
-export default {
-  name: "HelloWorld",
-  data() {
-    return {
-      login: true,
-            readme: `
+const titleDefault = "Loading...";
+const readmeDefault = `
       <div class="preloader-background">
       	<div class="preloader-wrapper big active">
       		<div class="spinner-layer spinner-blue-only">
@@ -101,18 +64,60 @@ export default {
       		</div>
       	</div>
       </div>
-            `,
+            `;
+export default {
+  data() {
+    return {
+      iconColoer: null,
+      item_id: null,
+      title: titleDefault,
+      html_url: null,
+      stargazers_url: null,
+      forks_url: null,
+      stargazers: 0,
+      forks: 0,
+      readme: readmeDefault,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
     };
   },
-  props: {
-    msg: String,
-  },
   mounted() {
-    axios.get("http://127.0.0.1:5000/repo/zhenghaoz:gorse").then((response) => {
-      this.readme = response.data;
+    M.AutoInit();
+    axios.get("/api/repo/", { withCredentials: true }).then((response) => {
+      this.setRepository(response.data);
     });
+  },
+  methods: {
+    setRepository(repo) {
+      this.item_id = repo.item_id;
+      this.readme = repo.readme;
+      this.title = repo.full_name;
+      this.html_url = repo.html_url;
+      this.stargazers = repo.stargazers;
+      this.forks = repo.forks;
+    },
+    like() {
+      axios
+        .get("/api/like/" + this.item_id, { withCredentials: true })
+        .then(() => {
+          this.iconColoer = "red-icon";
+        });
+    },
+    next() {
+      axios
+        .get("/api/read/" + this.item_id, { withCredentials: true })
+        .then(() => {
+          // load next repo
+          this.title = titleDefault;
+          this.readme = readmeDefault;
+          (this.iconColoer = null),
+            axios
+              .get("/api/repo/", { withCredentials: true })
+              .then((response) => {
+                this.setRepository(response.data);
+              });
+        });
+    },
   },
 };
 </script>
@@ -124,19 +129,13 @@ export default {
   max-width: 980px;
   margin: 0 auto;
   padding: 45px;
-}
-
-.sign-in-body {
-  box-sizing: border-box;
-  min-width: 200px;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 45px;
+  padding-bottom: 100px;
 }
 
 @media (max-width: 767px) {
   .markdown-body {
     padding: 15px;
+    padding-bottom: 100px;
   }
 }
 
@@ -211,5 +210,9 @@ export default {
 
 .toolbar-fixed ul li {
   margin-bottom: 15px;
+}
+
+.material-icons.red-icon {
+  color: red;
 }
 </style>
