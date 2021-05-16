@@ -1,24 +1,19 @@
-# Build gorse
-FROM golang
-RUN go get github.com/zhenghaoz/gorse/...
+# Build frontend
+FROM node
+COPY frontend frontend
+WORKDIR /frontend
+RUN yarn install && yarn build
 
-# Create python environment
-FROM python:3.7
-EXPOSE 8080 5000
-WORKDIR /root
+# Setup python enviroment
+FROM python
+COPY backend backend
+WORKDIR /backend
 
-# Install gorse
-COPY --from=0 /go/bin/gorse /usr/local/bin
+# Copy frontend
+COPY --from=0 /frontend/dist /backend/static
 
 # Install packages
-COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-# Copy files
-COPY steamlens steamlens
-COPY config config
-
-# Startup steamlens
-COPY uwsgi.ini .
-ENV STEAMLENS_SETTINGS ../config/steamlens.cfg
-CMD gorse serve -c config/gorse.toml & uwsgi --ini uwsgi.ini
+# # Startup steamlens
+# CMD uwsgi --ini uwsgi.ini
