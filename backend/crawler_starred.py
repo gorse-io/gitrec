@@ -6,7 +6,7 @@ from celery import Celery
 
 from gorse import Gorse
 
-gorse_client = Gorse(os.getenv('GORSE_ENTRY_POINT'))
+gorse_client = Gorse(os.getenv('GORSE_ADDRESS'))
 
 
 class GraphQLGitHub:
@@ -55,7 +55,7 @@ class GraphQLGitHub:
         return stars
 
 
-app = Celery('starred', broker='pyamqp://guest@localhost//')
+app = Celery('crawler_starred', broker=os.getenv('BROKER_ADDRESS'))
 
 
 @app.task
@@ -63,4 +63,4 @@ def pull(token: str):
     g = GraphQLGitHub(token)
     stars = g.get_viewer_starred()
     gorse_client.insert_feedbacks(stars)
-    print('insert %d feedbacks' % len(stars))
+    print('insert %d feedback' % len(stars))
