@@ -6,16 +6,16 @@ from github import Github
 
 from gorse import Gorse
 
-github_client = Github(os.getenv('ACCESS_TOKEN'))
-gorse_client = Gorse(os.getenv('GORSE_ENTRY_POINT'))
+github_client = Github(os.getenv('GITHUB_ACCESS_TOKEN'))
+gorse_client = Gorse(os.getenv('GORSE_ADDRESS'))
 
 
-def get_repo_info(full_name: str):
+def get_repo_info(full_name):
     repo = github_client.get_repo(full_name)
     return {
         'ItemId': full_name.replace('/', ':'),
         'Timestamp': str(repo.updated_at),
-        'Labels': [label.name for label in repo.get_labels()],
+        'Labels': [label for label in repo.get_topics()],
         'Comment': repo.description,
     }
 
@@ -32,6 +32,7 @@ def get_trending():
 
 
 if __name__ == '__main__':
+    print('start pull trending repos')
     trending_repos = get_trending()
     for trending_repo in trending_repos:
         gorse_client.insert_item(get_repo_info(trending_repo))
