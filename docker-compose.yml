@@ -1,0 +1,87 @@
+version: "3"
+services:
+  redis:
+    image: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
+  mysql:
+    image: mysql
+    restart: unless-stopped
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: gorse
+      MYSQL_USER: gorse
+      MYSQL_PASSWORD: gorse_pass
+    volumes:
+      - data:/var/lib/mysql
+
+  worker:
+    image: zhenghaoz/gorse-worker
+    restart: unless-stopped
+    ports:
+      - 8089:8089
+    command: --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8089
+
+  server:
+    image: zhenghaoz/gorse-server
+    restart: unless-stopped
+    ports:
+      - 8087:8087
+    command: --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8087
+
+  master:
+    image: zhenghaoz/gorse-master
+    restart: unless-stopped
+    ports:
+      - 8086:8086
+      - 8088:8088
+    volumes:
+      - ./gorse.config.toml:/etc/config.toml
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: gorse
+      RABBITMQ_DEFAULT_PASS: gorse_pass
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+  crawler_starred:
+    build:
+      context: backend
+      dockerfile: crawler_starred.Dockerfile
+    restart: unless-stopped
+    environment:
+      GORSE_ADDRESS: http://server:8087
+      BROKER_ADDRESS: pyamqp://gorse:gorse_pass@rabbitmq/
+
+  crawler_trending:
+    build:
+      context: backend
+      dockerfile: crawler_trending.Dockerfile
+    restart: unless-stopped
+    environment:
+      GORSE_ADDRESS: http://server:8087
+      GITHUB_ACCESS_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxx
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    environment:
+      GORSE_ADDRESS: http://server:8087
+      BROKER_ADDRESS: pyamqp://gorse:gorse_pass@rabbitmq/
+      OAUTHLIB_INSECURE_TRANSPORT: "true"
+      GITHUB_OAUTH_CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxxxx
+      GITHUB_OAUTH_CLIENT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxx
+      SECRET_KEY: xxxxxxxxxxxxxxxxxxxxxxxxx
+
+volumes:
+  data:

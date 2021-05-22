@@ -19,8 +19,7 @@
         <a
           :class="[primaryColor]"
           class="waves-effect waves-light btn"
-          href="/login"
-          target="_blank"
+          href="/login/github"
           ><i class="fab fa-github material-icons left"></i>Sign in with
           GitHub</a
         >

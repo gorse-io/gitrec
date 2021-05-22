@@ -19,7 +19,7 @@
             >
           </li>
           <li class="waves-effect waves-light">
-            <a :href="html_url + 'network/members'" target="__blank"
+            <a :href="html_url + '/network/members'" target="__blank"
               ><i class="fa-lg fa fa-code-branch" aria-hidden="true"></i
               >&nbsp;&nbsp;{{ forks }}</a
             >

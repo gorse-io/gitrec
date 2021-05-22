@@ -1,2 +1,0 @@
-graft frontend/dist
-global-exclude *.pyc
