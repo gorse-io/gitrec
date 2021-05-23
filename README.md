@@ -1,82 +1,49 @@
-<img width="160" src="https://img.sine-x.com/steam-lens.png">
+# GitRec
 
-# SteamLens
+GitRec is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
-[![Website](https://img.shields.io/website-up-down-green-red/https/steamlens.gorse.io.svg)](https://steamlens.gorse.io)
+## Quick Start
 
-SteamLens is a tutorial steam video game recommender system based on Flask and gorse.
-
-## Usage
-
-### Download Source
-
-First, clone the repo and enter the folder.
+- First, clone the repository and enter the folder.
 
 ```bash
-# Download source
-git clone https://github.com/zhenghaoz/SteamLens.git
-
-# Enter source folder
-cd SteamLens
+git clone https://github.com/zhenghaoz/gitrec.git
+cd gitrec
 ```
 
-### Create database
+- Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN` variable in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
 
-It's a good idea to build recomender system based on existed dataset such as [Steam Dataset](https://steam.internet.byu.edu/). 
-The original dataset is huge, we sampled 15000 users and it's available in `games.csv`.
+```yaml
+GITHUB_ACCESS_TOKEN: # personal access token
+```
+
+- Create a [GitHub OAuth app](https://github.com/settings/developers). The authorization callback URL should be `http://127.0.0.1:5000/login/github/authorized`. Then, fill following variables in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
+
+```yaml
+GITHUB_OAUTH_CLIENT_ID: # client ID
+GITHUB_OAUTH_CLIENT_SECRET: # client secret
+SECRET_KEY: # random string
+```
+
+- Start the cluster using Docker Compose.
 
 ```bash
-# Download data
-wget https://cdn.sine-x.com/backups/games.csv
-
-# Create data folder
-mkdir data
-
-# Create a database and import data
-gorse import-feedback data/gorse.db games.csv --sep ','
+docker-compose up -d
 ```
 
-### Get Secret Key
-
-To integrate with Steam, we need to [apply a secret key from Steam](https://steamcommunity.com/dev/apikey) and place it into `config/steamlens.cfg`.
-
-```python
-SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-```
-
-### Build & Run
-
-Build the Docker image and run an instance. Remember to mount the data folder and expose the port of uWSGI.
+- Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import to the MySQL instance.
 
 ```bash
-# Build Docker image
-docker build -t zhenghaoz/steamlens .
-
-# Run an instance
-docker run -d -v $(pwd)/data:/root/data \
-    -p 5000:5000 \
-    -p 8080:8080 \
-    zhenghaoz/steamlens
+mysql -h 127.0.0.1 -u root -proot_pass gorse < github.sql
 ```
 
-### Pass via Nginx 
+- Play with GitRec:
 
-Set `uwsgi_pass` in Nginx.
-
-```nginx
-location / {
-    include uwsgi_params;
-    uwsgi_pass 127.0.0.1:5000;
-}
-```
-
-### Update Feedback
-
-The dataset used by SteamLens is quite old but could be update by running: 
-
-```bash
- python3 update.py 127.0.0.1 8080 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
-
-The `XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` represents the secret key. Since most users' owned games are invisible, only few feedback are retrieved.
+| Entry                     | Link                          |
+| ------------------------- | ----------------------------- |
+| GitRec                    | http://127.0.0.1:5000/        |
+| Master Dashboard          | http://127.0.0.1:8088/        |
+| Server RESTful API        | http://127.0.0.1:8087/apidocs |
+| Server Prometheus Metrics | http://127.0.0.1:8087/metrics |
+| Worker Prometheus Metrics | http://127.0.0.1:8089/metrics |
 
