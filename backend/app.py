@@ -7,11 +7,13 @@ from dateutil import parser
 from flask import Flask, Response, session, redirect
 from flask_dance.contrib.github import make_github_blueprint, github
 from github import Github
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import gorse
 from crawler_starred import pull
 
 app = Flask(__name__, static_folder='../frontend/dist', static_url_path="/")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["GITHUB_OAUTH_CLIENT_ID"] = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
