@@ -83,7 +83,7 @@ export default {
   },
   mounted() {
     M.AutoInit();
-    axios.get("/api/repo/", { withCredentials: true }).then((response) => {
+    axios.get("/api/repo", { withCredentials: true }).then((response) => {
       this.setRepository(response.data);
     });
   },
@@ -112,7 +112,7 @@ export default {
           this.readme = readmeDefault;
           (this.iconColoer = null),
             axios
-              .get("/api/repo/", { withCredentials: true })
+              .get("/api/repo", { withCredentials: true })
               .then((response) => {
                 this.setRepository(response.data);
               });

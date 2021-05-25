@@ -4,7 +4,7 @@ from datetime import datetime
 import mistune
 from bs4 import BeautifulSoup
 from dateutil import parser
-from flask import Flask, Response, session
+from flask import Flask, Response, session, redirect
 from flask_dance.contrib.github import make_github_blueprint, github
 from github import Github
 
@@ -24,7 +24,7 @@ gorse_client = gorse.Gorse(os.getenv('GORSE_ADDRESS'))
 @app.route('/')
 def index():
     if not github.authorized:
-        return app.send_static_file('login.html')
+        return redirect('/login')
     # pull user_id
     if 'user_id' not in session:
         resp = github.get("/user")
@@ -36,7 +36,12 @@ def index():
     return app.send_static_file('index.html')
 
 
-@app.route("/api/repo/")
+@app.route('/login')
+def login():
+    return app.send_static_file('login.html')
+
+
+@app.route("/api/repo")
 def get_repo():
     if not github.authorized:
         return Response("Permission denied", status=403)
