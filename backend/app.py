@@ -4,6 +4,7 @@ from datetime import datetime
 import mistune
 from bs4 import BeautifulSoup
 from dateutil import parser
+from docutils.core import publish_parts
 from flask import Flask, Response, session, redirect
 from flask_dance.contrib.github import make_github_blueprint, github
 from github import Github
@@ -52,7 +53,12 @@ def get_repo():
     github_client = Github(github.token['access_token'])
     repo = github_client.get_repo(full_name)
     # convert readme to html
-    html = mistune.html(repo.get_readme().decoded_content.decode('utf-8'))
+    download_url = repo.get_readme().download_url.lower()
+    content = repo.get_readme().decoded_content.decode('utf-8')
+    if download_url.endswith('.rst'):
+        html = publish_parts(content, writer_name='html')['html_body']
+    else:
+        html = mistune.html(content)
     soup = BeautifulSoup(html, 'html.parser')
     for a in soup.find_all('a'):
         if 'href' in a.attrs:
