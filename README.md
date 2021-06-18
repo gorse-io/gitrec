@@ -54,4 +54,3 @@ mysql -h 127.0.0.1 -u root -proot_pass gorse < github.sql
 | Server RESTful API        | http://127.0.0.1:8087/apidocs |
 | Server Prometheus Metrics | http://127.0.0.1:8087/metrics |
 | Worker Prometheus Metrics | http://127.0.0.1:8089/metrics |
-
