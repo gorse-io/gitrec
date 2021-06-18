@@ -43,7 +43,6 @@
   </div>
 </template>
 
-
 <script>
 import M from "materialize-css";
 const axios = require("axios");
