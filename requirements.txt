@@ -8,7 +8,7 @@ chardet==4.0.0
 click==7.1.2
 click-didyoumean==0.0.3
 click-plugins==1.1.1
-click-repl==0.1.6
+click-repl==0.2.0
 Deprecated==1.2.12
 docutils==0.17.1
 Flask==2.0.0
