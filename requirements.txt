@@ -24,7 +24,7 @@ kombu==5.0.2
 MarkupSafe==2.0.1
 mistune==2.0.0rc1
 oauthlib==3.1.0
-prompt-toolkit==3.0.18
+prompt-toolkit==3.0.19
 pycparser==2.20
 PyGithub==1.55
 Pygments==2.9.0
