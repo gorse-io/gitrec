@@ -33,26 +33,22 @@ class Gorse:
         )
         if r.status_code == 200:
             return r.json()
-        else:
-            raise GorseException(r.status_code, r.text)
+        raise GorseException(r.status_code, r.text)
 
     def get_recommend(self, user_id: str, n: int = 1) -> List[str]:
         r = requests.get(self.entry_point + "/api/recommend/%s?n=%d" % (user_id, n))
         if r.status_code == 200:
             return r.json()
-        else:
-            raise GorseException(r.status_code, r.text)
+        raise GorseException(r.status_code, r.text)
 
     def insert_feedbacks(self, feedbacks) -> Success:
         r = requests.post(self.entry_point + "/api/feedback", json=feedbacks)
         if r.status_code == 200:
             return r.json()
-        else:
-            raise GorseException(r.status_code, r.text)
+        raise GorseException(r.status_code, r.text)
 
     def insert_item(self, item) -> List[str]:
         r = requests.post(self.entry_point + "/api/item", json=item)
         if r.status_code == 200:
             return r.json()
-        else:
-            raise GorseException(r.status_code, r.text)
+        raise GorseException(r.status_code, r.text)
