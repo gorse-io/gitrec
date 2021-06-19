@@ -15,7 +15,7 @@ def get_repo_info(full_name):
     return {
         "ItemId": full_name.replace("/", ":"),
         "Timestamp": str(repo.updated_at),
-        "Labels": [label for label in repo.get_topics()],
+        "Labels": list(repo.get_topics()),
         "Comment": repo.description,
     }
 
