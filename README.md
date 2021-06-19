@@ -1,5 +1,8 @@
 # GitRec
 
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fgitrec.gorse.io)](https://gitrec.gorse.io)
+[![DeepSource](https://deepsource.io/gh/zhenghaoz/gitrec.svg/?label=active+issues&token=ZnHSLOJyn5VxtqPIJ17wpVa5)](https://deepsource.io/gh/zhenghaoz/gitrec/?ref=repository-badge)
+
 GitRec is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
 ## Architecture
