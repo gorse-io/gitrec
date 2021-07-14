@@ -12,11 +12,17 @@ gorse_client = Gorse(os.getenv("GORSE_ADDRESS"))
 
 def get_repo_info(full_name):
     repo = github_client.get_repo(full_name)
+    topics = [topic for topic in repo.get_topics()]
+    languages = list(repo.get_languages().items())
+    if len(languages) > 0:
+        main_language = languages[0][0].lower()
+        if main_language not in topics:
+            topics.append(main_language)
     return {
-        "ItemId": full_name.replace("/", ":"),
-        "Timestamp": str(repo.updated_at),
-        "Labels": list(repo.get_topics()),
-        "Comment": repo.description,
+        'ItemId': full_name.replace('/', ':'),
+        'Timestamp': str(repo.updated_at),
+        'Labels': topics,
+        'Comment': repo.description,
     }
 
 
