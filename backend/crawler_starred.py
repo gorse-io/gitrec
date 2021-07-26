@@ -34,10 +34,7 @@ def get_user_topics(token: str, n: int = 5):
         except GithubException as e:
             if e.status not in {403, 451}:
                 raise e
-    return {
-        "Labels": list(topics_set),
-        "UserId": user.login
-    }
+    return {"Labels": list(topics_set), "UserId": user.login}
 
 
 class GraphQLGitHub:
@@ -112,4 +109,7 @@ def pull(token: str):
     g = GraphQLGitHub(token)
     stars = g.get_viewer_starred()
     gorse_client.insert_feedbacks(stars)
-    print("insert %d feedback and %d user labels from %s" % (len(stars), len(user['Labels']), user['UserId']))
+    print(
+        "insert %d feedback and %d user labels from %s"
+        % (len(stars), len(user["Labels"]), user["UserId"])
+    )
