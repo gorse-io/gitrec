@@ -3,10 +3,41 @@ from typing import Dict, List, Tuple
 
 import requests
 from celery import Celery
+from github import Github
+from github.GithubException import *
 
 from gorse import Gorse
 
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"))
+
+
+def get_user_topics(token: str, n: int = 5):
+    g = Github(token)
+    user = g.get_user()
+    # Get n latest repos
+    repos = []
+    for repo in user.get_repos():
+        if repo.pushed_at is not None:
+            repos.append((repo, repo.pushed_at))
+    repos = sorted(repos, key=lambda k: k[1], reverse=True)
+    if len(repos) > n:
+        repos = repos[:n]
+    repos = [v[0] for v in repos]
+    # Collect topics and languages
+    topics_set = set()
+    for repo in repos:
+        try:
+            topics_set.update(repo.get_topics())
+            languages = list(repo.get_languages().items())
+            if len(languages) > 0:
+                topics_set.add(languages[0][0].lower())
+        except GithubException as e:
+            if e.status not in {403, 451}:
+                raise e
+    return {
+        "Labels": list(topics_set),
+        "UserId": user.login
+    }
 
 
 class GraphQLGitHub:
@@ -74,7 +105,11 @@ app = Celery("crawler_starred", broker=os.getenv("BROKER_ADDRESS"))
 
 @app.task
 def pull(token: str):
+    # Pull user labels
+    user = get_user_topics(token)
+    gorse_client.insert_user(user)
+    # Pull user starred repos
     g = GraphQLGitHub(token)
     stars = g.get_viewer_starred()
     gorse_client.insert_feedbacks(stars)
-    print("insert %d feedback" % len(stars))
+    print("insert %d feedback and %d user labels from %s" % (len(stars), len(user['Labels']), user['UserId']))

@@ -1,6 +1,6 @@
 FROM python
 
-RUN pip3 install celery requests
+RUN pip3 install celery requests PyGithub
 
 COPY gorse.py gorse.py
 

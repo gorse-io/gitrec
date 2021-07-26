@@ -47,8 +47,14 @@ class Gorse:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
-    def insert_item(self, item) -> List[str]:
+    def insert_item(self, item) -> Success:
         r = requests.post(self.entry_point + "/api/item", json=item)
+        if r.status_code == 200:
+            return r.json()
+        raise GorseException(r.status_code, r.text)
+
+    def insert_user(self, user) -> Success:
+        r = requests.post(self.entry_point + '/api/user', json=user)
         if r.status_code == 200:
             return r.json()
         raise GorseException(r.status_code, r.text)
