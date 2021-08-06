@@ -7,7 +7,7 @@ GitRec is the missing recommender system for GitHub repositories based on [Gorse
 
 ## Architecture
 
-<img width="480px" src="https://github.com/zhenghaoz/gitrec/blob/master/assets/architecture.png">
+<img width="480px" src="assets/architecture.png">
 
 - The trending crawler crawls trending repositories and insert them into Gorse as new items.
 - The user starred crawler crawls user starred repositories and insert them into Gorse as new fewdback.
@@ -45,7 +45,7 @@ docker-compose up -d
 - Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import to the MySQL instance.
 
 ```bash
-mysql -h 127.0.0.1 -u root -p root_pass gorse < github.sql
+mysql -h 127.0.0.1 -u root -proot_pass gorse < github.sql
 ```
 
 - Restart the master node to apply imported data.
