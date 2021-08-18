@@ -28,7 +28,18 @@ def get_repo_info(full_name):
 
 def get_trending():
     full_names = []
-    languages = ['', 'c', 'c++', 'go', 'python', 'javascript', 'java', 'rust', 'typescript', 'unknown']
+    languages = [
+        "",
+        "c",
+        "c++",
+        "go",
+        "python",
+        "javascript",
+        "java",
+        "rust",
+        "typescript",
+        "unknown",
+    ]
     for language in languages:
         r = requests.get("https://github.com/trending/%s?since=daily" % language)
         if r.status_code != 200:
