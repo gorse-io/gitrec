@@ -27,13 +27,15 @@ def get_repo_info(full_name):
 
 
 def get_trending():
-    r = requests.get("https://github.com/trending")
-    if r.status_code != 200:
-        return []
-    soup = BeautifulSoup(r.text, "html.parser")
     full_names = []
-    for article in soup.find_all("article"):
-        full_names.append(article.h1.a["href"][1:])
+    languages = ['', 'c', 'c++', 'go', 'python', 'javascript', 'java', 'rust', 'typescript', 'unknown']
+    for language in languages:
+        r = requests.get("https://github.com/trending/%s?since=daily" % language)
+        if r.status_code != 200:
+            return full_names
+        soup = BeautifulSoup(r.text, "html.parser")
+        for article in soup.find_all("article"):
+            full_names.append(article.h1.a["href"][1:])
     return full_names
 
 
