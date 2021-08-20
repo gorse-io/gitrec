@@ -11,18 +11,13 @@ from gorse import Gorse
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"))
 
 
-def get_user_topics(token: str, n: int = 5):
+def get_user_topics(token: str):
     g = Github(token)
     user = g.get_user()
     # Get n latest repos
     repos = []
     for repo in user.get_repos():
-        if repo.pushed_at is not None:
-            repos.append((repo, repo.pushed_at))
-    repos = sorted(repos, key=lambda k: k[1], reverse=True)
-    if len(repos) > n:
-        repos = repos[:n]
-    repos = [v[0] for v in repos]
+        repos.append(repo)
     # Collect topics and languages
     topics_set = set()
     for repo in repos:
