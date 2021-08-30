@@ -10,7 +10,7 @@ GitRec is the missing recommender system for GitHub repositories based on [Gorse
 <img width="480px" src="assets/architecture.png">
 
 - The trending crawler crawls trending repositories and insert them into Gorse as new items.
-- The user starred crawler crawls user starred repositories and insert them into Gorse as new fewdback.
+- The user starred crawler crawls user starred repositories and insert them into Gorse as new feedback.
 - GitRec web service pulls recommendations from Gorse and show to users. It also submits a crawling request to the user starred crawler when a new user signed in.
 
 ## Quick Start
