@@ -29,7 +29,7 @@ def get_user_topics(token: str):
         except GithubException as e:
             if e.status not in {403, 451}:
                 raise e
-    return {"Labels": list(topics_set), "UserId": user.login}
+    return {"Labels": list(topics_set), "UserId": user.login.lower()}
 
 
 class GraphQLGitHub:
@@ -84,8 +84,8 @@ class GraphQLGitHub:
             stars.append(
                 {
                     "FeedbackType": "star",
-                    "UserId": user_id,
-                    "ItemId": item_id.replace("/", ":"),
+                    "UserId": user_id.lower(),
+                    "ItemId": item_id.replace("/", ":").lower(),
                     "Timestamp": timestamp,
                 }
             )

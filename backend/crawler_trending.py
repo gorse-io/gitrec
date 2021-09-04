@@ -19,7 +19,7 @@ def get_repo_info(full_name):
         if main_language not in topics:
             topics.append(main_language)
     return {
-        "ItemId": full_name.replace("/", ":"),
+        "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
         "Labels": topics,
         "Comment": repo.description,
