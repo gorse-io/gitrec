@@ -97,6 +97,7 @@ def like_repo(repo_name: str):
     if not github.authorized:
         return Response("Permission denied", status=403)
     try:
+        gorse_client.insert_feedback("read", session["user_id"], repo_name)
         return gorse_client.insert_feedback("like", session["user_id"], repo_name)
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
