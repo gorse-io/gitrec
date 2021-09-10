@@ -21,7 +21,7 @@ app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.getenv("GITHUB_OAUTH_CLIENT_SECRET
 blueprint = make_github_blueprint()
 app.register_blueprint(blueprint, url_prefix="/login")
 
-gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv('GORSE_API_KEY'))
+gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 
 @app.route("/")

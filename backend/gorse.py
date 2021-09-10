@@ -38,25 +38,40 @@ class Gorse:
         raise GorseException(r.status_code, r.text)
 
     def get_recommend(self, user_id: str, n: int = 1) -> List[str]:
-        r = requests.get(self.entry_point + "/api/recommend/%s?n=%d" % (user_id, n), headers={"X-API-Key": self.api_key})
+        r = requests.get(
+            self.entry_point + "/api/recommend/%s?n=%d" % (user_id, n),
+            headers={"X-API-Key": self.api_key},
+        )
         if r.status_code == 200:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
     def insert_feedbacks(self, feedbacks) -> Success:
-        r = requests.post(self.entry_point + "/api/feedback", headers={"X-API-Key": self.api_key}, json=feedbacks)
+        r = requests.post(
+            self.entry_point + "/api/feedback",
+            headers={"X-API-Key": self.api_key},
+            json=feedbacks,
+        )
         if r.status_code == 200:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
     def insert_item(self, item) -> Success:
-        r = requests.post(self.entry_point + "/api/item", headers={"X-API-Key": self.api_key}, json=item)
+        r = requests.post(
+            self.entry_point + "/api/item",
+            headers={"X-API-Key": self.api_key},
+            json=item,
+        )
         if r.status_code == 200:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
     def insert_user(self, user) -> Success:
-        r = requests.post(self.entry_point + "/api/user", headers={"X-API-Key": self.api_key}, json=user)
+        r = requests.post(
+            self.entry_point + "/api/user",
+            headers={"X-API-Key": self.api_key},
+            json=user,
+        )
         if r.status_code == 200:
             return r.json()
         raise GorseException(r.status_code, r.text)
