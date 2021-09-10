@@ -7,7 +7,7 @@ from github import Github
 from gorse import Gorse
 
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
-gorse_client = Gorse(os.getenv("GORSE_ADDRESS"))
+gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 
 def get_repo_info(full_name):

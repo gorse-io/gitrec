@@ -59,6 +59,7 @@ services:
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
+      GORSE_API_KEY: 19260817
       BROKER_ADDRESS: pyamqp://gorse:gorse_pass@rabbitmq/
 
   crawler_trending:
@@ -68,6 +69,7 @@ services:
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
+      GORSE_API_KEY: 19260817
       GITHUB_ACCESS_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxx
 
   web:
@@ -77,6 +79,7 @@ services:
       - 5000:5000
     environment:
       GORSE_ADDRESS: http://server:8087
+      GORSE_API_KEY: 19260817
       BROKER_ADDRESS: pyamqp://gorse:gorse_pass@rabbitmq/
       OAUTHLIB_INSECURE_TRANSPORT: "true"
       GITHUB_OAUTH_CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxxxx

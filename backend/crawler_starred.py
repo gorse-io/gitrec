@@ -8,7 +8,7 @@ from github.GithubException import *
 
 from gorse import Gorse
 
-gorse_client = Gorse(os.getenv("GORSE_ADDRESS"))
+gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 
 def get_user_topics(token: str):
