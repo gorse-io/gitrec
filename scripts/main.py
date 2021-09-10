@@ -8,7 +8,7 @@ from tqdm import tqdm
 import mysql.connector as mysql
 
 
-def get_user_topics(user_id: str, token: str, n: int=5) -> Tuple[str, List[str]]:
+def get_user_topics(user_id: str, token: str, n: int = 5) -> Tuple[str, List[str]]:
     g = Github(token)
     user = g.get_user(user_id)
     # Get n latest repos
@@ -29,19 +29,16 @@ def get_user_topics(user_id: str, token: str, n: int=5) -> Tuple[str, List[str]]
     return user.login, list(topics_set)
 
 
-
-
-
 db = mysql.connect(
     host="192.168.199.166",
     user="gorse",
     password="gorse_pass",
-    database='gorse',
+    database="gorse",
 )
 
 
-if __name__ == '__main__':
-    g = Github('6726621fbb7ca3061773452e79bd7d05072aaa4a')
+if __name__ == "__main__":
+    g = Github("6726621fbb7ca3061773452e79bd7d05072aaa4a")
     # g = Github('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')
     cursor = db.cursor()
     # while True:
@@ -49,13 +46,18 @@ if __name__ == '__main__':
     rows = cursor.fetchall()
     for row in tqdm(rows):
         try:
-            user_id, topics = get_user_topics(row[0], '6726621fbb7ca3061773452e79bd7d05072aaa4a')
+            user_id, topics = get_user_topics(
+                row[0], "6726621fbb7ca3061773452e79bd7d05072aaa4a"
+            )
             # user_id, topics = get_user_topics(row[0], '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')
-            cursor.execute('update users set labels = %s where user_id = %s', (json.dumps(topics), user_id))
+            cursor.execute(
+                "update users set labels = %s where user_id = %s",
+                (json.dumps(topics), user_id),
+            )
             db.commit()
         except RateLimitExceededException as e:
             print(e)
-            time.sleep(60*10)
+            time.sleep(60 * 10)
             continue
         except UnknownObjectException as e:
             print(row[0], type(e), e)
