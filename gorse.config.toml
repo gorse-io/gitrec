@@ -45,7 +45,7 @@ meta_timeout = 10               # cluster meta timeout (second)
 # This section declares settings for the server node.
 [server]
 default_n = 20                  # default number of returned items
-api_key = ""                    # secret key for RESTful APIs (SSL required)
+api_key = "19260817"            # secret key for RESTful APIs (SSL required)
 
 # This section declares settings for recommendation.
 [recommend]
