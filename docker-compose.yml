@@ -43,7 +43,7 @@ services:
       - ./gorse.config.toml:/etc/config.toml
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.8-management
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: gorse
