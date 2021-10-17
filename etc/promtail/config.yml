@@ -1,0 +1,29 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/log/positions.yaml # This location needs to be writeable by Promtail.
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+    - targets:
+        - localhost
+      labels:
+        job: master
+        __path__: /var/log/gorse/master.log
+    - targets:
+        - localhost
+      labels:
+        job: worker
+        __path__: /var/log/gorse/worker.log
+    - targets:
+        - localhost
+      labels:
+        job: server
+        __path__: /var/log/gorse/server.log
+
