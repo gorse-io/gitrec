@@ -17,21 +17,31 @@ services:
       MYSQL_USER: gorse
       MYSQL_PASSWORD: gorse_pass
     volumes:
-      - data:/var/lib/mysql
+      - ./var/lib/mysql:/var/lib/mysql
 
   worker:
     image: zhenghaoz/gorse-worker
     restart: unless-stopped
     ports:
       - 8089:8089
-    command: --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8089
+    command: >
+      --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8089
+      --log-path /var/log/gorse/worker.log --cache-path /var/lib/gorse/worker_cache.data
+    volumes:
+      - ./var/log/gorse:/var/log/gorse
+      - ./var/lib/gorse:/var/lib/gorse
 
   server:
     image: zhenghaoz/gorse-server
     restart: unless-stopped
     ports:
       - 8087:8087
-    command: --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8087
+    command: >
+      --master-host master --master-port 8086 --http-host 0.0.0.0 --http-port 8087
+      --log-path /var/log/gorse/server.log --cache-path /var/lib/gorse/server_cache.data
+    volumes:
+      - ./var/log/gorse:/var/log/gorse
+      - ./var/lib/gorse:/var/lib/gorse
 
   master:
     image: zhenghaoz/gorse-master
@@ -39,8 +49,44 @@ services:
     ports:
       - 8086:8086
       - 8088:8088
+    command: -c /etc/gorse/config.toml --log-path /var/log/gorse/master.log --cache-path /var/lib/gorse/master_cache.data
     volumes:
-      - ./gorse.config.toml:/etc/config.toml
+      - ./etc/gorse/config.toml:/etc/gorse/config.toml
+      - ./var/log/gorse:/var/log/gorse
+      - ./var/lib/gorse:/var/lib/gorse
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    ports:
+      - 9090:9090
+    volumes:
+      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+
+  loki:
+    image: grafana/loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - 3100:3100
+    volumes:
+      - ./etc/loki/local-config.yaml:/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    ports:
+      - 9080:9080
+    volumes:
+      - ./var/log/gorse:/var/log/gorse
+      - ./etc/promtail/config.yml:/etc/promtail/config.yml
 
   rabbitmq:
     image: rabbitmq:3.8-management
