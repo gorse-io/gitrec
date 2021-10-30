@@ -26,4 +26,9 @@ scrape_configs:
       labels:
         job: server
         __path__: /var/log/gorse/server.log
-
+    pipeline_stages:
+    - json:
+        expressions:
+          level: level
+    - labels:
+        level:
