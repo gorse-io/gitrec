@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import M from "materialize-css";
+import M from "@materializecss/materialize";
 const axios = require("axios");
 const titleDefault = "Loading...";
 const readmeDefault = `

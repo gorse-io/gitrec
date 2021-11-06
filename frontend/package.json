@@ -9,11 +9,11 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
-    "axios": "^0.21.1",
+    "@materializecss/materialize": "^1.1.0-alpha",
+    "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "github-markdown-css": "^4.0.0",
     "material-design-icons": "^3.0.1",
-    "materialize-css": "^1.0.0",
     "vue": "^2.6.11"
   },
   "devDependencies": {
