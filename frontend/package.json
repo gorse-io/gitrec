@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.3",
-    "@materializecss/materialize": "^1.1.0-alpha",
+    "@materializecss/materialize": "1.0.0",
     "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "github-markdown-css": "^4.0.0",

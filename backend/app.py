@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 
 import mistune
@@ -90,6 +91,18 @@ def get_repo():
         "forks": repo.get_forks().totalCount,
         "readme": str(soup),
     }
+
+
+@app.route("/api/favorites")
+def get_favorites():
+    if not github.authorized:
+        return Response("Permission denied", status=403)
+    user_id = session["user_id"]
+    positive_feedbacks = []
+    for feedback_type in ['star', 'like']:
+        positive_feedbacks += gorse_client.list_feedback(feedback_type, user_id)
+    positive_feedbacks = sorted(positive_feedbacks, key=lambda d: d['Timestamp'], reverse=True) 
+    return Response(json.dumps(positive_feedbacks),  mimetype='application/json')
 
 
 @app.route("/api/like/<repo_name>")

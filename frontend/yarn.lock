@@ -948,10 +948,10 @@
     cssnano-preset-default "^4.0.0"
     postcss "^7.0.0"
 
-"@materializecss/materialize@^1.1.0-alpha":
-  version "1.1.0-alpha"
-  resolved "https://registry.yarnpkg.com/@materializecss/materialize/-/materialize-1.1.0-alpha.tgz#448e742f7f4346d1dee11390a9e567545a139c49"
-  integrity sha512-dOAcIAe4L7kGtZ8V5oSxUrwHOsPGxfRwefvRk/jRcPwtZfmLoiQtS37JO0p9PTdkCj+aQmqUOzHoRhaF3TxmAg==
+"@materializecss/materialize@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@materializecss/materialize/-/materialize-1.0.0.tgz#6e45173f298a636ad538b4fa20252b135c6456ed"
+  integrity sha512-k6oLmBOw5aWzByqJz32WNMXmBclhfLrAa4h2c0znBlPlDdFc87Uy8XLkwMR7DM/H/MpjgPGcomPy6qTRtwwsEg==
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
