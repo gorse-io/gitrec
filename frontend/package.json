@@ -14,7 +14,9 @@
     "core-js": "^3.6.5",
     "github-markdown-css": "^4.0.0",
     "material-design-icons": "^3.0.1",
-    "vue": "^2.6.11"
+    "timeago.js": "^4.0.2",
+    "vue": "^2.6.11",
+    "vue-router": "^3.5.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
