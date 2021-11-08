@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 
+import emoji
 import mistune
 from bs4 import BeautifulSoup
 from dateutil import parser
@@ -89,7 +90,7 @@ def get_repo():
         "forks_url": repo.forks_url,
         "stargazers": repo.get_stargazers().totalCount,
         "forks": repo.get_forks().totalCount,
-        "readme": str(soup),
+        "readme": emoji.emojize(str(soup), use_aliases=True),
     }
 
 

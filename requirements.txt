@@ -11,6 +11,7 @@ click-plugins==1.1.1
 click-repl==0.1.6
 Deprecated==1.2.12
 docutils==0.17.1
+emoji==1.6.1
 Flask==2.0.0
 Flask-Dance==5.0.0
 gevent==21.1.2
