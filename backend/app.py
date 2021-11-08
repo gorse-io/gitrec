@@ -101,7 +101,9 @@ def get_favorites():
     user_id = session["user_id"]
     positive_feedbacks = []
     for feedback_type in ['star', 'like']:
-        positive_feedbacks += gorse_client.list_feedback(feedback_type, user_id)
+        for feedback in gorse_client.list_feedback(feedback_type, user_id):
+            feedback['ItemId'] = feedback['ItemId'].replace(":", "/")
+            positive_feedbacks.append(feedback)
     positive_feedbacks = sorted(positive_feedbacks, key=lambda d: d['Timestamp'], reverse=True) 
     return Response(json.dumps(positive_feedbacks),  mimetype='application/json')
 
