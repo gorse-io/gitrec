@@ -4,7 +4,7 @@
       <a
         v-for="feedback in feedbacks"
         :key="feedback.ItemId"
-        :href="'https://github/' + feedback.ItemId"
+        :href="'https://github.com/' + feedback.ItemId"
         target="__blank"
         class="collection-item"
       >
