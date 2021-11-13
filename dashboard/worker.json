@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 6,
+  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -37,7 +37,7 @@
       },
       "id": 6,
       "panels": [],
-      "title": "Get Scores",
+      "title": "Get Recommend",
       "type": "row"
     },
     {
@@ -93,90 +93,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
-        "y": 1
-      },
-      "id": 16,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "exemplar": true,
-          "expr": "sum(increase(gorse_cache_get_scores_seconds_count{}[10m]))",
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Get Scores Count (10 Minutes)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
         "y": 1
       },
       "id": 4,
@@ -193,28 +112,14 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_cache_get_scores_seconds_bucket{}[10m])))",
+          "expr": "sum(increase(gorse_worker_get_recommend_seconds_count{}[10m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Get Scores Latency (Quantile 0.99)",
+      "title": "Get Recommend Count (10 Minutes)",
       "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 10
-      },
-      "id": 11,
-      "panels": [],
-      "title": "Set Scores",
-      "type": "row"
     },
     {
       "datasource": "Prometheus",
@@ -269,12 +174,12 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 11
+        "x": 12,
+        "y": 1
       },
-      "id": 8,
+      "id": 28,
       "options": {
         "legend": {
           "calcs": [],
@@ -288,17 +193,46 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "sum(increase(gorse_cache_set_scores_seconds_count{}[10m]))",
+          "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_get_recommend_seconds_bucket{}[10m])))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Set Scores Count (10 Minutes)",
+      "title": "Get Recommend Latency (Quantile 0.99)",
       "type": "timeseries"
     },
     {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Collaborative Filtering Recommend",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 16,
+      "panels": [],
+      "title": "Click-through Rate Prediction",
+      "type": "row"
+    },
+    {
       "datasource": "Prometheus",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -350,9 +284,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
-        "x": 12,
+        "x": 0,
         "y": 11
       },
       "id": 17,
@@ -369,14 +303,274 @@
       "targets": [
         {
           "exemplar": true,
-          "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_cache_set_scores_seconds_bucket{}[10m])))",
+          "expr": "sum(increase(gorse_worker_ctr_recommend_seconds_count{}[10m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Set Scores Latency (Quantile 0.99)",
+      "title": "Click-through Rate Prediction Count (10 Minutes)",
       "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "id": 18,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_ctr_recommend_seconds_bucket{}[10m])))",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Click-through Rate Prediction Latency (Quantile 0.99)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 8,
+      "panels": [
+        {
+          "datasource": "Prometheus",
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 1
+          },
+          "id": 13,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum(increase(gorse_worker_user_based_recommend_seconds_count{}[10m]))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "User-based Recommend Count (10 Minutes)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 1
+          },
+          "id": 14,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_user_based_recommend_seconds_bucket{}[10m])))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "User-based Recommend Latency (Quantile 0.99)",
+          "type": "timeseries"
+        }
+      ],
+      "title": "User-based Recommend",
+      "type": "row"
     },
     {
       "collapsed": true,
@@ -387,7 +581,7 @@
         "x": 0,
         "y": 20
       },
-      "id": 13,
+      "id": 10,
       "panels": [
         {
           "datasource": "Prometheus",
@@ -442,10 +636,269 @@
             "overrides": []
           },
           "gridPos": {
-            "h": 9,
+            "h": 8,
             "w": 12,
             "x": 0,
-            "y": 4
+            "y": 1
+          },
+          "id": 11,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum(increase(gorse_worker_item_based_recommend_seconds_count{}[10m]))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Item-based Recommend Count (10 Minutes)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 1
+          },
+          "id": 12,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_item_based_recommend_seconds_bucket{}[10m])))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Item-based Recommend Latency (Quantile 0.99)",
+          "type": "timeseries"
+        }
+      ],
+      "title": "Item-based Recommend",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 26,
+      "panels": [
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 20
+          },
+          "id": 27,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum(increase(gorse_worker_load_latest_recommend_cache_seconds_count{}[10m]))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Load Latest Items Count (10 Minutes)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 20
           },
           "id": 2,
           "options": {
@@ -461,17 +914,18 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(increase(gorse_cache_append_scores_seconds_count{}[10m]))",
+              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_load_latest_recommend_cache_seconds_bucket{}[10m])))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
             }
           ],
-          "title": "Append Scores Count (10 Minutes)",
+          "title": "Load Latest Items Latency (Quantile 0.99)",
           "type": "timeseries"
         },
         {
           "datasource": "Prometheus",
+          "description": "",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -523,12 +977,12 @@
             "overrides": []
           },
           "gridPos": {
-            "h": 9,
+            "h": 8,
             "w": 12,
-            "x": 12,
-            "y": 4
+            "x": 0,
+            "y": 28
           },
-          "id": 9,
+          "id": 21,
           "options": {
             "legend": {
               "calcs": [],
@@ -542,17 +996,99 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_cache_append_scores_seconds_bucket{}[10m])))",
+              "expr": "sum(increase(gorse_worker_collaborative_recommend_seconds_count{}[10m]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
             }
           ],
-          "title": "Append Scores Latency (Quantile 0.99)",
+          "title": "Collaborative Filtering Recommend Count (10 Minutes)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": "Prometheus",
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 28
+          },
+          "id": 22,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "hidden",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_collaborative_recommend_seconds_bucket{}[10m])))",
+              "interval": "",
+              "legendFormat": "",
+              "refId": "A"
+            }
+          ],
+          "title": "Collaborative Filtering Recommend Latency (Quantile 0.99)",
           "type": "timeseries"
         }
       ],
-      "title": "Append Scores",
+      "title": "Load Latest Items",
       "type": "row"
     },
     {
@@ -562,9 +1098,9 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 22
       },
-      "id": 15,
+      "id": 24,
       "panels": [
         {
           "datasource": "Prometheus",
@@ -619,12 +1155,12 @@
             "overrides": []
           },
           "gridPos": {
-            "h": 9,
+            "h": 8,
             "w": 12,
             "x": 0,
             "y": 1
           },
-          "id": 18,
+          "id": 29,
           "options": {
             "legend": {
               "calcs": [],
@@ -638,13 +1174,13 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "sum(increase(gorse_cache_clear_scores_seconds_count{}[10m]))",
+              "expr": "sum(increase(gorse_worker_load_popular_recommend_cache_seconds_count{}[10m]))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
             }
           ],
-          "title": "Clear Scores Count (10 Minutes)",
+          "title": "Load Popular Items Count (10 Minutes)",
           "type": "timeseries"
         },
         {
@@ -700,12 +1236,12 @@
             "overrides": []
           },
           "gridPos": {
-            "h": 9,
+            "h": 8,
             "w": 12,
             "x": 12,
             "y": 1
           },
-          "id": 19,
+          "id": 30,
           "options": {
             "legend": {
               "calcs": [],
@@ -719,17 +1255,17 @@
           "targets": [
             {
               "exemplar": true,
-              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_cache_clear_scores_seconds_bucket{}[10m])))",
+              "expr": "histogram_quantile(0.99, sum by(le) (increase(gorse_worker_load_popular_recommend_cache_seconds_bucket{}[10m])))",
               "interval": "",
               "legendFormat": "",
               "refId": "A"
             }
           ],
-          "title": "Clear Scores Latency (Quantile 0.99)",
+          "title": "Load Popular Items Latency (Quantile 0.99)",
           "type": "timeseries"
         }
       ],
-      "title": "Clear Scores",
+      "title": "Load Popular Items",
       "type": "row"
     }
   ],
@@ -746,7 +1282,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Gorse Cache",
-  "uid": "IRbJCMK7z",
-  "version": 10
+  "title": "Gorse Worker",
+  "uid": "MKPFavO7z",
+  "version": 13
 }
