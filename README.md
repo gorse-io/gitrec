@@ -1,9 +1,14 @@
 # GitRec
 
+[![test](https://github.com/zhenghaoz/gitrec/actions/workflows/build_test.yml/badge.svg)](https://github.com/zhenghaoz/gitrec/actions/workflows/build_test.yml)
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fgitrec.gorse.io)](https://gitrec.gorse.io)
-[![DeepSource](https://deepsource.io/gh/zhenghaoz/gitrec.svg/?label=active+issues&token=ZnHSLOJyn5VxtqPIJ17wpVa5)](https://deepsource.io/gh/zhenghaoz/gitrec/?ref=repository-badge)
+[![Discord](https://img.shields.io/discord/830635934210588743)](https://discord.gg/x6gAtNNkAE)
+<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=lOERnxfAM2U2rj4C9Htv9T68SLIXg6uk&jump_from=webapi"><img border="0" src="https://pub.idqqimg.com/wpa/images/group.png" alt="Gorse推荐系统交流群" title="Gorse推荐系统交流群"></a>
+[![Twitter Follow](https://img.shields.io/twitter/follow/gorse_io?label=Follow&style=social)](https://twitter.com/gorse_io)
 
 GitRec is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
+
+![](assets/gitrec.png)
 
 ## Architecture
 
@@ -59,7 +64,9 @@ docker-compose restart
 | Entry                     | Link                          |
 | ------------------------- | ----------------------------- |
 | GitRec                    | http://127.0.0.1:5000/        |
+| Grafana Dashboard         | http://127.0.0.1:3000/        |
 | Master Dashboard          | http://127.0.0.1:8088/        |
+| Master Prometheus Metrics | http://127.0.0.1:8088/metrics |
 | Server RESTful API        | http://127.0.0.1:8087/apidocs |
 | Server Prometheus Metrics | http://127.0.0.1:8087/metrics |
 | Worker Prometheus Metrics | http://127.0.0.1:8089/metrics |

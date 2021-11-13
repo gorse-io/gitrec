@@ -68,6 +68,8 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
 
   loki:
     image: grafana/loki
@@ -133,4 +135,4 @@ services:
       SECRET_KEY: xxxxxxxxxxxxxxxxxxxxxxxxx
 
 volumes:
-  data:
+  grafana-storage:
