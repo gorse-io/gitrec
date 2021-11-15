@@ -50,7 +50,7 @@ docker-compose up -d
 - Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import to the MySQL instance.
 
 ```bash
-mysql -h 127.0.0.1 -u root -proot_pass gorse < github.sql
+mysql -h 127.0.0.1 -u gorse -pgorse_pass gorse < github.sql
 ```
 
 - Restart the master node to apply imported data.
