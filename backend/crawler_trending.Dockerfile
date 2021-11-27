@@ -1,6 +1,6 @@
 FROM python
 
-RUN pip3 install requests PyGithub beautifulsoup4
+RUN pip3 install requests PyGithub beautifulsoup4 language_detector
 
 COPY crawler_trending.py crawler_trending.py
 

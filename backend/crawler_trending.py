@@ -3,6 +3,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from github import Github
+from language_detector import detect_language
 
 from gorse import Gorse
 
@@ -12,16 +13,26 @@ gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 def get_repo_info(full_name):
     repo = github_client.get_repo(full_name)
-    topics = [topic for topic in repo.get_topics()]
+    # Fetch labels.
+    labels = [topic for topic in repo.get_topics()]
     languages = list(repo.get_languages().items())
     if len(languages) > 0:
         main_language = languages[0][0].lower()
-        if main_language not in topics:
-            topics.append(main_language)
+        if main_language not in labels:
+            labels.append(main_language)
+    # Fetch categories.
+    categories = []
+    readme = repo.get_readme().decoded_content.decode("utf-8")
+    spoken_language = detect_language(readme)
+    if spoken_language == "Mandarin":
+        categories.append("language:zh")
+    elif spoken_language == "English":
+        categories.append("language:en")
     return {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
-        "Labels": topics,
+        "Labels": labels,
+        "Categories": categories,
         "Comment": repo.description,
     }
 
@@ -39,9 +50,10 @@ def get_trending():
         "rust",
         "typescript",
         "unknown",
+        "?spoken_language_code=zh",
     ]
     for language in languages:
-        r = requests.get("https://github.com/trending/%s?since=daily" % language)
+        r = requests.get("https://github.com/trending/%s" % language)
         if r.status_code != 200:
             return full_names
         soup = BeautifulSoup(r.text, "html.parser")
