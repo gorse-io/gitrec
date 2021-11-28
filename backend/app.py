@@ -76,6 +76,7 @@ def get_repo(category: str = ""):
                 a.attrs["href"] = (
                     repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
+    blob_url = repo.html_url + '/blob/'
     for img in soup.find_all("img"):
         # redirect links to github
         src = img.attrs["src"]
@@ -83,6 +84,8 @@ def get_repo(category: str = ""):
             if src.startswith("./"):
                 src = src[2:]
             img.attrs["src"] = repo.html_url + "/raw/" + repo.default_branch + "/" + src
+        elif src.startswith(blob_url):
+            img.attrs["src"] = repo.html_url + '/raw/' + src[len(blob_url):]
     return {
         "item_id": repo_id,
         "full_name": repo.full_name,
