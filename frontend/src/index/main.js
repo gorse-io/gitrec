@@ -15,11 +15,12 @@ import Favorites from "./views/Favorites.vue";
 
 const routes = [
   { path: '/', component: Home },
-  { path: '/favorites', component: Favorites }
+  { path: '/favorites', component: Favorites },
+  { path: '/category/:category', component: Home }
 ]
 
 const router = new VueRouter({
-  routes 
+  routes
 })
 
 new Vue({

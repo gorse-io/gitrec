@@ -44,9 +44,9 @@ class Gorse:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
-    def get_recommend(self, user_id: str, n: int = 1) -> List[str]:
+    def get_recommend(self, user_id: str, category: str = "", n: int = 1) -> List[str]:
         r = requests.get(
-            self.entry_point + "/api/recommend/%s?n=%d" % (user_id, n),
+            self.entry_point + "/api/recommend/%s/%s?n=%d" % (user_id, category, n),
             headers={"X-API-Key": self.api_key},
         )
         if r.status_code == 200:

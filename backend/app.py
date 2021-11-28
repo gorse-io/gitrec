@@ -50,10 +50,11 @@ def login():
 
 
 @app.route("/api/repo")
-def get_repo():
+@app.route("/api/repo/<category>")
+def get_repo(category: str = ""):
     if not github.authorized:
         return Response("Permission denied", status=403)
-    repo_id = gorse_client.get_recommend(session["user_id"])[0]
+    repo_id = gorse_client.get_recommend(session["user_id"], category)[0]
     full_name = repo_id.replace(":", "/")
     github_client = Github(github.token["access_token"])
     repo = github_client.get_repo(full_name)

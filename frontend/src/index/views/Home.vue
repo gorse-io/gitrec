@@ -24,7 +24,7 @@
           </li>
           <li class="waves-effect waves-light">
             <a @click="like"
-              ><i class="material-icons" :class="[iconColoer]">favorite</i></a
+              ><i class="material-icons" :class="[iconColor]">favorite</i></a
             >
           </li>
           <li class="waves-effect waves-light">
@@ -72,15 +72,40 @@ export default {
       readme: readmeDefault,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
+      category: "",
     };
+  },
+  watch: {
+    $route() {
+      if (this.$route.params.category != null) {
+        this.category = "/" + this.$route.params.category;
+      } else {
+        this.category = "";
+      }
+      this.clearRepository();
+      this.recommend();
+    },
+  },
+  created() {
+    if (this.$route.params.category != null) {
+      this.category = "/" + this.$route.params.category;
+    } else {
+      this.category = "";
+    }
+    this.clearRepository();
   },
   mounted() {
     M.AutoInit();
-    axios.get("/api/repo", { withCredentials: true }).then((response) => {
-      this.setRepository(response.data);
-    });
+    this.recommend();
   },
   methods: {
+    recommend() {
+      axios
+        .get("/api/repo" + this.category, { withCredentials: true })
+        .then((response) => {
+          this.setRepository(response.data);
+        });
+    },
     setRepository(repo) {
       this.$emit("setTitle", repo.full_name);
       this.item_id = repo.item_id;
@@ -89,11 +114,18 @@ export default {
       this.stargazers = repo.stargazers;
       this.forks = repo.forks;
     },
+    clearRepository() {
+      this.$emit("setTitle", titleDefault);
+      this.readme = readmeDefault;
+      this.stargazers = 0;
+      this.forks = 0;
+      this.iconColor = null;
+    },
     like() {
       axios
         .get("/api/like/" + this.item_id, { withCredentials: true })
         .then(() => {
-          this.iconColoer = "red-icon";
+          this.iconColor = "red-icon";
         });
     },
     next() {
@@ -101,14 +133,12 @@ export default {
         .get("/api/read/" + this.item_id, { withCredentials: true })
         .then(() => {
           // load next repo
-          this.title = titleDefault;
-          this.readme = readmeDefault;
-          (this.iconColoer = null),
-            axios
-              .get("/api/repo", { withCredentials: true })
-              .then((response) => {
-                this.setRepository(response.data);
-              });
+          this.clearRepository();
+          axios
+            .get("/api/repo" + this.category, { withCredentials: true })
+            .then((response) => {
+              this.setRepository(response.data);
+            });
         });
     },
   },
