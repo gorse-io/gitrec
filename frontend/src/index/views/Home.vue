@@ -61,7 +61,7 @@ const readmeDefault = `
 export default {
   data() {
     return {
-      iconColoer: null,
+      iconColor: null,
       item_id: null,
       title: titleDefault,
       html_url: null,
