@@ -26,6 +26,12 @@ app.register_blueprint(blueprint, url_prefix="/login")
 gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 
+@app.after_request
+def set_headers(response):
+    response.headers["Referrer-Policy"] = 'no-referrer'
+    return response
+
+
 @app.route("/")
 def index():
     if not github.authorized:
