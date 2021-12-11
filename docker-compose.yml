@@ -20,7 +20,7 @@ services:
       - ./var/lib/mysql:/var/lib/mysql
 
   worker:
-    image: zhenghaoz/gorse-worker
+    image: zhenghaoz/gorse-worker:v0.3.0
     restart: unless-stopped
     ports:
       - 8089:8089
@@ -32,7 +32,7 @@ services:
       - ./var/lib/gorse:/var/lib/gorse
 
   server:
-    image: zhenghaoz/gorse-server
+    image: zhenghaoz/gorse-server:v0.3.0
     restart: unless-stopped
     ports:
       - 8087:8087
@@ -44,7 +44,7 @@ services:
       - ./var/lib/gorse:/var/lib/gorse
 
   master:
-    image: zhenghaoz/gorse-master
+    image: zhenghaoz/gorse-master:v0.3.0
     restart: unless-stopped
     ports:
       - 8086:8086
