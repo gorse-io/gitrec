@@ -1,10 +1,10 @@
 version: "3"
 services:
   redis:
-    image: redis
+    image: zhenghaoz/pika
     restart: unless-stopped
     ports:
-      - 6379:6379
+      - 9221:9221
 
   mysql:
     image: mysql/mysql-server
