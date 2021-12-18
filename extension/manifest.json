@@ -1,0 +1,33 @@
+{
+    "name": "GitRec",
+    "description": "A recommender system for GitHub repositories based on Gorse",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://gitrec.gorse.io/*"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "306": "logo.png"
+        }
+    },
+    "icons": {
+        "306": "logo.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://github.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ]
+}
