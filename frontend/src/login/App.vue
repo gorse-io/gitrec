@@ -9,7 +9,7 @@
     </div>
     <div class="container sign-in-body">
       <p class="center-align">
-        <img src="surftocat.png" width="256px" />
+        <img src="logo.png" width="256px" />
       </p>
       <h5 class="center-align">
         Explore <a href="https://github.com" target="_blank">GitHub</a> with
