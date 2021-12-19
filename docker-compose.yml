@@ -72,7 +72,7 @@ services:
       - grafana-storage:/var/lib/grafana
 
   loki:
-    image: grafana/loki
+    image: grafana/loki:2.3.0
     restart: unless-stopped
     command: -config.file=/etc/loki/local-config.yaml
     ports:
