@@ -13,7 +13,7 @@ cache_store = "redis://redis:9221"
 data_store = "mysql://gorse:gorse_pass@tcp(mysql:3306)/gorse?parseTime=true"
 
 # The cache size for recommended/popular/latest items. The default value is 100.
-cache_size = 200
+cache_size = 100
 
 # Insert new users while inserting feedback. The default value is true.
 auto_insert_user = true
@@ -68,12 +68,15 @@ search_trials = 10
 # The time period to refresh recommendation for inactive users (days). The default values is 5.
 refresh_recommend_period = 1
 
-# The fallback recommendation method for cold-start users:
+# The fallback recommendation method is used when cached recommendation drained out:
 #   item_based: Recommend similar items to cold-start users.
 #   popular: Recommend popular items to cold-start users.
 #   latest: Recommend latest items to cold-start users.
-# The default values is ["latest"].
+# Recommenders are used in order. The default values is ["latest"].
 fallback_recommend = ["item_based", "latest"]
+
+# The number of feedback used in fallback item-based similar recommendation. The default values is 10.
+num_feedback_fallback_item_based = 20
 
 # The type of neighbors for items. There are three types:
 #   similar: Neighbors are found by number of common labels.
@@ -83,6 +86,15 @@ fallback_recommend = ["item_based", "latest"]
 # The default values is "auto".
 item_neighbor_type = "similar"
 
+# Enable approximate item neighbor searching using vector index.
+enable_item_neighbor_index = true
+
+# Minimal recall for approximate item neighbor searching.
+item_neighbor_index_recall = 0.8
+
+# Maximal number of fit epochs for approximate item neighbor searching vector index.
+item_neighbor_index_fit_epoch = 3
+
 # The type of neighbors for users. There are three types:
 #   similar: Neighbors are found by number of common labels.
 #   related: Neighbors are found by number of common liked items.
@@ -90,6 +102,15 @@ item_neighbor_type = "similar"
 #         If this user have no labels, neighbors are found by number of common liked items.
 # The default values is "auto".
 user_neighbor_type = "similar"
+
+# Enable approximate user neighbor searching using vector index.
+enable_user_neighbor_index = true
+
+# Minimal recall for approximate user neighbor searching.
+user_neighbor_index_recall = 0.8
+
+# Maximal number of fit epochs for approximate user neighbor searching vector index.
+user_neighbor_index_fit_epoch = 3
 
 # Enable latest recommendation during offline recommendation. The default values is false.
 enable_latest_recommend = true
@@ -105,6 +126,15 @@ enable_item_based_recommend = false
 
 # Enable collaborative filtering recommendation during offline recommendation. The default values is true.
 enable_collaborative_recommend = true
+
+# Enable approximate collaborative filtering recommend using vector index.
+enable_collaborative_index = true
+
+# Minimal recall for approximate collaborative filtering recommend.
+collaborative_index_recall = 0.9
+
+# Maximal number of fit epochs for approximate collaborative filtering recommend vector index.
+collaborative_index_fit_epoch = 3
 
 # Enable click-though rate prediction during offline recommendation. Otherwise, results from multi-way recommendation
 # would be merged randomly. The default values is true.
