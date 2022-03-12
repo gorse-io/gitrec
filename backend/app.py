@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from datetime import datetime
 
 import emoji
@@ -9,19 +10,35 @@ from dateutil import parser
 from docutils.core import publish_parts
 from flask import Flask, Response, session, redirect
 from flask_dance.contrib.github import make_github_blueprint, github
+from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
+from flask_sqlalchemy import SQLAlchemy
 from github import Github
+from github.GithubException import UnknownObjectException
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import gorse
 from crawler_starred import pull
+
+# create flask app
 
 app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["GITHUB_OAUTH_CLIENT_ID"] = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
+
+# register blueprint
+
+db = SQLAlchemy()
+
+class OAuth(OAuthConsumerMixin, db.Model):
+    pass
+
 blueprint = make_github_blueprint()
+blueprint.backend = SQLAlchemyStorage(OAuth, db.session)
 app.register_blueprint(blueprint, url_prefix="/login")
+
+# create Gorse client
 
 gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
@@ -60,10 +77,16 @@ def login():
 def get_repo(category: str = ""):
     if not github.authorized:
         return Response("Permission denied", status=403)
-    repo_id = gorse_client.get_recommend(session["user_id"], category)[0]
-    full_name = repo_id.replace(":", "/")
-    github_client = Github(github.token["access_token"])
-    repo = github_client.get_repo(full_name)
+    for _ in range(2):
+        try:
+            repo_id = gorse_client.get_recommend(session["user_id"], category)[0]
+            full_name = repo_id.replace(":", "/")
+            github_client = Github(github.token["access_token"])
+            repo = github_client.get_repo(full_name)
+            break
+        except UnknownObjectException:
+            logging.warn('repo %s not found' % repo_id)
+            gorse_client.delete_item(repo_id)
     # convert readme to html
     download_url = repo.get_readme().download_url.lower()
     content = repo.get_readme().decoded_content.decode("utf-8")

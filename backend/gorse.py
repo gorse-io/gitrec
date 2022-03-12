@@ -73,6 +73,15 @@ class Gorse:
             return r.json()
         raise GorseException(r.status_code, r.text)
 
+    def delete_item(self, item_id) -> Success:
+        r = requests.delete(
+            self.entry_point + "/api/item/%s" % item_id,
+            headers={"X-API-Key": self.api_key},
+        )
+        if r.status_code == 200:
+            return r.json()
+        raise GorseException(r.status_code, r.text)
+
     def insert_user(self, user) -> Success:
         r = requests.post(
             self.entry_point + "/api/user",
