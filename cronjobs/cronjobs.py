@@ -3,9 +3,9 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from github import Github
+from gorse import Gorse
 from language_detector import detect_language
 
-from gorse import Gorse
 
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
@@ -64,7 +64,12 @@ def get_trending():
 
 if __name__ == "__main__":
     print("start pull trending repos")
+    trending_count = 0
     trending_repos = get_trending()
     for trending_repo in trending_repos:
-        gorse_client.insert_item(get_repo_info(trending_repo))
-    print("insert %d items" % len(trending_repos))
+        try:
+            gorse_client.insert_item(get_repo_info(trending_repo))
+            trending_count += 1
+        except:
+            print('failed to pull repo: %s' % trending_repo)
+    print("insert %d repos" % trending_count)

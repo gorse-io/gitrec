@@ -15,9 +15,8 @@ from flask_sqlalchemy import SQLAlchemy
 from github import Github
 from github.GithubException import UnknownObjectException
 from werkzeug.middleware.proxy_fix import ProxyFix
-
 import gorse
-from crawler_starred import pull
+from jobs.jobs import pull
 
 # create flask app
 
