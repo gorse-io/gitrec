@@ -5,10 +5,6 @@ celery==5.2.2
 certifi==2020.12.5
 cffi==1.14.5
 chardet==4.0.0
-click==7.1.2
-click-didyoumean==0.0.3
-click-plugins==1.1.1
-click-repl==0.1.6
 Deprecated==1.2.12
 docutils==0.17.1
 emoji==1.6.1
