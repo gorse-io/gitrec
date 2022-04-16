@@ -1,37 +1,38 @@
 // Get repo name
 const splits = location.pathname.split('/');
 if (splits.length === 3) {
-  fetch('https://gitrec.gorse.io/api/neighbors/' + splits[1] + ':' + splits[2]).then(r => r.json()).then(result => {
-    showSimilar(result);
-  })
-} else if (splits.length === 2) {
-  const login = document.querySelector('meta[name=\'user-login\']').content;
-  fetch('https://api.github.com/users/' + login + '/starred?per_page=10').then(r => r.json()).then(result => {
-    let repoNames = result.map((value) => {
-      return value.full_name.replace('/', ':');
+    fetch('https://gitrec.gorse.io/api/neighbors/' + splits[1] + ':' + splits[2]).then(r => r.json()).then(result => {
+        showSimilar(result);
     })
-    showRecommend(repoNames)
-  })
+} else if (splits.length === 2) {
+    const login = document.querySelector('meta[name=\'user-login\']').content;
+    fetch('https://api.github.com/users/' + login + '/starred?per_page=10').then(r => r.json()).then(result => {
+        let repoNames = result.map((value) => {
+            return value.full_name.replace('/', ':');
+        })
+        showRecommend(repoNames)
+    })
 }
 
 async function showSimilar(repositories) {
-  // Create promises
-  let responses = [];
-  for (const repository of repositories) {
-    const name = repository.Id.replace(':', '/');
-    responses.push(getRepo(name));
-  }
-  Promise.all(responses).then((res) => {
-    let template = "";
-    if (res.length > 0) {
-      for (const info of res) {
-        template += `<div class="py-2 my-2 color-border-muted">
+    // Create promises
+    let responses = [];
+    for (const repository of repositories) {
+        const name = repository.Id.replace(':', '/');
+        responses.push(getRepo(name));
+    }
+    Promise.all(responses).then((res) => {
+        let template = "";
+        if (res.length > 0) {
+            for (const info of res) {
+                template += `<div class="py-2 my-2 color-border-muted">
         <a class="f6 text-bold Link--primary d-flex no-underline wb-break-all d-inline-block" href="/` + info['full_name'] + `">` + info['full_name'] + `</a>
         <p class="f6 color-fg-muted mb-2" itemprop="description">
           ` + info['description'] + `
         </p>
           <span class="mr-2 f6 color-fg-muted text-normal">
             <span class="">
+                <span class="repo-language-color" style="background-color: ` + getColor(info['language']) + `"></span>
               <span itemprop="programmingLanguage">` + info['language'] + `</span>
             </span>
           </span>
@@ -42,42 +43,43 @@ async function showSimilar(repositories) {
             ` + info['stargazers_count'] + `
           </span>
         </div>`
-      }
-    } else {
-      template = '<div class="text-small color-fg-muted">No similar repositories found</div>'
-    }
-    template = `<div class="BorderGrid-row"><div class="BorderGrid-cell"><h2 class="h4 mb-3">Similar repositories</h2>` + template + `</div></div>`;
-    const fragment = document.createRange().createContextualFragment(template);
-    const borderGrid = document.querySelector('.BorderGrid');
-    borderGrid.appendChild(fragment.firstChild);
-  })
+            }
+        } else {
+            template = '<div class="text-small color-fg-muted">No similar repositories found</div>'
+        }
+        template = `<div class="BorderGrid-row"><div class="BorderGrid-cell"><h2 class="h4 mb-3">Similar repositories</h2>` + template + `</div></div>`;
+        const fragment = document.createRange().createContextualFragment(template);
+        const borderGrid = document.querySelector('.BorderGrid');
+        borderGrid.appendChild(fragment.firstChild);
+    })
 }
 
 async function showRecommend(repoNames) {
-  console.log(repoNames)
-  fetch('https://gitrec.gorse.io/api/session/recommend', {
-    method: 'POST',
-    body: JSON.stringify(repoNames),
-  }).then(r => r.json()).then(result => {
-    let responses = [];
-    for (const repository of result) {
-      const name = repository.Id.replace(':', '/');
-      responses.push(getRepo(name));
-    }
-    Promise.all(responses).then((res) => {
-      let template = `<h2 class="f5 text-bold mb-1">Recommended repositories</h2>`;
-      const fragment = document.createRange().createContextualFragment(template);
-      const teamLeftColumn = document.querySelector('.team-left-column.col-md-3.col-lg-4.mt-5.hide-lg.hide-md.hide-sm.border-bottom');
-      teamLeftColumn.appendChild(fragment.firstChild);
-      if (res.length > 0) {
-        for (const info of res) {
-          template = `<div class="py-2 my-2 border-bottom color-border-muted">
+    console.log(repoNames)
+    fetch('https://gitrec.gorse.io/api/session/recommend', {
+        method: 'POST',
+        body: JSON.stringify(repoNames),
+    }).then(r => r.json()).then(result => {
+        let responses = [];
+        for (const repository of result) {
+            const name = repository.Id.replace(':', '/');
+            responses.push(getRepo(name));
+        }
+        Promise.all(responses).then((res) => {
+            let template = `<h2 class="f5 text-bold mb-1">Recommended repositories</h2>`;
+            const fragment = document.createRange().createContextualFragment(template);
+            const teamLeftColumn = document.querySelector('.team-left-column.col-md-3.col-lg-4.mt-5.hide-lg.hide-md.hide-sm.border-bottom');
+            teamLeftColumn.appendChild(fragment.firstChild);
+            if (res.length > 0) {
+                for (const info of res) {
+                    template = `<div class="py-2 my-2 border-bottom color-border-muted">
               <a class="f6 text-bold Link--primary d-flex no-underline wb-break-all d-inline-block" href="/` + info['full_name'] + `">` + info['full_name'] + `</a>
               <p class="f6 color-fg-muted mb-2" itemprop="description">
                     ` + info['description'] + `
               </p>
               <span class="mr-2 f6 color-fg-muted text-normal">
                 <span class="">
+                  <span class="repo-language-color" style="background-color: ` + getColor(info['language']) + `"></span>
                     <span itemprop="programmingLanguage">` + info['language'] + `</span>
                 </span>
               </span>
@@ -88,16 +90,16 @@ async function showRecommend(repoNames) {
                   ` + info['stargazers_count'] + `
               </span>
             </div>`
-          const fragment = document.createRange().createContextualFragment(template);
-          teamLeftColumn.appendChild(fragment.firstChild);
-        }
-      }
+                    const fragment = document.createRange().createContextualFragment(template);
+                    teamLeftColumn.appendChild(fragment.firstChild);
+                }
+            }
+        })
     })
-  })
 }
 
 async function getRepo(name) {
-  const url = "https://api.github.com/repos/" + name
-  let response = await fetch(url);
-  return await response.json();
+    const url = "https://api.github.com/repos/" + name
+    let response = await fetch(url);
+    return await response.json();
 }

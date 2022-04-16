@@ -26,6 +26,7 @@
                 "*://github.com/*"
             ],
             "js": [
+                "colors.js",
                 "content.js"
             ],
             "run_at": "document_end"
