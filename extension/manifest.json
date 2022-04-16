@@ -5,7 +5,8 @@
     "manifest_version": 3,
     "permissions": [
         "activeTab",
-        "scripting"
+        "scripting",
+        "storage"
     ],
     "host_permissions": [
         "https://gitrec.gorse.io/*"
