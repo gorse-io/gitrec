@@ -70,6 +70,6 @@ if __name__ == "__main__":
         try:
             gorse_client.insert_item(get_repo_info(trending_repo))
             trending_count += 1
-        except:
-            print('failed to pull repo: %s' % trending_repo)
+        except Exception as e:
+            print('failed to pull repo: %s, %s' % (trending_repo, e))
     print("insert %d repos" % trending_count)

@@ -5,6 +5,7 @@ import requests
 from celery import Celery
 from github import Github
 from github.GithubException import *
+from language_detector import detect_language
 
 from gorse import Gorse
 
@@ -92,7 +93,36 @@ class GraphQLGitHub:
         return stars
 
 
-app = Celery("crawler_starred", broker=os.getenv("BROKER_ADDRESS"))
+def get_repo_info(token: str, full_name: str):
+    g = Github(token)
+    repo = g.get_repo(full_name)
+    if repo.stargazers_count < 100:
+        return None
+    # Fetch labels.
+    labels = [topic for topic in repo.get_topics()]
+    languages = list(repo.get_languages().items())
+    if len(languages) > 0:
+        main_language = languages[0][0].lower()
+        if main_language not in labels:
+            labels.append(main_language)
+    # Fetch categories.
+    categories = []
+    readme = repo.get_readme().decoded_content.decode("utf-8")
+    spoken_language = detect_language(readme)
+    if spoken_language == "Mandarin":
+        categories.append("language:zh")
+    elif spoken_language == "English":
+        categories.append("language:en")
+    return {
+        "ItemId": full_name.replace("/", ":").lower(),
+        "Timestamp": str(repo.updated_at),
+        "Labels": labels,
+        "Categories": categories,
+        "Comment": repo.description,
+    }
+
+
+app = Celery("jobs", broker=os.getenv("BROKER_ADDRESS"))
 
 
 @app.task
@@ -100,11 +130,24 @@ def pull(token: str):
     # Pull user labels
     user = get_user_topics(token)
     gorse_client.insert_user(user)
+    print('insert user `%s` with %d labels' % (user["UserId"], len(user["Labels"])))
     # Pull user starred repos
     g = GraphQLGitHub(token)
     stars = g.get_viewer_starred()
+    stars.reverse()
+    # Pull items
+    item_count, pull_count = 0, 0
+    for feedback in stars:
+        if pull_count > 100:
+            break
+        item_id = feedback['ItemId']
+        full_name = item_id.replace(':', '/')
+        item = get_repo_info(token, full_name)
+        if item is not None:
+            gorse_client.insert_item(item)
+            item_count += 1
+        pull_count += 1
+    print("insert %d items from user `%s`" % (item_count, user["UserId"]))
+    # Insert feedback
     gorse_client.insert_feedbacks(stars)
-    print(
-        "insert %d feedback and %d user labels from %s"
-        % (len(stars), len(user["Labels"]), user["UserId"])
-    )
+    print("insert %d feedback from user `%s`" % (len(stars), user["UserId"]))

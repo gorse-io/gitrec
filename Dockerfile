@@ -12,6 +12,7 @@ RUN yarn install && yarn build
 FROM python:3.9
 
 # Install packages
+RUN apt-get update && apt-get install -y python3-dev default-libmysqlclient-dev build-essential
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
@@ -20,7 +21,7 @@ COPY --from=0 /frontend/dist /frontend/dist
 
 # Copy backend
 COPY app.py app.py
-COPY jobs/jobs.py jobs/jobs.py
+COPY jobs jobs
 COPY gunicorn.conf.py gunicorn.conf.py
 
 # Start gitrec

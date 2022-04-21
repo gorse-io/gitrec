@@ -115,7 +115,7 @@ index_recall = 0.9
 index_fit_epoch = 3
 
 # The time period for model fitting. The default value is "60m".
-model_fit_period = "60m"
+model_fit_period = "10m"
 
 # The time period for model searching. The default value is "360m".
 model_search_period = "360m"

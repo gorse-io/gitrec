@@ -6,6 +6,14 @@ services:
     ports:
       - 6379:6379
 
+  redis_exporter:
+    image: oliver006/redis_exporter
+    restart: unless-stopped
+    ports:
+      - 9121:9121
+    environment:
+      REDIS_ADDR: redis://redis:6379
+
   mysql:
     image: mysql/mysql-server
     restart: unless-stopped
@@ -19,6 +27,14 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  mysqld-exporter:
+    image: prom/mysqld-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: gorse:gorse_pass@(mysql:3306)/
+    ports:
+      - 9104:9104
+
   worker:
     image: zhenghaoz/gorse-worker:0.4
     restart: unless-stopped
@@ -30,7 +46,7 @@ services:
       --log-path /var/log/gorse/worker.log 
       --cache-path /var/lib/gorse/worker_cache.data
     volumes:
-      - gorse_log:/var/log/gorse
+      - log_data:/var/log/gorse
       - worker_data:/var/lib/gorse
     depends_on:
       - master
@@ -49,7 +65,7 @@ services:
       --log-path /var/log/gorse/server.log 
       --cache-path /var/lib/gorse/server_cache.data
     volumes:
-      - gorse_log:/var/log/gorse
+      - log_data:/var/log/gorse
       - server_data:/var/lib/gorse
     depends_on:
       - master
@@ -68,8 +84,8 @@ services:
       --log-path /var/log/gorse/master.log 
       --cache-path /var/lib/gorse/master_cache.data
     volumes:
-      - ./etc/gorse/config.toml:/etc/gorse/config.toml
-      - gorse_log:/var/log/gorse
+      - ./config.toml:/etc/gorse/config.toml
+      - log_data:/var/log/gorse
       - master_data:/var/lib/gorse
     depends_on:
       - redis
@@ -147,5 +163,6 @@ volumes:
   worker_data:
   server_data:
   master_data:
-  gorse_log:
-  grafana-storage:
+  log_data:
+  prometheus_data:
+  grafana_data:
