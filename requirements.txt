@@ -16,3 +16,5 @@ PyGithub==1.55
 PyGorse>=0.4.1
 python-dateutil==2.8.1
 redis==4.2.2
+requests~=2.27.1
+werkzeug~=2.0.3

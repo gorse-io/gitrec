@@ -1,27 +1,25 @@
-import os
 import json
 import logging
-from datetime import datetime
-from typing import List
+import os
 import sys
+from datetime import datetime
 
 import emoji
+import gorse
 import mistune
 from bs4 import BeautifulSoup
 from dateutil import parser
 from docutils.core import publish_parts
 from flask import Flask, Response, session, redirect, request
 from flask_cors import CORS
-from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
+from flask_dance.contrib.github import make_github_blueprint, github
 from flask_sqlalchemy import SQLAlchemy
 from github import Github
 from github.GithubException import UnknownObjectException
 from werkzeug.middleware.proxy_fix import ProxyFix
-import gorse
 
 from jobs import pull
-
 
 # create flask app
 app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
@@ -45,7 +43,7 @@ app.config["GITHUB_OAUTH_CLIENT_ID"] = os.getenv("GITHUB_OAUTH_CLIENT_ID")
 app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.getenv("GITHUB_OAUTH_CLIENT_SECRET")
 app.register_blueprint(blueprint, url_prefix="/login")
 
-# cross origin resource sharing
+# cross-origin resource sharing
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # create gorse client
@@ -69,8 +67,8 @@ def index():
         session["user_id"] = resp.json()["login"]
     # pull starred
     if (
-        "last_pull" not in session
-        or (parser.parse(session["last_pull"]) - datetime.now()).days >= 1
+            "last_pull" not in session
+            or (parser.parse(session["last_pull"]) - datetime.now()).days >= 1
     ):
         pull.delay(github.token["access_token"])
         session["last_pull"] = str(datetime.now())
@@ -113,7 +111,7 @@ def get_repo(category: str = ""):
             src = a.attrs["href"]
             if not src.startswith("http://") and not src.startswith("https://"):
                 a.attrs["href"] = (
-                    repo.html_url + "/blob/" + repo.default_branch + "/" + src
+                        repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
     blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
@@ -124,7 +122,7 @@ def get_repo(category: str = ""):
                 src = src[2:]
             img.attrs["src"] = repo.html_url + "/raw/" + repo.default_branch + "/" + src
         elif src.startswith(blob_url):
-            img.attrs["src"] = repo.html_url + "/raw/" + src[len(blob_url) :]
+            img.attrs["src"] = repo.html_url + "/raw/" + src[len(blob_url):]
     return {
         "item_id": repo_id,
         "full_name": repo.full_name,
