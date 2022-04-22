@@ -12,13 +12,33 @@ GitRec is the missing recommender system for GitHub repositories based on [Gorse
 
 ![](assets/gitrec.png)
 
+## Browser Extensions
+
+<table>
+  <tbody>
+    <tr>
+      <td>
+        <a href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl" target="_blank">
+          <img src="https://i.loli.net/2021/04/23/IqpU7COKQvzrcyG.png" />
+        </a>
+      </td>
+    <td>
+      <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">
+        <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png" />
+      </a>
+    </td>
+    </tr>
+  </tbody>
+</table>
+
 ## Architecture
 
 <img width="480px" src="assets/architecture.png">
 
 - The trending crawler crawls trending repositories and insert them into Gorse as new items.
 - The user starred crawler crawls user starred repositories and insert them into Gorse as new feedback.
-- GitRec web service pulls recommendations from Gorse and show to users. It also submits a crawling request to the user starred crawler when a new user signed in.
+- GitRec web service pulls recommendations from Gorse and show to users. It also submits a crawling request to the user
+  starred crawler when a new user signed in.
 
 ## Quick Start
 
@@ -29,13 +49,16 @@ git clone https://github.com/zhenghaoz/gitrec.git
 cd gitrec
 ```
 
-- Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN` variable in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
+- Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
+  variable in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
 
 ```yaml
 GITHUB_ACCESS_TOKEN: # personal access token
 ```
 
-- Create a [GitHub OAuth app](https://github.com/settings/developers). The authorization callback URL should be `http://127.0.0.1:5000/login/github/authorized`. Then, fill following variables in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
+- Create a [GitHub OAuth app](https://github.com/settings/developers). The authorization callback URL should
+  be `http://127.0.0.1:5000/login/github/authorized`. Then, fill following variables
+  in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
 
 ```yaml
 GITHUB_OAUTH_CLIENT_ID: # client ID

@@ -1,13 +1,9 @@
 {
     "name": "GitRec",
     "description": "A recommender system for GitHub repositories based on Gorse",
-    "version": "1.0",
+    "version": "0.2",
     "manifest_version": 3,
-    "permissions": [
-        "activeTab",
-        "scripting",
-        "storage"
-    ],
+    "permissions": [],
     "host_permissions": [
         "https://gitrec.gorse.io/*"
     ],
