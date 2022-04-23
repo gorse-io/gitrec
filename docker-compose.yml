@@ -114,15 +114,27 @@ services:
     image: prom/prometheus
     restart: unless-stopped
     volumes:
-      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    expose:
+      - 9090
 
   grafana:
     image: grafana/grafana:8.4.6
     restart: unless-stopped
+    environment:
+      PROMETHEUS_HOST: prometheus
+      PROMETHEUS_PORT: 9090
+      LOKI_HOST: loki
+      LOKI_PORT: 3100
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning
     ports:
       - 3000:3000
-    volumes:
-      - grafana-storage:/var/lib/grafana
 
   loki:
     image: grafana/loki:2.3.0

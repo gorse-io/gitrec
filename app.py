@@ -197,6 +197,7 @@ def get_repo(category: str = ""):
     blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
         # redirect links to github
+        if "src" in img.attrs:
         src = img.attrs["src"]
         if not src.startswith("http://") and not src.startswith("https://"):
             if src.startswith("./"):
