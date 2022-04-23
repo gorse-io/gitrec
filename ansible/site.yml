@@ -1,0 +1,8 @@
+---
+- name: Install Docker Compose and Nginx
+  hosts: all
+  remote_user: ubuntu
+
+  roles:
+    - docker-compose
+    - nginx

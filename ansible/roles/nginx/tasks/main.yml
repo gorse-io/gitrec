@@ -1,0 +1,22 @@
+---
+- name: Install packages
+  become: true
+  apt: 
+    name: 
+      - nginx
+      - certbot
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+
+- name: Allow HTTP and HTTPS connections
+  shell: |
+    iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+    iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+    netfilter-persistent save
+  become: true
+  changed_when: false
+
+- name: Copy nginx configuration
+  template: src=default dest=/etc/nginx/sites-enabled/default
+  become: true
