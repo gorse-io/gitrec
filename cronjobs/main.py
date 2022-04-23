@@ -3,6 +3,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from github import Github
+from github.GithubException import *
 from gorse import Gorse
 from language_detector import detect_language
 
@@ -22,12 +23,15 @@ def get_repo_info(full_name):
             labels.append(main_language)
     # Fetch categories.
     categories = []
-    readme = repo.get_readme().decoded_content.decode("utf-8")
-    spoken_language = detect_language(readme)
-    if spoken_language == "Mandarin":
-        categories.append("language:zh")
-    elif spoken_language == "English":
-        categories.append("language:en")
+    try:
+        readme = repo.get_readme().decoded_content.decode("utf-8")
+        spoken_language = detect_language(readme)
+        if spoken_language == "Mandarin":
+            categories.append("language:zh")
+        elif spoken_language == "English":
+            categories.append("language:en")
+    except UnknownObjectException as e:
+        pass
     return {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),

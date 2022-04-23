@@ -10,13 +10,17 @@ import mistune
 from bs4 import BeautifulSoup
 from dateutil import parser
 from docutils.core import publish_parts
-from flask import Flask, Response, session, redirect, request
+from flask import Flask, Response, session, redirect, request, flash
 from flask_cors import CORS
+from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from flask_dance.contrib.github import make_github_blueprint, github
+from flask_security import current_user, login_user
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from github import Github
 from github.GithubException import UnknownObjectException
+from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull
@@ -30,13 +34,19 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 db = SQLAlchemy(app)
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    login = db.Column(db.String(256), unique=True)
+
+
 class OAuth(OAuthConsumerMixin, db.Model):
-    pass
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user = db.relationship(User)
 
 
 # setup SQLAlchemy backend
 blueprint = make_github_blueprint()
-blueprint.storage = SQLAlchemyStorage(OAuth, db.session)
+# blueprint.storage = SQLAlchemyStorage(OAuth, db.session, user=current_user)
 
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["GITHUB_OAUTH_CLIENT_ID"] = os.getenv("GITHUB_OAUTH_CLIENT_ID")
@@ -48,6 +58,77 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # create gorse client
 gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
+
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# create/login local user on successful OAuth login
+@oauth_authorized.connect_via(blueprint)
+def github_logged_in(blueprint, token):
+    if not token:
+        flash("Failed to log in with GitHub.", category="error")
+        return False
+
+    resp = blueprint.session.get("/user")
+    if not resp.ok:
+        msg = "Failed to fetch user info from GitHub."
+        flash(msg, category="error")
+        return False
+
+    github_info = resp.json()
+    github_user_id = str(github_info["id"])
+
+    # Find this OAuth token in the database, or create it
+    query = OAuth.query.filter_by(
+        provider=blueprint.name,
+        user_id=github_user_id,
+    )
+    try:
+        oauth = query.one()
+    except NoResultFound:
+        oauth = OAuth(
+            provider=blueprint.name,
+            user_id=github_user_id,
+            token=token,
+        )
+
+    if oauth.user:
+        # If this OAuth token already has an associated local account,
+        # log in that local user account.
+        # Note that if we just created this OAuth token, then it can't
+        # have an associated local account yet.
+        login_user(oauth.user)
+        flash("Successfully signed in with GitHub.")
+
+    else:
+        # If this OAuth token doesn't have an associated local account,
+        # create a new local user account for this user. We can log
+        # in that account as well, while we're at it.
+        user = User(
+            login=github_info["login"],
+        )
+        # Associate the new local user account with the OAuth token
+        oauth.user = user
+        # Save and commit our database models
+        db.session.add_all([user, oauth])
+        db.session.commit()
+        # Log in the new local user account
+        login_user(user)
+        flash("Successfully signed in with GitHub.")
+
+    # Since we're manually creating the OAuth model in the database,
+    # we should return False so that Flask-Dance knows that
+    # it doesn't have to do it. If we don't return False, the OAuth token
+    # could be saved twice, or Flask-Dance could throw an error when
+    # trying to incorrectly save it for us.
+    return False
 
 
 @app.after_request
@@ -202,19 +283,36 @@ def session_recommend():
 @app.route("/api/extension/recommend/<user_id>", methods=["POST"])
 def extension_recommend(user_id: str):
     try:
-        repo_names = json.loads(request.data)
-        feedbacks = [
-            {
-                "FeedbackType": "star",
-                "ItemId": v,
-                "Timestamp": datetime.utcnow().isoformat(),
-            }
-            for v in repo_names
-        ]
-        repo_names = gorse_client.session_recommend(feedbacks, 3)
-        return Response(json.dumps(repo_names), mimetype="application/json")
+        # If the user is in Gorse.
+        gorse_client.get_user(user_id)
+        try:
+            repo_names = gorse_client.get_recommend(user_id, n=3)
+            return Response(json.dumps({
+                'has_login': True,
+                'recommend': repo_names
+            }), mimetype="application/json")
+        except gorse.GorseException as e:
+            return Response(e.message, status=e.status_code)
     except gorse.GorseException as e:
-        return Response(e.message, status=e.status_code)
+        # If the user isn't in Gorse.
+        try:
+            repo_names = json.loads(request.data)
+            feedbacks = [
+                {
+                    "FeedbackType": "star",
+                    "ItemId": v,
+                    "Timestamp": datetime.utcnow().isoformat(),
+                }
+                for v in repo_names
+            ]
+            scores = gorse_client.session_recommend(feedbacks, 3)
+            repo_names = [v['Id'] for v in scores]
+            return Response(json.dumps({
+                'has_login': True,
+                'recommend': repo_names
+            }), mimetype="application/json")
+        except gorse.GorseException as e:
+            return Response(e.message, status=e.status_code)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,8 @@ services:
       - 9121:9121
     environment:
       REDIS_ADDR: redis://redis:6379
+    depends_on:
+     - redis
 
   mysql:
     image: mysql/mysql-server
@@ -34,6 +36,8 @@ services:
       DATA_SOURCE_NAME: gorse:gorse_pass@(mysql:3306)/
     ports:
       - 9104:9104
+    depends_on:
+     - mysql
 
   worker:
     image: zhenghaoz/gorse-worker:0.4
@@ -91,11 +95,24 @@ services:
       - redis
       - mysql
 
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
+
   prometheus:
     image: prom/prometheus
     restart: unless-stopped
-    ports:
-      - 9090:9090
     volumes:
       - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
@@ -114,7 +131,7 @@ services:
     ports:
       - 3100:3100
     volumes:
-      - ./etc/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - ./loki.yaml:/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail
@@ -123,8 +140,8 @@ services:
     ports:
       - 9080:9080
     volumes:
-      - ./var/log/gorse:/var/log/gorse
-      - ./etc/promtail/config.yml:/etc/promtail/config.yml
+      - log_data:/var/log/gorse
+      - ./promtail.yml:/etc/promtail/config.yml
 
   jobs:
     build:
