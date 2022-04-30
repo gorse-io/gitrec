@@ -15,9 +15,8 @@ from flask_cors import CORS
 from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from flask_dance.contrib.github import make_github_blueprint, github
-from flask_security import current_user, login_user
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin, current_user, login_user, login_required
 from github import Github
 from github.GithubException import UnknownObjectException
 from sqlalchemy.orm.exc import NoResultFound
@@ -34,19 +33,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 db = SQLAlchemy(app)
 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(256), unique=True)
-
-
-class OAuth(OAuthConsumerMixin, db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    user = db.relationship(User)
+class OAuth(OAuthConsumerMixin, UserMixin, db.Model):
+    login = db.Column(db.String(256), unique=True, nullable=False)
+    pulled_at = db.Column(db.DateTime())
 
 
 # setup SQLAlchemy backend
 blueprint = make_github_blueprint()
-# blueprint.storage = SQLAlchemyStorage(OAuth, db.session, user=current_user)
+blueprint.storage = SQLAlchemyStorage(OAuth, db.session, user=current_user)
 
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["GITHUB_OAUTH_CLIENT_ID"] = os.getenv("GITHUB_OAUTH_CLIENT_ID")
@@ -66,7 +60,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return OAuth.query.get(int(user_id))
 
 
 # create/login local user on successful OAuth login
@@ -83,51 +77,24 @@ def github_logged_in(blueprint, token):
         return False
 
     github_info = resp.json()
-    github_user_id = str(github_info["id"])
+    github_login = str(github_info["login"])
 
     # Find this OAuth token in the database, or create it
-    query = OAuth.query.filter_by(
-        provider=blueprint.name,
-        user_id=github_user_id,
-    )
+    query = OAuth.query.filter_by(login=github_login)
     try:
         oauth = query.one()
     except NoResultFound:
         oauth = OAuth(
             provider=blueprint.name,
-            user_id=github_user_id,
+            login=github_login, 
             token=token,
         )
-
-    if oauth.user:
-        # If this OAuth token already has an associated local account,
-        # log in that local user account.
-        # Note that if we just created this OAuth token, then it can't
-        # have an associated local account yet.
-        login_user(oauth.user)
-        flash("Successfully signed in with GitHub.")
-
-    else:
-        # If this OAuth token doesn't have an associated local account,
-        # create a new local user account for this user. We can log
-        # in that account as well, while we're at it.
-        user = User(
-            login=github_info["login"],
-        )
-        # Associate the new local user account with the OAuth token
-        oauth.user = user
-        # Save and commit our database models
-        db.session.add_all([user, oauth])
+        db.session.add_all([oauth])
         db.session.commit()
-        # Log in the new local user account
-        login_user(user)
-        flash("Successfully signed in with GitHub.")
+        pull.delay(token["access_token"])
 
-    # Since we're manually creating the OAuth model in the database,
-    # we should return False so that Flask-Dance knows that
-    # it doesn't have to do it. If we don't return False, the OAuth token
-    # could be saved twice, or Flask-Dance could throw an error when
-    # trying to incorrectly save it for us.
+    login_user(oauth)
+    flash("Successfully signed in with GitHub.")
     return False
 
 
@@ -139,20 +106,9 @@ def set_headers(response):
 
 @app.route("/")
 def index():
-    if not github.authorized:
+    if not current_user.is_authenticated:
         return redirect("/login")
-    # pull user_id
-    if "user_id" not in session:
-        resp = github.get("/user")
-        session.permanent = True
-        session["user_id"] = resp.json()["login"]
-    # pull starred
-    if (
-            "last_pull" not in session
-            or (parser.parse(session["last_pull"]) - datetime.now()).days >= 1
-    ):
-        pull.delay(github.token["access_token"])
-        session["last_pull"] = str(datetime.now())
+    session.permanent = True
     return app.send_static_file("index.html")
 
 
@@ -163,14 +119,13 @@ def login():
 
 @app.route("/api/repo")
 @app.route("/api/repo/<category>")
+@login_required
 def get_repo(category: str = ""):
-    if not github.authorized:
-        return Response("Permission denied", status=403)
     for _ in range(2):
         try:
-            repo_id = gorse_client.get_recommend(session["user_id"], category)[0]
+            repo_id = gorse_client.get_recommend(current_user.login, category)[0]
             full_name = repo_id.replace(":", "/")
-            github_client = Github(github.token["access_token"])
+            github_client = Github(current_user.token["access_token"])
             repo = github_client.get_repo(full_name)
             break
         except UnknownObjectException:
@@ -192,19 +147,21 @@ def get_repo(category: str = ""):
             src = a.attrs["href"]
             if not src.startswith("http://") and not src.startswith("https://"):
                 a.attrs["href"] = (
-                        repo.html_url + "/blob/" + repo.default_branch + "/" + src
+                    repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
     blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
         # redirect links to github
         if "src" in img.attrs:
-        src = img.attrs["src"]
-        if not src.startswith("http://") and not src.startswith("https://"):
-            if src.startswith("./"):
-                src = src[2:]
-            img.attrs["src"] = repo.html_url + "/raw/" + repo.default_branch + "/" + src
-        elif src.startswith(blob_url):
-            img.attrs["src"] = repo.html_url + "/raw/" + src[len(blob_url):]
+            src = img.attrs["src"]
+            if not src.startswith("http://") and not src.startswith("https://"):
+                if src.startswith("./"):
+                    src = src[2:]
+                img.attrs["src"] = repo.html_url + \
+                    "/raw/" + repo.default_branch + "/" + src
+            elif src.startswith(blob_url):
+                img.attrs["src"] = repo.html_url + \
+                    "/raw/" + src[len(blob_url):]
     return {
         "item_id": repo_id,
         "full_name": repo.full_name,
@@ -218,13 +175,11 @@ def get_repo(category: str = ""):
 
 
 @app.route("/api/favorites")
+@login_required
 def get_favorites():
-    if not github.authorized:
-        return Response("Permission denied", status=403)
-    user_id = session["user_id"]
     positive_feedbacks = []
     for feedback_type in ["star", "like"]:
-        for feedback in gorse_client.list_feedback(feedback_type, user_id):
+        for feedback in gorse_client.list_feedbacks(feedback_type, current_user.login):
             feedback["ItemId"] = feedback["ItemId"].replace(":", "/")
             positive_feedbacks.append(feedback)
     positive_feedbacks = sorted(
@@ -234,22 +189,20 @@ def get_favorites():
 
 
 @app.route("/api/like/<repo_name>")
+@login_required
 def like_repo(repo_name: str):
-    if not github.authorized:
-        return Response("Permission denied", status=403)
     try:
-        gorse_client.insert_feedback("read", session["user_id"], repo_name)
-        return gorse_client.insert_feedback("like", session["user_id"], repo_name)
+        gorse_client.insert_feedback("read", current_user.login, repo_name)
+        return gorse_client.insert_feedback("like", current_user.login, repo_name)
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
 
 @app.route("/api/read/<repo_name>")
+@login_required
 def read_repo(repo_name: str):
-    if not github.authorized:
-        return Response("Permission denied", status=403)
     try:
-        return gorse_client.insert_feedback("read", session["user_id"], repo_name)
+        return gorse_client.insert_feedback("read", current_user.login, repo_name)
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 

@@ -183,9 +183,7 @@ services:
       GORSE_API_KEY: 19260817
       BROKER_ADDRESS: redis://redis:6379/1
       OAUTHLIB_INSECURE_TRANSPORT: "true"
-      GITHUB_OAUTH_CLIENT_ID: xxxxxxxxxxxxxxxxxxxxxxxxx
-      GITHUB_OAUTH_CLIENT_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxx
-      SECRET_KEY: xxxxxxxxxxxxxxxxxxxxxxxxx
+      SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
 
 volumes:
   mysql_data:
