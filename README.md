@@ -48,21 +48,32 @@ git clone https://github.com/zhenghaoz/gitrec.git
 cd gitrec
 ```
 
-- Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
-  variable in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
+- Create a `.env` file.
 
-```yaml
-GITHUB_ACCESS_TOKEN: # personal access token
+```bash
+GORSE_DASHBOARD_USER_NAME=xxxxxxxx
+GORSE_DASHBOARD_PASSWORD=xxxxxxxx
+GITHUB_ACCESS_TOKEN=xxxxxxxx
+GITHUB_OAUTH_CLIENT_ID=xxxxxxxx
+GITHUB_OAUTH_CLIENT_SECRET=xxxxxxxx
+SECRET_KEY=xxxxxxxx
+```
+
+- Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
+  variable in the `.env` file.
+
+```bash
+GITHUB_ACCESS_TOKEN=xxxxxxxx # personal access token
 ```
 
 - Create a [GitHub OAuth app](https://github.com/settings/developers). The authorization callback URL should
   be `http://127.0.0.1:5000/login/github/authorized`. Then, fill following variables
-  in [docker-compose.yml](https://github.com/zhenghaoz/gitrec/blob/master/docker-compose.yml).
+  in the `.env` file.
 
-```yaml
-GITHUB_OAUTH_CLIENT_ID: # client ID
-GITHUB_OAUTH_CLIENT_SECRET: # client secret
-SECRET_KEY: # random string
+```bash
+GITHUB_OAUTH_CLIENT_ID=xxxxxxxx     # client ID
+GITHUB_OAUTH_CLIENT_SECRET=xxxxxxxx # client secret
+SECRET_KEY=xxxxxxxx                 # random string
 ```
 
 - Start the cluster using Docker Compose.
