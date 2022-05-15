@@ -21,7 +21,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "iteration": 1651586087354,
+    "iteration": 1652578409225,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -39,7 +39,10 @@
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
             "fieldConfig": {
                 "defaults": {
                     "color": {
@@ -88,7 +91,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_users_total{}",
+                    "expr": "gorse_master_users_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -148,7 +151,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_active_users_total{}",
+                    "expr": "gorse_master_active_users_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -208,7 +211,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_items_total{}",
+                    "expr": "gorse_master_items_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -269,7 +272,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_active_items_total{}",
+                    "expr": "gorse_master_active_items_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -328,7 +331,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_user_labels_total{}",
+                    "expr": "gorse_master_user_labels_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -388,7 +391,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_feedbacks_total{}",
+                    "expr": "gorse_master_feedbacks_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -448,7 +451,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_implicit_feedbacks_total{}",
+                    "expr": "gorse_master_implicit_feedbacks_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -508,7 +511,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_positive_feedbacks_total{}",
+                    "expr": "gorse_master_positive_feedbacks_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -568,7 +571,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_negative_feedbacks_total{}",
+                    "expr": "gorse_master_negative_feedbacks_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -628,7 +631,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_inactive_users_total{}",
+                    "expr": "gorse_master_inactive_users_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -689,7 +692,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_inactive_items_total{}",
+                    "expr": "gorse_master_inactive_items_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -748,7 +751,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_item_labels_total{}",
+                    "expr": "gorse_master_item_labels_total{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -821,7 +824,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_precision_10{}",
+                    "expr": "gorse_master_collaborative_filtering_precision_10{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -881,7 +884,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_recall_10{}",
+                    "expr": "gorse_master_collaborative_filtering_recall_10{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -941,7 +944,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_ndcg_10{}",
+                    "expr": "gorse_master_collaborative_filtering_ndcg_10{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1000,7 +1003,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "count_over_time({level=\"fatal\"}[$__interval])",
+                    "expr": "count_over_time({job=\"$job\",level=\"fatal\"}[$__interval])",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -1031,7 +1034,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "{level=~\"warn|error|fatal\"}",
+                    "expr": "{job=\"$job\",level=~\"warn|error|fatal\"}",
                     "refId": "A"
                 }
             ],
@@ -1090,7 +1093,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_ranking_model_precision{}",
+                    "expr": "gorse_master_ranking_model_precision{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1151,7 +1154,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_ranking_model_recall{}",
+                    "expr": "gorse_master_ranking_model_recall{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1212,7 +1215,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_ranking_model_auc{}",
+                    "expr": "gorse_master_ranking_model_auc{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1271,7 +1274,7 @@
             "targets": [
                 {
                     "datasource": "${DS_PROMETHEUS}",
-                    "expr": "sum(count_over_time({level=\"error\"}[$__interval]))",
+                    "expr": "sum(count_over_time({job=\"$job\",level=\"error\"}[$__interval]))",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -1336,7 +1339,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_user_neighbor_index_recall{}",
+                    "expr": "gorse_master_user_neighbor_index_recall{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1401,7 +1404,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_master_item_neighbor_index_recall{}",
+                    "expr": "gorse_master_item_neighbor_index_recall{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1466,7 +1469,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "gorse_worker_collaborative_filtering_index_recall{}",
+                    "expr": "gorse_worker_collaborative_filtering_index_recall{job=\"$job\"}",
                     "interval": "",
                     "legendFormat": "",
                     "refId": "A"
@@ -1525,7 +1528,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "count_over_time({level=\"warn\"}[$__interval])",
+                    "expr": "count_over_time({job=\"$job\",level=\"warn\"}[$__interval])",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -1548,7 +1551,10 @@
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
             "fieldConfig": {
                 "defaults": {
                     "color": {
@@ -1623,8 +1629,8 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "histogram_quantile(0.95, rate(gorse_server_rest_api_request_seconds_bucket[1m]))",
-                    "interval": "",
+                    "expr": "histogram_quantile(0.95, rate(gorse_server_rest_api_request_seconds_bucket{job=\"$job\"}[$__interval]))",
+                    "interval": "1m",
                     "legendFormat": "{{ api }}",
                     "refId": "A"
                 }
@@ -1655,7 +1661,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "{level=~\"info\"}|json|response_time > 0.1",
+                    "expr": "{job=\"$job\",level=~\"info\"}|json|response_time > 0.1",
                     "refId": "A"
                 }
             ],
@@ -1663,7 +1669,7 @@
             "type": "logs"
         },
         {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
@@ -1671,1355 +1677,1727 @@
                 "y": 24
             },
             "id": 50,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 25
+                    },
+                    "id": 78,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "hidden",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_worker_update_user_recommend_total{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Refreshed Users",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 50,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "total"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.stacking",
+                                        "value": {
+                                            "group": "A",
+                                            "mode": "none"
+                                        }
+                                    },
+                                    {
+                                        "id": "custom.fillOpacity",
+                                        "value": 0
+                                    },
+                                    {
+                                        "id": "color",
+                                        "value": {
+                                            "fixedColor": "#ffffff",
+                                            "mode": "fixed"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 25
+                    },
+                    "id": 67,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_worker_offline_recommend_step_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "{{ step }}",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "exemplar": true,
+                            "expr": "gorse_worker_offline_recommend_total_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "total",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Recommend Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Worker Status",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 25
-            },
-            "id": 78,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "hidden",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_worker_update_user_recommend_total",
-                    "interval": "",
-                    "legendFormat": "",
-                    "refId": "A"
-                }
-            ],
-            "title": "Refreshed Users",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 25
-            },
-            "id": 67,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_worker_offline_recommend_step_seconds{}",
-                    "interval": "",
-                    "legendFormat": "{{ step }}",
-                    "refId": "A"
-                }
-            ],
-            "title": "Recommend Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 33
+                "y": 25
             },
             "id": 52,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 7,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "linear",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 26
+                    },
+                    "id": 62,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "hidden",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_load_dataset_total_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Load Dataset Time",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 50,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "linear",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "total"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.stacking",
+                                        "value": {
+                                            "group": "A",
+                                            "mode": "none"
+                                        }
+                                    },
+                                    {
+                                        "id": "custom.fillOpacity",
+                                        "value": 0
+                                    },
+                                    {
+                                        "id": "color",
+                                        "value": {
+                                            "fixedColor": "#ffffff",
+                                            "mode": "fixed"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 26
+                    },
+                    "id": 63,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_load_dataset_step_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "{{ step }}",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "exemplar": true,
+                            "expr": "gorse_master_load_dataset_total_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "total",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Load Dataset Steps Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Load Dataset",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 7,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 34
-            },
-            "id": 62,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "hidden",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_load_dataset_total_seconds",
-                    "interval": "",
-                    "legendFormat": "",
-                    "refId": "A"
-                }
-            ],
-            "title": "Load Dataset Time",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "linear",
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 34
-            },
-            "id": 63,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_load_dataset_step_seconds",
-                    "interval": "",
-                    "legendFormat": "{{ step }}",
-                    "refId": "A"
-                }
-            ],
-            "title": "Load Dataset Steps Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 42
+                "y": 26
             },
             "id": 71,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 27
+                    },
+                    "id": 65,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "hidden",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_update_item_neighbors_total{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Refreshed Items",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 50,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "total"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.stacking",
+                                        "value": {
+                                            "group": "A",
+                                            "mode": "none"
+                                        }
+                                    },
+                                    {
+                                        "id": "custom.fillOpacity",
+                                        "value": 0
+                                    },
+                                    {
+                                        "id": "color",
+                                        "value": {
+                                            "fixedColor": "#fffefe",
+                                            "mode": "fixed"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 27
+                    },
+                    "id": 79,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_find_item_neighbors_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "{{ step }}",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "exemplar": true,
+                            "expr": "gorse_master_find_item_neighbors_total_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "total",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Find Item Neighbors Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Find Item Neighbors",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 43
-            },
-            "id": 65,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "hidden",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_update_item_neighbors_total",
-                    "interval": "",
-                    "legendFormat": "",
-                    "refId": "A"
-                }
-            ],
-            "title": "Refreshed Items",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 43
-            },
-            "id": 79,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_find_item_neighbors_seconds",
-                    "interval": "",
-                    "legendFormat": "{{ step }}",
-                    "refId": "A"
-                }
-            ],
-            "title": "Find Item Neighbors Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 51
+                "y": 27
             },
             "id": 69,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 28
+                    },
+                    "id": 80,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "hidden",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_update_user_neighbors_total{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Refreshed Users",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 50,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "total"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.fillOpacity",
+                                        "value": 0
+                                    },
+                                    {
+                                        "id": "custom.stacking",
+                                        "value": {
+                                            "group": "A",
+                                            "mode": "none"
+                                        }
+                                    },
+                                    {
+                                        "id": "color",
+                                        "value": {
+                                            "fixedColor": "#ffffff",
+                                            "mode": "fixed"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 28
+                    },
+                    "id": 81,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_find_user_neighbors_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "{{ step }}",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "exemplar": true,
+                            "expr": "gorse_master_find_user_neighbors_total_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "total",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Find User Neighbors Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Find User Neighbors",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 52
-            },
-            "id": 80,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "hidden",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_update_user_neighbors_total",
-                    "interval": "",
-                    "legendFormat": "",
-                    "refId": "A"
-                }
-            ],
-            "title": "Refreshed Users",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 52
-            },
-            "id": 81,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_find_user_neighbors_seconds",
-                    "interval": "",
-                    "legendFormat": "{{ step }}",
-                    "refId": "A"
-                }
-            ],
-            "title": "Find User Neighbors Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 60
+                "y": 28
             },
             "id": 75,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 0,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 29
+                    },
+                    "id": 84,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_collaborative_filtering_precision_10{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "fit",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_collaborative_filtering_search_precision_10{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "sarch",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Precision@10",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 29
+                    },
+                    "id": 83,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_collaborative_filtering_fit_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "fit",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_collaborative_filtering_search_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "search",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Fit / Search Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Collaborative Filtering Model",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 0,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 61
-            },
-            "id": 84,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_precision_10",
-                    "interval": "",
-                    "legendFormat": "fit",
-                    "refId": "A"
-                },
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_search_precision_10",
-                    "hide": false,
-                    "interval": "",
-                    "legendFormat": "sarch",
-                    "refId": "B"
-                }
-            ],
-            "title": "Precision@10",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 61
-            },
-            "id": 83,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_fit_seconds",
-                    "interval": "",
-                    "legendFormat": "fit",
-                    "refId": "A"
-                },
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_collaborative_filtering_search_seconds",
-                    "hide": false,
-                    "interval": "",
-                    "legendFormat": "search",
-                    "refId": "B"
-                }
-            ],
-            "title": "Fit / Search Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 69
+                "y": 29
             },
             "id": 77,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 0,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 30
+                    },
+                    "id": 86,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_ranking_model_precision{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "fit",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_ranking_search_precision{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "sarch",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Precision@10",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 30
+                    },
+                    "id": 87,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_ranking_fit_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "fit",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_ranking_search_seconds{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "search",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Fit / Search Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Ranking Model",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 0,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 0,
-                "y": 70
-            },
-            "id": 86,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_ranking_model_precision",
-                    "interval": "",
-                    "legendFormat": "fit",
-                    "refId": "A"
-                },
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_ranking_search_precision",
-                    "hide": false,
-                    "interval": "",
-                    "legendFormat": "sarch",
-                    "refId": "B"
-                }
-            ],
-            "title": "Precision@10",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
-                },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 70
-            },
-            "id": 87,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_ranking_fit_seconds",
-                    "interval": "",
-                    "legendFormat": "fit",
-                    "refId": "A"
-                },
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_ranking_search_seconds",
-                    "hide": false,
-                    "interval": "",
-                    "legendFormat": "search",
-                    "refId": "B"
-                }
-            ],
-            "title": "Fit / Search Time",
-            "type": "timeseries"
-        },
-        {
-            "collapsed": false,
+            "collapsed": true,
             "gridPos": {
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 78
+                "y": 30
             },
             "id": 73,
-            "panels": [],
+            "panels": [
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 31
+                    },
+                    "id": 82,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_cache_scanned_total{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "scanned",
+                            "refId": "A"
+                        },
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_cache_reclaimed_total{job=\"$job\"}",
+                            "hide": false,
+                            "interval": "",
+                            "legendFormat": "reclaimed",
+                            "refId": "B"
+                        }
+                    ],
+                    "title": "Scanned / Reclaimed Objects",
+                    "type": "timeseries"
+                },
+                {
+                    "datasource": "${DS_PROMETHEUS}",
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 20,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "stepBefore",
+                                "lineStyle": {
+                                    "fill": "solid"
+                                },
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "never",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "normal"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "min": 0,
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 31
+                    },
+                    "id": 85,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "hidden",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": "${DS_PROMETHEUS}",
+                            "exemplar": true,
+                            "expr": "gorse_master_cache_scanned_seconds{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Garbage Collection Time",
+                    "type": "timeseries"
+                }
+            ],
             "title": "Master Status: Cache Garbage Collection",
             "type": "row"
         },
         {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
-                    },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
-                        },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
-                        },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "none"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
-                        }
-                    },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
-                            },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    }
-                },
-                "overrides": []
-            },
+            "collapsed": true,
             "gridPos": {
-                "h": 8,
-                "w": 12,
+                "h": 1,
+                "w": 24,
                 "x": 0,
-                "y": 79
+                "y": 31
             },
-            "id": 82,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "list",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
+            "id": 89,
+            "panels": [
                 {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_cache_scanned_total",
-                    "interval": "",
-                    "legendFormat": "scanned",
-                    "refId": "A"
-                },
-                {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_cache_reclaimed_total",
-                    "hide": false,
-                    "interval": "",
-                    "legendFormat": "reclaimed",
-                    "refId": "B"
-                }
-            ],
-            "title": "Scanned / Reclaimed Objects",
-            "type": "timeseries"
-        },
-        {
-            "datasource": "${DS_PROMETHEUS}",
-            "description": "",
-            "fieldConfig": {
-                "defaults": {
-                    "color": {
-                        "mode": "palette-classic"
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
                     },
-                    "custom": {
-                        "axisLabel": "",
-                        "axisPlacement": "auto",
-                        "barAlignment": 0,
-                        "drawStyle": "line",
-                        "fillOpacity": 20,
-                        "gradientMode": "none",
-                        "hideFrom": {
-                            "legend": false,
-                            "tooltip": false,
-                            "viz": false
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 0,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "linear",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "auto",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "bytes"
                         },
-                        "lineInterpolation": "stepBefore",
-                        "lineStyle": {
-                            "fill": "solid"
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 32
+                    },
+                    "id": 91,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
                         },
-                        "lineWidth": 1,
-                        "pointSize": 5,
-                        "scaleDistribution": {
-                            "type": "linear"
-                        },
-                        "showPoints": "never",
-                        "spanNulls": false,
-                        "stacking": {
-                            "group": "A",
-                            "mode": "normal"
-                        },
-                        "thresholdsStyle": {
-                            "mode": "off"
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
                         }
                     },
-                    "mappings": [],
-                    "min": 0,
-                    "thresholds": {
-                        "mode": "absolute",
-                        "steps": [
-                            {
-                                "color": "green",
-                                "value": null
+                    "targets": [
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
                             },
-                            {
-                                "color": "red",
-                                "value": 80
-                            }
-                        ]
-                    },
-                    "unit": "s"
+                            "exemplar": true,
+                            "expr": "go_memstats_alloc_bytes{job=\"$job\"}",
+                            "interval": "",
+                            "legendFormat": "{{ instance }}",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Memory Allocated",
+                    "type": "timeseries"
                 },
-                "overrides": []
-            },
-            "gridPos": {
-                "h": 8,
-                "w": 12,
-                "x": 12,
-                "y": 79
-            },
-            "id": 85,
-            "options": {
-                "legend": {
-                    "calcs": [],
-                    "displayMode": "hidden",
-                    "placement": "bottom"
-                },
-                "tooltip": {
-                    "mode": "single",
-                    "sort": "none"
-                }
-            },
-            "targets": [
                 {
-                    "datasource": "${DS_PROMETHEUS}",
-                    "exemplar": true,
-                    "expr": "gorse_master_cache_scanned_seconds",
-                    "interval": "",
-                    "legendFormat": "",
-                    "refId": "A"
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "description": "",
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "axisLabel": "",
+                                "axisPlacement": "auto",
+                                "barAlignment": 0,
+                                "drawStyle": "line",
+                                "fillOpacity": 0,
+                                "gradientMode": "none",
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                },
+                                "lineInterpolation": "linear",
+                                "lineWidth": 1,
+                                "pointSize": 5,
+                                "scaleDistribution": {
+                                    "type": "linear"
+                                },
+                                "showPoints": "auto",
+                                "spanNulls": false,
+                                "stacking": {
+                                    "group": "A",
+                                    "mode": "none"
+                                },
+                                "thresholdsStyle": {
+                                    "mode": "off"
+                                }
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            },
+                            "unit": "s"
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 32
+                    },
+                    "id": 93,
+                    "options": {
+                        "legend": {
+                            "calcs": [],
+                            "displayMode": "list",
+                            "placement": "bottom"
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "targets": [
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "exemplar": true,
+                            "expr": "rate(process_cpu_seconds_total{job=\"$job\"}[$__interval])",
+                            "interval": "1m",
+                            "legendFormat": "{{ instance }}",
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "CPU Time",
+                    "type": "timeseries"
                 }
             ],
-            "title": "Garbage Collection Time",
-            "type": "timeseries"
+            "title": "Resource Usage",
+            "type": "row"
         }
     ],
     "refresh": false,
@@ -3064,6 +3442,37 @@
                 "regex": "",
                 "skipUrlSync": false,
                 "type": "datasource"
+            },
+            {
+                "current": {
+                    "selected": true,
+                    "text": [
+                        "gorse"
+                    ],
+                    "value": [
+                        "gorse"
+                    ]
+                },
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "${DS_PROMETHEUS}"
+                },
+                "definition": "label_values(gorse_master_users_total, job)",
+                "description": "",
+                "hide": 0,
+                "includeAll": true,
+                "multi": true,
+                "name": "job",
+                "options": [],
+                "query": {
+                    "query": "label_values(gorse_master_users_total, job)",
+                    "refId": "StandardVariableQuery"
+                },
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
             }
         ]
     },
@@ -3075,6 +3484,6 @@
     "timezone": "",
     "title": "Gorse Dashboard",
     "uid": "8b6_avOnk",
-    "version": 66,
+    "version": 70,
     "weekStart": ""
 }
