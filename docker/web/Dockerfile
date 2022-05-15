@@ -20,9 +20,7 @@ RUN pip3 install -r requirements.txt
 COPY --from=0 /frontend/dist /frontend/dist
 
 # Copy backend
-COPY app.py app.py
-COPY jobs jobs
-COPY gunicorn.conf.py gunicorn.conf.py
+COPY app.py jobs.py gunicorn.conf.py ./
 
 # Start gitrec
 CMD PYTHONPATH=. gunicorn app:app -c gunicorn.conf.py

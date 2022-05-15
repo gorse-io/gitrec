@@ -159,7 +159,8 @@ services:
 
   jobs:
     build:
-      context: jobs
+      context: .
+      dockerfile: docker/jobs/Dockerfile
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
@@ -168,7 +169,8 @@ services:
 
   cronjobs:
     build:
-      context: cronjobs
+      context: .
+      dockerfile: docker/cronjobs/Dockerfile
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
@@ -176,7 +178,9 @@ services:
       GITHUB_ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN}
 
   web:
-    build: .
+    build: 
+      context: .
+      dockerfile: docker/web/Dockerfile
     restart: unless-stopped
     ports:
       - 5000:5000
