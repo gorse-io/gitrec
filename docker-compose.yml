@@ -90,7 +90,7 @@ services:
       --log-path /var/log/gorse/master.log 
       --cache-path /var/lib/gorse/master_cache.data
     volumes:
-      - ./config.toml:/etc/gorse/config.toml
+      - ./config/gorse.toml:/etc/gorse/config.toml
       - log_data:/var/log/gorse
       - master_data:/var/lib/gorse
     depends_on:
@@ -116,7 +116,7 @@ services:
     image: prom/prometheus
     restart: unless-stopped
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -145,7 +145,7 @@ services:
     ports:
       - 3100:3100
     volumes:
-      - ./loki.yaml:/etc/loki/local-config.yaml
+      - ./config/loki.yaml:/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail
@@ -155,7 +155,7 @@ services:
       - 9080:9080
     volumes:
       - log_data:/var/log/gorse
-      - ./promtail.yml:/etc/promtail/config.yml
+      - ./config/promtail.yml:/etc/promtail/config.yml
 
   jobs:
     build:
