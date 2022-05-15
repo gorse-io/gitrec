@@ -1,47 +1,32 @@
 import os
-
+import logging
+import logging_loki
 import requests
 from bs4 import BeautifulSoup
 from github import Github
 from github.GithubException import *
 from gorse import Gorse
-from language_detector import detect_language
+from common import get_repo_info
 
+# Setup logger
+handler = logging_loki.LokiHandler(
+    url="http://loki:3100/loki/api/v1/push",
+    tags={"job": "cronjobs"},
+    version="1",
+)
+logger = logging.getLogger("cronjobs")
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
+# Setup clients
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
 
-def get_repo_info(full_name):
-    repo = github_client.get_repo(full_name)
-    # Fetch labels.
-    labels = [topic for topic in repo.get_topics()]
-    languages = list(repo.get_languages().items())
-    if len(languages) > 0:
-        main_language = languages[0][0].lower()
-        if main_language not in labels:
-            labels.append(main_language)
-    # Fetch categories.
-    categories = []
-    try:
-        readme = repo.get_readme().decoded_content.decode("utf-8")
-        spoken_language = detect_language(readme)
-        if spoken_language == "Mandarin":
-            categories.append("language:zh")
-        elif spoken_language == "English":
-            categories.append("language:en")
-    except UnknownObjectException as e:
-        pass
-    return {
-        "ItemId": full_name.replace("/", ":").lower(),
-        "Timestamp": str(repo.updated_at),
-        "Labels": labels,
-        "Categories": categories,
-        "Comment": repo.description,
-    }
-
-
 def get_trending():
+    """
+    Get trending repositories of C, C++, Go, Python, JS, Java, Rust, TS and unknown.
+    """
     full_names = []
     languages = [
         "",
@@ -66,14 +51,42 @@ def get_trending():
     return full_names
 
 
-if __name__ == "__main__":
-    print("start pull trending repos")
+def insert_trending():
+    """
+    Insert trending repositories of C, C++, Go, Python, JS, Java, Rust, TS and unknown.
+    """
+    logger.info("start pull trending repos")
     trending_count = 0
     trending_repos = get_trending()
     for trending_repo in trending_repos:
         try:
-            gorse_client.insert_item(get_repo_info(trending_repo))
+            gorse_client.insert_item(get_repo_info(github_client, trending_repo))
             trending_count += 1
         except Exception as e:
-            print('failed to pull repo: %s, %s' % (trending_repo, e))
-    print("insert %d repos" % trending_count)
+            logger.error(
+                "failed to insert trending repo",
+                extra={"tags": {"repo": trending_repo, "exception": e}},
+            )
+    logger.info("insert trending repos", extra={"tags": {"num_repos": trending_count}})
+
+
+def update_user_starred():
+    """
+    Update user starred repositories.
+    """
+    pass
+
+
+if __name__ == "__main__":
+    # Insert trending repositories.
+    try:
+        insert_trending()
+    except Exception as e:
+        logger.error(
+            "failed to insert trending repos", extra={"tags": {"exception": e}}
+        )
+    # Update user starred repositories.
+    # try:
+    #     update_user_starred()
+    # except Exception as e:
+    #     logger.error('failed to update user starred repositories', extra={'tags': {'exception': e}})

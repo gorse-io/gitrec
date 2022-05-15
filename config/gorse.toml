@@ -95,7 +95,7 @@ index_fit_epoch = 3
 neighbor_type = "similar"
 
 # Enable approximate item neighbor searching using vector index. The default value is true.
-enable_index = true
+enable_index = false
 
 # Minimal recall for approximate item neighbor searching. The default value is 0.8.
 index_recall = 0.8
