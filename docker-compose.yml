@@ -166,6 +166,8 @@ services:
       GORSE_ADDRESS: http://server:8087
       GORSE_API_KEY: 19260817
       BROKER_ADDRESS: redis://redis:6379/1
+      LOKI_HOST: loki
+      LOKI_PORT: 3100
 
   cronjobs:
     build:
@@ -176,6 +178,9 @@ services:
       GORSE_ADDRESS: http://server:8087
       GORSE_API_KEY: 19260817
       GITHUB_ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN}
+      SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
+      LOKI_HOST: loki
+      LOKI_PORT: 3100
 
   web:
     build: 
@@ -192,6 +197,8 @@ services:
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET}
       SECRET_KEY: ${SECRET_KEY}
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
+      LOKI_HOST: loki
+      LOKI_PORT: 3100
 
 volumes:
   mysql_data:

@@ -1,8 +1,41 @@
 from typing import List, Tuple, Dict
 import requests
+from logging_loki import LokiHandler, emitter
+from sqlalchemy.orm import declarative_base
+import logging
+import os
+from gorse import Gorse
 from github import Github
+from sqlalchemy import Column, String, Integer, DateTime, JSON
 from github.GithubException import *
-from language_detector import detect_language
+
+
+# Setup logger
+logger = logging.getLogger("common")
+logger.setLevel(logging.INFO)
+loki_host = os.getenv("LOKI_HOST")
+loki_port = os.getenv("LOKI_PORT")
+if loki_host is not None and loki_port is not None:
+    emitter.LokiEmitter.level_tag = "level"
+    handler = LokiHandler(
+        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
+        tags={"job": "gitrec"},
+        version="1",
+    )
+    logger.addHandler(handler)
+
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = "flask_dance_oauth"
+    id = Column(Integer, primary_key=True)
+    provider = Column(String)
+    created_at = Column(DateTime)
+    token = Column(JSON)
+    login = Column(String)
+    pulled_at = Column(DateTime)
 
 
 class GraphQLGitHub:
@@ -17,11 +50,11 @@ class GraphQLGitHub:
         query = "query { viewer { login } }"
         return self.__query(query)["data"]["viewer"]["login"]
 
-    def __get_starred(self) -> List[Tuple[str, str]]:
+    def __get_starred(self, n: int) -> List[Tuple[str, str]]:
         stars = []
         cursor = ""
         has_next_page = True
-        while has_next_page:
+        while has_next_page and len(stars) < n:
             query = (
                 'query { viewer { starredRepositories(first: 100, after: "%s") { '
                 "nodes { nameWithOwner } edges { starredAt } pageInfo { endCursor hasNextPage } } } }"
@@ -54,10 +87,10 @@ class GraphQLGitHub:
             )
         )
 
-    def get_viewer_starred(self) -> List[Dict]:
+    def get_starred(self, n: int = 100) -> List[Dict]:
         stars = []
         user_id = self.__get_login()
-        for item_id, timestamp in self.__get_starred():
+        for item_id, timestamp in self.__get_starred(n):
             stars.append(
                 {
                     "FeedbackType": "star",
@@ -83,12 +116,14 @@ def get_repo_info(github_client: Github, full_name: str):
             labels.append(main_language)
     # Fetch categories.
     categories = []
-    readme = repo.get_readme().decoded_content.decode("utf-8")
-    spoken_language = detect_language(readme)
-    if spoken_language == "Mandarin":
-        categories.append("language:zh")
-    elif spoken_language == "English":
-        categories.append("language:en")
+    # TODO: Generate topcis from README.md
+    # try:
+    #     readme = repo.get_readme().decoded_content.decode("utf-8")
+    # except UnknownObjectException as e:
+    #     logger.warning(
+    #         "readme not found",
+    #         extra={"tags": {"full_name": full_name, "exception": str(e)}},
+    #     )
     return {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
@@ -118,4 +153,51 @@ def get_user_info(github_client: Github):
         except GithubException as e:
             if e.status not in {403, 404, 451}:
                 raise e
+            else:
+                logger.warning(
+                    "repository is unaviable",
+                    extra={"tags": {"full_name": repo.full_name, "exception": str(e)}},
+                )
     return {"Labels": list(topics_set), "UserId": user.login.lower()}
+
+
+def update_user(gorse_client: Gorse, token: str):
+    """
+    Update GitHub user labels and starred repositories.
+    """
+    github_client = Github(token)
+    # Pull user labels
+    user = get_user_info(github_client)
+    gorse_client.insert_user(user)
+    logger.info(
+        "update user",
+        extra={"tags": {"user_id": user["UserId"], "num_labels": len(user["Labels"])}},
+    )
+    # Pull user starred repos
+    graphql_client = GraphQLGitHub(token)
+    stars = graphql_client.get_starred()
+    stars.reverse()
+    # Pull items
+    item_count, pull_count = 0, 0
+    for feedback in stars:
+        if pull_count > 100:
+            break
+        item_id = feedback["ItemId"]
+        full_name = item_id.replace(":", "/")
+        repo = github_client.get_repo(full_name)
+        if repo.stargazers_count > 100:
+            item = get_repo_info(github_client, full_name)
+            if item is not None:
+                gorse_client.insert_item(item)
+                item_count += 1
+            pull_count += 1
+    logger.info(
+        "insert items from user",
+        extra={"tags": {"user_id": user["UserId"], "num_items": item_count}},
+    )
+    # Insert feedback
+    gorse_client.insert_feedbacks(stars)
+    logger.info(
+        "insert feedback from user",
+        extra={"tags": {"user_id": user["UserId"], "num_feedback": len(stars)}},
+    )

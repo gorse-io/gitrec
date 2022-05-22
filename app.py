@@ -7,6 +7,7 @@ from datetime import datetime
 import emoji
 import gorse
 import mistune
+from logging_loki import LokiHandler, emitter
 from bs4 import BeautifulSoup
 from dateutil import parser
 from docutils.core import publish_parts
@@ -27,6 +28,18 @@ from jobs import pull
 # create flask app
 app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Setup logger
+loki_host = os.getenv("LOKI_HOST")
+loki_port = os.getenv("LOKI_PORT")
+if loki_host is not None and loki_port is not None:
+    emitter.LokiEmitter.level_tag = "level"
+    handler = LokiHandler(
+        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
+        tags={"job": "gitrec"},
+        version="1",
+    )
+    app.logger.addHandler(handler)
 
 # setup database models
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")

@@ -1,26 +1,38 @@
 import os
 import logging
-import logging_loki
+from logging_loki import LokiHandler, emitter
 import requests
+import datetime
+from sqlalchemy import create_engine, or_
+from sqlalchemy.orm import sessionmaker
 from bs4 import BeautifulSoup
 from github import Github
 from github.GithubException import *
 from gorse import Gorse
-from common import get_repo_info
+import common
 
 # Setup logger
-handler = logging_loki.LokiHandler(
-    url="http://loki:3100/loki/api/v1/push",
-    tags={"job": "cronjobs"},
-    version="1",
-)
 logger = logging.getLogger("cronjobs")
-logger.addHandler(handler)
 logger.setLevel(logging.INFO)
+loki_host = os.getenv("LOKI_HOST")
+loki_port = os.getenv("LOKI_PORT")
+if loki_host is not None and loki_port is not None:
+    emitter.LokiEmitter.level_tag = "level"
+    handler = LokiHandler(
+        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
+        tags={"job": "gitrec"},
+        version="1",
+    )
+    logger.addHandler(handler)
 
 # Setup clients
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
+
+# Setup sqlalchemy
+engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
+Session = sessionmaker()
+Session.configure(bind=engine)
 
 
 def get_trending():
@@ -60,7 +72,7 @@ def insert_trending():
     trending_repos = get_trending()
     for trending_repo in trending_repos:
         try:
-            gorse_client.insert_item(get_repo_info(github_client, trending_repo))
+            gorse_client.insert_item(common.get_repo_info(github_client, trending_repo))
             trending_count += 1
         except Exception as e:
             logger.error(
@@ -70,11 +82,29 @@ def insert_trending():
     logger.info("insert trending repos", extra={"tags": {"num_repos": trending_count}})
 
 
-def update_user_starred():
+def update_user():
     """
     Update user starred repositories.
     """
-    pass
+    session = Session()
+    for user in session.query(common.User).filter(
+        or_(
+            common.User.pulled_at == None,
+            common.User.pulled_at
+            < datetime.datetime.utcnow() - datetime.timedelta(days=1),
+        )
+    ):
+        # print(user.login, user.token["access_token"], user.pulled_at)
+        try:
+            common.update_user(gorse_client, user.token["access_token"])
+            user.pulled_at = datetime.datetime.now()
+        except BadCredentialsException as e:
+            session.delete(user)
+            logger.warning(
+                "invalid user token",
+                extra={"tags": {"login": user.login, "exception": str(e)}},
+            )
+        session.commit()
 
 
 if __name__ == "__main__":
@@ -85,8 +115,8 @@ if __name__ == "__main__":
         logger.error(
             "failed to insert trending repos", extra={"tags": {"exception": e}}
         )
-    # Update user starred repositories.
-    # try:
-    #     update_user_starred()
-    # except Exception as e:
-    #     logger.error('failed to update user starred repositories', extra={'tags': {'exception': e}})
+    # Update user starred repositories and labels.
+    try:
+        update_user()
+    except Exception as e:
+        logger.exception("failed to update user")
