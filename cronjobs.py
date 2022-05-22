@@ -1,29 +1,18 @@
-import os
-import logging
-from logging_loki import LokiHandler, emitter
-import requests
 import datetime
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import sessionmaker
+import os
+
+import requests
 from bs4 import BeautifulSoup
 from github import Github
 from github.GithubException import *
 from gorse import Gorse
+from sqlalchemy import create_engine, or_
+from sqlalchemy.orm import sessionmaker
+
 import common
 
 # Setup logger
-logger = logging.getLogger("cronjobs")
-logger.setLevel(logging.INFO)
-loki_host = os.getenv("LOKI_HOST")
-loki_port = os.getenv("LOKI_PORT")
-if loki_host is not None and loki_port is not None:
-    emitter.LokiEmitter.level_tag = "level"
-    handler = LokiHandler(
-        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
-        tags={"job": "gitrec"},
-        version="1",
-    )
-    logger.addHandler(handler)
+logger = common.getLogger("cronjobs")
 
 # Setup clients
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
@@ -77,7 +66,7 @@ def insert_trending():
         except Exception as e:
             logger.error(
                 "failed to insert trending repo",
-                extra={"tags": {"repo": trending_repo, "exception": e}},
+                extra={"tags": {"repo": trending_repo, "exception": str(e)}},
             )
     logger.info("insert trending repos", extra={"tags": {"num_repos": trending_count}})
 
@@ -112,10 +101,7 @@ if __name__ == "__main__":
     try:
         insert_trending()
     except Exception as e:
-        logger.error(
-            "failed to insert trending repos", extra={"tags": {"exception": e}}
-        )
-    # Update user starred repositories and labels.
+        logger.exception("failed to insert trending repos")
     try:
         update_user()
     except Exception as e:

@@ -9,18 +9,8 @@ from gorse import Gorse
 import common
 
 # Setup logger
-logger = logging.getLogger("jobs")
-logger.setLevel(logging.INFO)
-loki_host = os.getenv("LOKI_HOST")
-loki_port = os.getenv("LOKI_PORT")
-if loki_host is not None and loki_port is not None:
-    emitter.LokiEmitter.level_tag = "level"
-    handler = LokiHandler(
-        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
-        tags={"job": "gitrec"},
-        version="1",
-    )
-    logger.addHandler(handler)
+logger = common.getLogger("jobs")
+
 
 # Setup client
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))

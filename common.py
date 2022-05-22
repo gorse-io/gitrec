@@ -1,29 +1,37 @@
-from typing import List, Tuple, Dict
-import requests
-from logging_loki import LokiHandler, emitter
-from sqlalchemy.orm import declarative_base
 import logging
 import os
-from gorse import Gorse
+from typing import List, Tuple, Dict
+
+import requests
 from github import Github
-from sqlalchemy import Column, String, Integer, DateTime, JSON
 from github.GithubException import *
+from gorse import Gorse
+from logging_loki import LokiHandler, emitter
+from sqlalchemy import Column, String, Integer, DateTime, JSON
+from sqlalchemy.orm import declarative_base
+
+
+def getLogger(name: str):
+    """
+    Create a Loki logger.
+    """
+    loki_logger = logging.getLogger(name)
+    loki_logger.setLevel(logging.INFO)
+    loki_host = os.getenv("LOKI_HOST")
+    loki_port = os.getenv("LOKI_PORT")
+    if loki_host is not None and loki_port is not None:
+        emitter.LokiEmitter.level_tag = "level"
+        handler = LokiHandler(
+            url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
+            tags={"job": "gitrec"},
+            version="1",
+        )
+        loki_logger.addHandler(handler)
+    return loki_logger
 
 
 # Setup logger
-logger = logging.getLogger("common")
-logger.setLevel(logging.INFO)
-loki_host = os.getenv("LOKI_HOST")
-loki_port = os.getenv("LOKI_PORT")
-if loki_host is not None and loki_port is not None:
-    emitter.LokiEmitter.level_tag = "level"
-    handler = LokiHandler(
-        url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
-        tags={"job": "gitrec"},
-        version="1",
-    )
-    logger.addHandler(handler)
-
+logger = getLogger('common')
 
 Base = declarative_base()
 
@@ -116,7 +124,7 @@ def get_repo_info(github_client: Github, full_name: str):
             labels.append(main_language)
     # Fetch categories.
     categories = []
-    # TODO: Generate topcis from README.md
+    # TODO: Generate topics from README.md
     # try:
     #     readme = repo.get_readme().decoded_content.decode("utf-8")
     # except UnknownObjectException as e:
@@ -155,7 +163,7 @@ def get_user_info(github_client: Github):
                 raise e
             else:
                 logger.warning(
-                    "repository is unaviable",
+                    "repository is unavailable",
                     extra={"tags": {"full_name": repo.full_name, "exception": str(e)}},
                 )
     return {"Labels": list(topics_set), "UserId": user.login.lower()}
@@ -186,6 +194,7 @@ def update_user(gorse_client: Gorse, token: str):
         full_name = item_id.replace(":", "/")
         repo = github_client.get_repo(full_name)
         if repo.stargazers_count > 100:
+            # Repositories indexed by Gorse must have stargazers more than 100.
             item = get_repo_info(github_client, full_name)
             if item is not None:
                 gorse_client.insert_item(item)
