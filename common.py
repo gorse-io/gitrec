@@ -213,8 +213,6 @@ def update_user(gorse_client: Gorse, token: str, pulled_at: datetime.datetime):
     # Pull items
     item_count, pull_count = 0, 0
     for feedback in stars:
-        if pull_count > 100:
-            break
         item_id = feedback["ItemId"]
         full_name = item_id.replace(":", "/")
         repo = github_client.get_repo(full_name)

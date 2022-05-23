@@ -1,11 +1,13 @@
-from cmath import exp
+import datetime
 import os
-import logging
-from logging_loki import emitter, LokiHandler
+
 from celery import Celery
 from github import Github
 from github.GithubException import *
 from gorse import Gorse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 import common
 
 # Setup logger
@@ -18,31 +20,30 @@ gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 # Setup celery
 app = Celery("jobs", broker=os.getenv("BROKER_ADDRESS"))
 
+# Setup sqlalchemy
+engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
+Session = sessionmaker()
+Session.configure(bind=engine)
+
 
 @app.task
 def pull(token: str):
-    github_client = Github(token)
-    # Pull user labels
-    user = common.get_user_info(github_client)
-    gorse_client.insert_user(user)
-    print("insert user `%s` with %d labels" % (user["UserId"], len(user["Labels"])))
-    # Pull user starred repos
-    g = common.GraphQLGitHub(token)
-    stars = g.get_viewer_starred()
-    stars.reverse()
-    # Pull items
-    item_count, pull_count = 0, 0
-    for feedback in stars:
-        if pull_count > 100:
-            break
-        item_id = feedback["ItemId"]
-        full_name = item_id.replace(":", "/")
-        item = common.get_repo_info(github_client, full_name)
-        if item is not None:
-            gorse_client.insert_item(item)
-            item_count += 1
-        pull_count += 1
-    print("insert %d items from user `%s`" % (item_count, user["UserId"]))
-    # Insert feedback
-    gorse_client.insert_feedbacks(stars)
-    print("insert %d feedback from user `%s`" % (len(stars), user["UserId"]))
+    try:
+        # Fetch user login
+        github_client = Github(token)
+        login = github_client.get_user().login
+        # Fetch user record
+        session = Session()
+        user = session.query(common.User).filter(common.User.login == login).one()
+        try:
+            common.update_user(gorse_client, user.token["access_token"], user.pulled_at)
+            user.pulled_at = datetime.datetime.now()
+        except BadCredentialsException as e:
+            session.delete(user)
+            logger.warning(
+                "invalid user token",
+                extra={"tags": {"login": user.login, "exception": str(e)}},
+            )
+        session.commit()
+    except Exception as e:
+        logger.exception("failed to update user labels and feedback")
