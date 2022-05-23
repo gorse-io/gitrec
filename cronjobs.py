@@ -65,10 +65,10 @@ def insert_trending():
             trending_count += 1
         except Exception as e:
             logger.error(
-                "failed to insert trending repo",
+                "failed to insert trending repository",
                 extra={"tags": {"repo": trending_repo, "exception": str(e)}},
             )
-    logger.info("insert trending repos", extra={"tags": {"num_repos": trending_count}})
+    logger.info("insert trending repository succeed", extra={"tags": {"num_repos": trending_count}})
 
 
 def update_user():
@@ -85,7 +85,7 @@ def update_user():
     ):
         # print(user.login, user.token["access_token"], user.pulled_at)
         try:
-            common.update_user(gorse_client, user.token["access_token"])
+            common.update_user(gorse_client, user.token["access_token"], user.pulled_at)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)
@@ -101,8 +101,10 @@ if __name__ == "__main__":
     try:
         insert_trending()
     except Exception as e:
-        logger.exception("failed to insert trending repos")
+        logger.exception("failed to insert trending repositories")
+
+    # Update user labels and feedback.
     try:
         update_user()
     except Exception as e:
-        logger.exception("failed to update user")
+        logger.exception("failed to update user labels and feedback")
