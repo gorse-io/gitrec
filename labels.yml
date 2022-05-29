@@ -41,7 +41,6 @@ esp:
 deno:
 dos:
 nix:
-integration:
 node-red:
 low-code:
 
@@ -88,7 +87,6 @@ redux:
 browserify:
 sass:
 ant-design:
-less:
 webgl:
 preact:
 next:
@@ -101,7 +99,6 @@ tailwind-css:
 seed:
 yew:
 material-ui:
-svelte:
 inertia:
 mdbootstrap:
 
@@ -127,7 +124,6 @@ dash:
 fastapi:
 cdk:
 iam:
-slim:
 
 # Computer Science
 computer-science:
@@ -175,7 +171,6 @@ paper:
 algorithm:
   - algorithms
 education:
-visualization:
 artificial-intelligence:
 seo:
   - search-engine-optimization
@@ -210,7 +205,6 @@ chip-8:
 esports:
 
 # Development Environment
-quick:
 dotfiles:
 shell:
 fish:
@@ -302,8 +296,6 @@ billing:
   
 # Work
 slack:
-community:
-  - communities
 productivity:
 interview:
   - interviews
@@ -315,7 +307,6 @@ internship:
 network:
   - networking
 pcap:
-real-time:
 
 # Decentralized Systems
 bitcoin:
@@ -396,3 +387,6 @@ ansible:
 qr-code:
 translations:
 webxr:
+
+# Additional
+pdf:
