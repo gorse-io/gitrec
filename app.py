@@ -205,8 +205,8 @@ def get_favorites():
 @login_required
 def like_repo(repo_name: str):
     try:
-        gorse_client.insert_feedback("read", current_user.login, repo_name)
-        return gorse_client.insert_feedback("like", current_user.login, repo_name)
+        gorse_client.insert_feedback("read", current_user.login, repo_name, datetime.now().isoformat())
+        return gorse_client.insert_feedback("like", current_user.login, repo_name, datetime.now().isoformat())
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
@@ -215,7 +215,7 @@ def like_repo(repo_name: str):
 @login_required
 def read_repo(repo_name: str):
     try:
-        return gorse_client.insert_feedback("read", current_user.login, repo_name)
+        return gorse_client.insert_feedback("read", current_user.login, repo_name, datetime.now().isoformat())
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 

@@ -15,7 +15,7 @@ language-detector>=5.0.2
 mistune==2.0.0rc1
 mysqlclient>=2.1.0
 PyGithub==1.55
-PyGorse>=0.4.1
+PyGorse>=0.4.2
 python-dateutil==2.8.1
 python-logging-loki~=0.3.1
 redis==4.2.2
