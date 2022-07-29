@@ -12,7 +12,7 @@ Flask==2.1.1
 gevent==21.1.2
 gunicorn==20.1.0
 language-detector>=5.0.2
-mistune==2.0.0rc1
+mistune==2.0.3
 mysqlclient>=2.1.0
 PyGithub==1.55
 PyGorse>=0.4.2
