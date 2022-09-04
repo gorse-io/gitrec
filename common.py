@@ -214,6 +214,14 @@ def update_user(gorse_client: Gorse, token: str, pulled_at: datetime.datetime):
     item_count, pull_count = 0, 0
     for feedback in stars:
         item_id = feedback["ItemId"]
+
+        try:
+            # Skip indexed repositories.
+            item = gorse_client.get_item(item_id)
+            continue
+        except GorseException:
+            pass
+
         full_name = item_id.replace(":", "/")
         repo = github_client.get_repo(full_name)
         if repo.stargazers_count > 100:
