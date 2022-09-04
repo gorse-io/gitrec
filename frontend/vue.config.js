@@ -13,9 +13,10 @@ module.exports = {
   pages,
   chainWebpack: (config) => config.plugins.delete("named-chunks"),
   devServer: {
+    disableHostCheck: true,
     proxy: {
       "/api": {
-        target: "https://gitrec.gorse.io/",
+        target: "http://127.0.0.1:5000",
         changeOrigin: true,
         onProxyReq: function(proxyReq) {
             proxyReq.setHeader("Cookie", "session=xxxxxxxx");

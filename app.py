@@ -25,7 +25,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from jobs import pull
 
 # create flask app
-app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
+app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Setup logger
