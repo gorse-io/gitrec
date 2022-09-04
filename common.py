@@ -7,7 +7,6 @@ import pytz
 import requests
 from dateutil import parser
 from github import Github
-from github.GithubException import *
 from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
 from sqlalchemy import Column, String, Integer, DateTime, JSON
@@ -30,6 +29,7 @@ def getLogger(name: str):
             version="1",
         )
         loki_logger.addHandler(handler)
+    loki_logger.addHandler(logging.StreamHandler())
     return loki_logger
 
 
@@ -67,14 +67,14 @@ class GraphQLGitHub:
         has_next_page = True
         while has_next_page:
             query = (
-                'query { viewer { starredRepositories(first: 10, after: "%s", orderBy: { direction: DESC, field: STARRED_AT }) { '
-                "nodes { nameWithOwner } edges { starredAt } pageInfo { endCursor hasNextPage } } } }"
-                % cursor
+                    'query { viewer { starredRepositories(first: 10, after: "%s", orderBy: { direction: DESC, field: STARRED_AT }) { '
+                    "nodes { nameWithOwner } edges { starredAt } pageInfo { endCursor hasNextPage } } } }"
+                    % cursor
             )
             result = self.__query(query)
             starred_repositories = result["data"]["viewer"]["starredRepositories"]
             for node, edge in zip(
-                starred_repositories["nodes"], starred_repositories["edges"]
+                    starred_repositories["nodes"], starred_repositories["edges"]
             ):
                 stars.append((node["nameWithOwner"], edge["starredAt"]))
             cursor = starred_repositories["pageInfo"]["endCursor"]
@@ -122,9 +122,9 @@ class GraphQLGitHub:
         has_next_page = True
         while has_next_page:
             query = (
-                '{ viewer { repositoriesContributedTo(first: 10, %s includeUserRepositories: true) { '
-                "nodes { nameWithOwner } pageInfo { endCursor hasNextPage } } } }"
-                % cursor
+                    '{ viewer { repositoriesContributedTo(first: 10, %s includeUserRepositories: true) { '
+                    "nodes { nameWithOwner } pageInfo { endCursor hasNextPage } } } }"
+                    % cursor
             )
             result = self.__query(query)
             contributed_repositories = result["data"]["viewer"][
