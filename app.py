@@ -7,26 +7,25 @@ from datetime import datetime
 import emoji
 import gorse
 import mistune
-from logging_loki import LokiHandler, emitter
 from bs4 import BeautifulSoup
-from dateutil import parser
 from docutils.core import publish_parts
 from flask import Flask, Response, session, redirect, request, flash
 from flask_cors import CORS
 from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
-from flask_dance.contrib.github import make_github_blueprint, github
-from flask_sqlalchemy import SQLAlchemy
+from flask_dance.contrib.github import make_github_blueprint
 from flask_login import LoginManager, UserMixin, current_user, login_user, login_required
+from flask_sqlalchemy import SQLAlchemy
 from github import Github
 from github.GithubException import UnknownObjectException
+from logging_loki import LokiHandler, emitter
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull
 
 # create flask app
-app = Flask(__name__, static_folder="../frontend/dist", static_url_path="/")
+app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Setup logger
@@ -66,7 +65,6 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # create gorse client
 gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -99,7 +97,7 @@ def github_logged_in(blueprint, token):
     except NoResultFound:
         oauth = OAuth(
             provider=blueprint.name,
-            login=github_login, 
+            login=github_login,
             token=token,
         )
         db.session.add_all([oauth])
@@ -160,7 +158,7 @@ def get_repo(category: str = ""):
             src = a.attrs["href"]
             if not src.startswith("http://") and not src.startswith("https://"):
                 a.attrs["href"] = (
-                    repo.html_url + "/blob/" + repo.default_branch + "/" + src
+                        repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
     blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
@@ -171,10 +169,10 @@ def get_repo(category: str = ""):
                 if src.startswith("./"):
                     src = src[2:]
                 img.attrs["src"] = repo.html_url + \
-                    "/raw/" + repo.default_branch + "/" + src
+                                   "/raw/" + repo.default_branch + "/" + src
             elif src.startswith(blob_url):
                 img.attrs["src"] = repo.html_url + \
-                    "/raw/" + src[len(blob_url):]
+                                   "/raw/" + src[len(blob_url):]
     return {
         "item_id": repo_id,
         "full_name": repo.full_name,

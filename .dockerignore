@@ -1,2 +1,6 @@
-# Data folder
-/var
+.github
+assets
+
+LICENSE
+
+*.md

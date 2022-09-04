@@ -17,7 +17,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 # Copy frontend
-COPY --from=0 /frontend/dist /frontend/dist
+COPY --from=0 /frontend/dist ./frontend/dist
 
 # Copy backend
 COPY app.py jobs.py gunicorn.conf.py common.py ./

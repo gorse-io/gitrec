@@ -164,7 +164,7 @@ services:
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
-      GORSE_API_KEY: 19260817
+      GORSE_API_KEY: ${GORSE_API_KEY}
       BROKER_ADDRESS: redis://redis:6379/1
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
       LOKI_HOST: loki
@@ -177,7 +177,7 @@ services:
     restart: unless-stopped
     environment:
       GORSE_ADDRESS: http://server:8087
-      GORSE_API_KEY: 19260817
+      GORSE_API_KEY: ${GORSE_API_KEY}
       GITHUB_ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN}
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
       LOKI_HOST: loki
@@ -192,7 +192,7 @@ services:
       - 5000:5000
     environment:
       GORSE_ADDRESS: http://server:8087
-      GORSE_API_KEY: 19260817
+      GORSE_API_KEY: ${GORSE_API_KEY}
       BROKER_ADDRESS: redis://redis:6379/1
       GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID}
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET}

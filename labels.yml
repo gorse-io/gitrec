@@ -1,8 +1,10 @@
 # Platforms
 nodejs:
+  - node
 ios:
 android:
 iot:
+  - internet-of-things
 electron:
 cordova:
 react-native:
@@ -17,6 +19,7 @@ watchos:
 jvm:
 salesforce:
 aws:
+  - amazon-web-services
 windows:
 ipfs:
 fuse:
@@ -38,7 +41,6 @@ esp:
 deno:
 dos:
 nix:
-integration:
 node-red:
 low-code:
 
@@ -85,7 +87,6 @@ redux:
 browserify:
 sass:
 ant-design:
-less:
 webgl:
 preact:
 next:
@@ -98,7 +99,6 @@ tailwind-css:
 seed:
 yew:
 material-ui:
-svelte:
 inertia:
 mdbootstrap:
 
@@ -124,4 +124,269 @@ dash:
 fastapi:
 cdk:
 iam:
-slim:
+
+# Computer Science
+computer-science:
+course:
+  - courses
+data-science:
+tutorial:
+  - tutorials
+machine-learning:
+h2o:
+jax:
+xai:
+speech:
+natural-language-processing:
+  - nlp
+spanish:
+question-answering:
+natural-language-generation:
+  - nlg
+linguistics:
+cryptography:
+computer-vision:
+deep-learning:
+tensorflow:
+functional-programming:
+static-analysis:
+code-quality:
+information-retrieval:
+quantum-computing:
+
+# Big Data
+big-data:
+dataset:
+  - datasets
+hadoop:
+data-engineering:
+streaming:
+spark:
+qlik:
+splunk:
+
+# Theory
+paper:
+  - papers
+algorithm:
+  - algorithms
+education:
+artificial-intelligence:
+seo:
+  - search-engine-optimization
+competitive-programming:
+math:
+
+# Books
+book:
+  - books
+
+# Editors
+editor:
+sublime-text:
+vim:
+neovim:
+emacs:
+atom:
+visual-studio-code:
+
+# Gaming
+game:
+godot:
+unity:
+chess:
+love2d:
+pico-8:
+game-boy:
+minecraft:
+haxe:
+libgdx:
+chip-8:
+esports:
+
+# Development Environment
+dotfiles:
+shell:
+fish:
+command-line:
+zsh-plugin:
+  - zsh-plugins
+github:
+browser-extension:
+cheat-sheet:
+gist:
+  - gists
+git:
+ssh:
+foss:
+hyper:
+powershell:
+alfred:
+terminal:
+github-actions:
+
+# Entertainment
+science-fiction:
+  - scifi
+fantasy:
+podcast:
+  - podcasts
+newsletter:
+  - newsletters
+quote:
+  - quotes
+
+# Databases
+database:
+mysql:
+sqlalchemy:
+influxdb:
+neo4j:
+mongodb:
+postgres:
+couchdb:
+hbase:
+cassandra:
+
+# Media
+font:
+  - fonts
+stock:
+gif:
+music:
+broadcast:
+  - broadcasting
+pixel-art:
+ffmpeg:
+icon:
+  - icons
+vlc:
+
+# Security
+security:
+ctf:
+malware:
+hacking:
+honeypot:
+  - honeypots
+fuzzing:
+gdpr:
+devsecops:
+
+# Content Management Systems
+umbraco:
+wagtail:
+textpattern:
+drupal:
+sitecore:
+silverstripe:
+
+# Hardware
+robotics:
+electronics:
+bluetooth:
+lidar:
+
+# Business
+business:
+okr:
+indie:
+trade:
+billing:
+  
+# Work
+slack:
+productivity:
+interview:
+  - interviews
+code-review:
+internship:
+  - internships
+
+# Networking
+network:
+  - networking
+pcap:
+
+# Decentralized Systems
+bitcoin:
+ripple:
+mastodon:
+ethereum:
+blockchain:
+eosio:
+corda:
+waves:
+substrate:
+golem:
+algorand:
+
+# Testing
+testing:
+selenium:
+playwright:
+
+# Miscellaneous
+json:
+geojson:
+csv:
+radio:
+awesome:
+analytics:
+rest:
+sketch:
+boilerplate:
+readme:
+self-hosted:
+gulp:
+opengl:
+graphql:
+transit:
+data-visualization:
+microservices:
+unicode:
+katas:
+mqtt:
+vulkan:
+latex:
+economics:
+bioinformatics:
+cheminformatics:
+steam:
+bots:
+site-reliability-engineering:
+domain-driven-design:
+saltstack:
+web-design:
+creative-coding:
+free-software:
+markdown:
+healthcare:
+magento-2:
+tikz:
+neuroscience:
+esolang:
+prometheus:
+homematic:
+ledger:
+captcha:
+jupyter:
+first-robotics-competition:
+board-game:
+food:
+mental-health:
+scientific-computing:
+agriculture:
+product-design:
+prisma:
+software-architecture:
+irc:
+advertising:
+wp-cli:
+ansible:
+qr-code:
+translations:
+webxr:
+
+# Additional
+pdf:
