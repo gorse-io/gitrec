@@ -128,6 +128,18 @@ def login():
     return app.send_static_file("login.html")
 
 
+def is_github_blob(url: str) -> bool:
+    splits = url.split('/')
+    return len(splits) > 5 and splits[0] == 'https:' and splits[2] == 'github.com' and splits[5] == 'blob'
+
+
+def convert_github_blob(url: str) -> str:
+    splits = url.split('/')
+    if len(splits) > 5 and splits[0] == 'https:' and splits[2] == 'github.com' and splits[5] == 'blob':
+        splits[5] = 'raw'
+    return '/'.join(splits)
+
+
 @app.route("/api/repo")
 @app.route("/api/repo/<category>")
 @login_required
@@ -170,9 +182,8 @@ def get_repo(category: str = ""):
                     src = src[2:]
                 img.attrs["src"] = repo.html_url + \
                                    "/raw/" + repo.default_branch + "/" + src
-            elif src.startswith(blob_url):
-                img.attrs["src"] = repo.html_url + \
-                                   "/raw/" + src[len(blob_url):]
+            elif is_github_blob(src):
+                img.attrs["src"] = convert_github_blob(src)
     return {
         "item_id": repo_id,
         "full_name": repo.full_name,
