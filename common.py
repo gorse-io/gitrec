@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import sys
 from typing import List, Tuple, Dict
 
 import pytz
@@ -11,6 +12,26 @@ from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
+
+
+class LogFormatter(logging.Formatter):
+
+    COLORS = {
+        logging.DEBUG: "\x1b[38;20m",   # grey
+        logging.INFO: "\x1b[32;20m",    # green
+        logging.WARNING: "\x1b[33;20m", # yellow
+        logging.ERROR: "\x1b[31;20m",   # red
+        logging.CRITICAL: "\x1b[34;20m",# blue
+    }
+
+    def format(self, record):
+        format = self.COLORS.get(record.levelno)
+        format += "%(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s"
+        if "tags" in record.__dict__:
+            format += " %(tags)s"
+        format += "\x1b[0m"
+        formatter = logging.Formatter(format)
+        return formatter.format(record)
 
 
 def getLogger(name: str):
@@ -29,7 +50,10 @@ def getLogger(name: str):
             version="1",
         )
         loki_logger.addHandler(handler)
-    loki_logger.addHandler(logging.StreamHandler())
+    # Logging to stdout
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(LogFormatter())
+    loki_logger.addHandler(handler)
     return loki_logger
 
 
@@ -67,14 +91,14 @@ class GraphQLGitHub:
         has_next_page = True
         while has_next_page:
             query = (
-                    'query { viewer { starredRepositories(first: 10, after: "%s", orderBy: { direction: DESC, field: STARRED_AT }) { '
-                    "nodes { nameWithOwner } edges { starredAt } pageInfo { endCursor hasNextPage } } } }"
-                    % cursor
+                'query { viewer { starredRepositories(first: 10, after: "%s", orderBy: { direction: DESC, field: STARRED_AT }) { '
+                "nodes { nameWithOwner } edges { starredAt } pageInfo { endCursor hasNextPage } } } }"
+                % cursor
             )
             result = self.__query(query)
             starred_repositories = result["data"]["viewer"]["starredRepositories"]
             for node, edge in zip(
-                    starred_repositories["nodes"], starred_repositories["edges"]
+                starred_repositories["nodes"], starred_repositories["edges"]
             ):
                 stars.append((node["nameWithOwner"], edge["starredAt"]))
             cursor = starred_repositories["pageInfo"]["endCursor"]
@@ -122,9 +146,9 @@ class GraphQLGitHub:
         has_next_page = True
         while has_next_page:
             query = (
-                    '{ viewer { repositoriesContributedTo(first: 10, %s includeUserRepositories: true) { '
-                    "nodes { nameWithOwner } pageInfo { endCursor hasNextPage } } } }"
-                    % cursor
+                "{ viewer { repositoriesContributedTo(first: 10, %s includeUserRepositories: true) { "
+                "nodes { nameWithOwner } pageInfo { endCursor hasNextPage } } } }"
+                % cursor
             )
             result = self.__query(query)
             contributed_repositories = result["data"]["viewer"][
@@ -182,8 +206,8 @@ def get_user_info(gorse_client: Gorse, token: str):
     topics_set = set()
     for repo in repos:
         try:
-            item = gorse_client.get_item(repo.replace('/', ':'))
-            topics_set.update(item['Labels'])
+            item = gorse_client.get_item(repo.replace("/", ":"))
+            topics_set.update(item["Labels"])
         except GorseException as e:
             if e.status_code != 404:
                 raise e
@@ -192,7 +216,10 @@ def get_user_info(gorse_client: Gorse, token: str):
                     "repository has not been indexed",
                     extra={"tags": {"full_name": repo, "exception": str(e)}},
                 )
-    return {"Labels": list(topics_set), "UserId": github_client.get_user().login.lower()}
+    return {
+        "Labels": list(topics_set),
+        "UserId": github_client.get_user().login.lower(),
+    }
 
 
 def update_user(gorse_client: Gorse, token: str, pulled_at: datetime.datetime):

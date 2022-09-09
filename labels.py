@@ -8,6 +8,11 @@ from gorse import Gorse
 class LabelGenerator:
 
     def __init__(self, gorse_client: Gorse, min_freq: Optional[int] = 5):
+        # Download punkt
+        try:
+            nltk.data.find('tokenizers/punkt')
+        except LookupError:
+            nltk.download('punkt')
         # Create singular noun converter
         self.inflect = inflect.engine()
         # Load existed topics

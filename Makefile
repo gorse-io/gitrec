@@ -7,6 +7,15 @@ export FLASK_ENV=development
 cronjobs:
 	python3 cronjobs.py
 
+trending:
+	python3 cronjobs.py
+
+users:
+	python3 cronjobs.py
+
+labels:
+	python3 cronjobs.py
+
 jobs:
 	celery -A jobs worker --loglevel=INFO 
 

@@ -1,5 +1,6 @@
 import datetime
 import os
+from threading import Thread
 
 import requests
 from bs4 import BeautifulSoup
@@ -10,6 +11,7 @@ from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
 import common
+from labels import LabelGenerator
 
 # Setup logger
 logger = common.getLogger("cronjobs")
@@ -68,10 +70,20 @@ def insert_trending():
                 "failed to insert trending repository",
                 extra={"tags": {"repo": trending_repo, "exception": str(e)}},
             )
-    logger.info("insert trending repository succeed", extra={"tags": {"num_repos": trending_count}})
+    logger.info(
+        "insert trending repository succeed",
+        extra={"tags": {"num_repos": trending_count}},
+    )
 
 
-def update_user():
+def insert_trending_handler():
+    try:
+        insert_trending()
+    except Exception as e:
+        logger.exception("failed to insert trending repositories")
+
+
+def update_users():
     """
     Update user starred repositories.
     """
@@ -96,15 +108,72 @@ def update_user():
         session.commit()
 
 
-if __name__ == "__main__":
-    # Insert trending repositories.
+def insert_users_handler():
     try:
-        insert_trending()
+        update_users()
+    except Exception as e:
+        logger.exception("failed to update user labels and feedback")
+
+
+def generate_labels():
+    """
+    Generate labels for items without any label
+    """
+    logger.info("start to generate labels for items")
+    generator = LabelGenerator(gorse_client)
+    total_count, generate_count, success_count = 0, 0, 0
+    cursor = ""
+    while True:
+        items, cursor = gorse_client.get_items(1000, cursor)
+        for item in items:
+            total_count += 1
+            if (item["Labels"] is None or len(item["Labels"]) <= 1) and item[
+                "Comment"
+            ] is not None:
+                # Generate labels for items
+                generate_count += 1
+                labels = generator.extract(item["Comment"])
+                is_success = False
+                if len(labels) > 1:
+                    success_count += 1
+                    is_success = True
+                if (
+                    item["Labels"] is not None
+                    and len(item["Labels"]) == 1
+                    and item["Labels"][0] not in labels
+                ):
+                    labels.append(item["Labels"][0])
+                # Update labels
+                if is_success:
+                    gorse_client.update_item(item['ItemId'], labels=labels)
+        if cursor == "":
+            break
+    logger.info(
+        "generate labels for items successfully",
+        extra={
+            "tags": {
+                "total_item_count": total_count,
+                "total_generate_count": generate_count,
+                "success_generate_count": success_count,
+            }
+        },
+    )
+
+
+def generate_labels_handler():
+    try:
+        generate_labels()
     except Exception as e:
         logger.exception("failed to insert trending repositories")
 
-    # Update user labels and feedback.
-    try:
-        update_user()
-    except Exception as e:
-        logger.exception("failed to update user labels and feedback")
+
+if __name__ == "__main__":
+    threads = [
+        Thread(target=generate_labels_handler),
+        Thread(target=insert_users_handler),
+        Thread(target=insert_trending_handler)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
