@@ -8,20 +8,23 @@ import pytz
 import requests
 from dateutil import parser
 from github import Github
+from github.GithubException import *
 from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
+from labels import LabelGenerator
+
 
 class LogFormatter(logging.Formatter):
 
     COLORS = {
-        logging.DEBUG: "\x1b[38;20m",   # grey
-        logging.INFO: "\x1b[32;20m",    # green
-        logging.WARNING: "\x1b[33;20m", # yellow
-        logging.ERROR: "\x1b[31;20m",   # red
-        logging.CRITICAL: "\x1b[34;20m",# blue
+        logging.DEBUG: "\x1b[38;20m",  # grey
+        logging.INFO: "\x1b[32;20m",  # green
+        logging.WARNING: "\x1b[33;20m",  # yellow
+        logging.ERROR: "\x1b[31;20m",  # red
+        logging.CRITICAL: "\x1b[34;20m",  # blue
     }
 
     def format(self, record):
@@ -112,19 +115,18 @@ class GraphQLGitHub:
 
     def __query(self, q):
         # Send query
-        request = requests.post(
+        r = requests.post(
             "https://api.github.com/graphql",
             json={"query": q},
             headers={"Authorization": "bearer %s" % self.token},
         )
         # Handle response
-        if request.status_code == 200:
-            return request.json()
-        raise Exception(
-            "Query failed to run by returning code of {}. {}".format(
-                request.status_code, q
-            )
-        )
+        if r.status_code == 200:
+            return r.json()
+        elif r.status_code == 401:
+            raise BadCredentialsException(r.status_code, r.text, r.headers)
+        else:
+            raise GithubException(r.status_code, r.text, r.headers)
 
     def get_starred(self, pulled_at: datetime.datetime = None) -> List[Dict]:
         stars = []
@@ -161,7 +163,7 @@ class GraphQLGitHub:
         return repositories
 
 
-def get_repo_info(github_client: Github, full_name: str):
+def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerator):
     """
     Get GitHub repository information.
     """
@@ -183,13 +185,17 @@ def get_repo_info(github_client: Github, full_name: str):
     #         "readme not found",
     #         extra={"tags": {"full_name": full_name, "exception": str(e)}},
     #     )
-    return {
+    item = {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
         "Labels": labels,
         "Categories": categories,
         "Comment": repo.description,
     }
+    optimized = generator.optimize(item)
+    if optimized:
+        item = optimized
+    return item
 
 
 def get_user_info(gorse_client: Gorse, token: str):
@@ -222,7 +228,12 @@ def get_user_info(gorse_client: Gorse, token: str):
     }
 
 
-def update_user(gorse_client: Gorse, token: str, pulled_at: datetime.datetime):
+def update_user(
+    gorse_client: Gorse,
+    token: str,
+    pulled_at: datetime.datetime,
+    generator: LabelGenerator,
+):
     """
     Update GitHub user labels and starred repositories.
     """
@@ -253,7 +264,7 @@ def update_user(gorse_client: Gorse, token: str, pulled_at: datetime.datetime):
         repo = github_client.get_repo(full_name)
         if repo.stargazers_count > 100:
             # Repositories indexed by Gorse must have stargazers more than 100.
-            item = get_repo_info(github_client, full_name)
+            item = get_repo_info(github_client, full_name, generator)
             if item is not None:
                 gorse_client.insert_item(item)
                 item_count += 1

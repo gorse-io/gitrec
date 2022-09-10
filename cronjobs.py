@@ -20,6 +20,9 @@ logger = common.getLogger("cronjobs")
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
+# Setup label generator
+generator = LabelGenerator(gorse_client)
+
 # Setup sqlalchemy
 engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
 Session = sessionmaker()
@@ -63,7 +66,8 @@ def insert_trending():
     trending_repos = get_trending()
     for trending_repo in trending_repos:
         try:
-            gorse_client.insert_item(common.get_repo_info(github_client, trending_repo))
+            item = common.get_repo_info(github_client, trending_repo, generator)
+            gorse_client.insert_item(item)
             trending_count += 1
         except Exception as e:
             logger.error(
@@ -97,7 +101,7 @@ def update_users():
     ):
         # print(user.login, user.token["access_token"], user.pulled_at)
         try:
-            common.update_user(gorse_client, user.token["access_token"], user.pulled_at)
+            common.update_user(gorse_client, user.token["access_token"], user.pulled_at, generator)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)
@@ -120,41 +124,26 @@ def generate_labels():
     Generate labels for items without any label
     """
     logger.info("start to generate labels for items")
-    generator = LabelGenerator(gorse_client)
-    total_count, generate_count, success_count = 0, 0, 0
+    total_count, update_count = 0, 0
     cursor = ""
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
         for item in items:
             total_count += 1
-            if (item["Labels"] is None or len(item["Labels"]) <= 1) and item[
-                "Comment"
-            ] is not None:
-                # Generate labels for items
-                generate_count += 1
-                labels = generator.extract(item["Comment"])
-                is_success = False
-                if len(labels) > 1:
-                    success_count += 1
-                    is_success = True
-                if (
-                    item["Labels"] is not None
-                    and len(item["Labels"]) == 1
-                    and item["Labels"][0] not in labels
-                ):
-                    labels.append(item["Labels"][0])
-                # Update labels
-                if is_success:
-                    gorse_client.update_item(item['ItemId'], labels=labels)
+            # Optimize labels for items
+            optimized = generator.optimize(item)
+            # Update labels
+            if optimized:
+                update_count += 1
+                gorse_client.update_item(item['ItemId'], labels=optimized["Labels"])
         if cursor == "":
             break
     logger.info(
         "generate labels for items successfully",
         extra={
             "tags": {
-                "total_item_count": total_count,
-                "total_generate_count": generate_count,
-                "success_generate_count": success_count,
+                "total_count": total_count,
+                "update_count": update_count,
             }
         },
     )

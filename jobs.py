@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import common
+from labels import LabelGenerator
 
 # Setup logger
 logger = common.getLogger("jobs")
@@ -16,6 +17,9 @@ logger = common.getLogger("jobs")
 
 # Setup client
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
+
+# Setup label generator
+generator = LabelGenerator(gorse_client)
 
 # Setup celery
 app = Celery("jobs", broker=os.getenv("BROKER_ADDRESS"))
