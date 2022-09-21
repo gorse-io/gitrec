@@ -73,7 +73,7 @@ popular_window = "720h"
 #   auto: If a user have labels, neighbors are found by number of common labels.
 #         If this user have no labels, neighbors are found by number of common liked items.
 # The default value is "auto".
-neighbor_type = "similar"
+neighbor_type = "related"
 
 # Enable approximate user neighbor searching using vector index. The default value is true.
 enable_index = true

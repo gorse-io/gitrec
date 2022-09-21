@@ -198,36 +198,6 @@ def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerat
     return item
 
 
-def get_user_info(gorse_client: Gorse, token: str):
-    """
-    Get GitHub user information.
-    """
-    github_client = Github(token)
-    graphql_client = GraphQLGitHub(token)
-    # Get n latest repos
-    repos = []
-    for repo in graphql_client.get_contributed():
-        repos.append(repo)
-    # Collect topics and languages
-    topics_set = set()
-    for repo in repos:
-        try:
-            item = gorse_client.get_item(repo.replace("/", ":"))
-            topics_set.update(item["Labels"])
-        except GorseException as e:
-            if e.status_code != 404:
-                raise e
-            else:
-                logger.debug(
-                    "repository has not been indexed",
-                    extra={"tags": {"full_name": repo, "exception": str(e)}},
-                )
-    return {
-        "Labels": list(topics_set),
-        "UserId": github_client.get_user().login.lower(),
-    }
-
-
 def update_user(
     gorse_client: Gorse,
     token: str,
@@ -237,13 +207,6 @@ def update_user(
     """
     Update GitHub user labels and starred repositories.
     """
-    # Pull user labels
-    user = get_user_info(gorse_client, token)
-    gorse_client.insert_user(user)
-    logger.info(
-        "update user labels succeed",
-        extra={"tags": {"user_id": user["UserId"], "num_labels": len(user["Labels"])}},
-    )
     # Pull user starred repos
     github_client = Github(token)
     graphql_client = GraphQLGitHub(token)
