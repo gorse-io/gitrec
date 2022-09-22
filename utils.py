@@ -1,21 +1,20 @@
 import datetime
 import logging
 import os
-import sys
-from typing import List, Tuple, Dict
 import re
-from typing import List, Optional
+import sys
+from typing import List, Optional, Tuple, Dict
+
 import inflect
 import nltk
-from gorse import Gorse
 import pytz
 import requests
 from dateutil import parser
-from nltk.corpus import stopwords
 from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
+from nltk.corpus import stopwords
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
