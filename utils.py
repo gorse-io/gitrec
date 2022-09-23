@@ -30,14 +30,23 @@ class LabelGenerator:
             nltk.data.find("tokenizers/punkt")
         except LookupError:
             nltk.download("punkt")
+
         # Create singular noun converter
         self.inflect = inflect.engine()
+
         # Load stop words
         try:
             nltk.data.find("corpora/stopwords")
         except LookupError:
             nltk.download("stopwords")
         self.stopwords = set(stopwords.words("english"))
+
+        # Load block list
+        with open("assets/blocklist.txt") as f:
+            self.block_list = f.readlines()
+            self.block_list = [v.strip() for v in self.block_list]
+            self.block_list = set(self.block_list)
+
         # Load existed topics
         topic_count = dict()
         cursor = ""
@@ -54,7 +63,7 @@ class LabelGenerator:
                 break
         self.topics = []
         for topic, count in topic_count.items():
-            if count >= min_freq:
+            if count >= min_freq and topic not in self.block_list:
                 self.topics.append(topic)
 
     def extract(self, text: Optional[str]) -> List[str]:
@@ -64,12 +73,10 @@ class LabelGenerator:
         tokens = nltk.word_tokenize(text)
         tokens = [v.lower() for v in tokens]
         # Convert plural to singular noun
-        append_tokens = []
-        for token in tokens:
+        for i, token in enumerate(tokens):
             singular = self.inflect.singular_noun(token)
             if singular:
-                append_tokens.append(singular)
-        tokens.extend(append_tokens)
+                tokens[i] = singular
         sentence = "-".join(tokens)
         labels = []
         for label in self.topics:
@@ -128,7 +135,7 @@ class LogFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def getLogger(name: str):
+def get_logger(name: str):
     """
     Create a Loki logger.
     """
@@ -152,7 +159,7 @@ def getLogger(name: str):
 
 
 # Setup logger
-logger = getLogger("common")
+logger = get_logger("common")
 
 Base = declarative_base()
 
