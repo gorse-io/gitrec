@@ -16,8 +16,19 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
+    # Pull the latest image to build, and avoid caching pull-only images.
+    # (docker pull is faster than caching in most cases.)
+    - run: docker-compose pull
+
+    # In this step, this action saves a list of existing images,
+    # the cache is created without them in the post run.
+    # It also restores the cache if it exists.
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      # Ignore the failure of a step and avoid terminating the job.
+      continue-on-error: true
+
     - name: Build the stack
-      run: docker-compose up -d
+      run: docker-compose up -d --build
 
     - name: Check the deployed service URL
       uses: jtalk/url-health-check-action@v2
