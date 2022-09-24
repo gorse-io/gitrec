@@ -42,7 +42,7 @@ class LabelGenerator:
         self.stopwords = set(stopwords.words("english"))
 
         # Load block list
-        with open("assets/blocklist.txt") as f:
+        with open("blocklist.txt") as f:
             self.block_list = f.readlines()
             self.block_list = [v.strip() for v in self.block_list]
             self.block_list = set(self.block_list)
@@ -107,9 +107,11 @@ class LabelGenerator:
             labels.extend(item["Labels"])
         # Remove stop words
         labels = [w for w in labels if w not in self.stopwords]
+        # Remove block list words
+        labels = [w for w in labels if w not in self.block_list]
         # update labels
         labels = list(set(labels))
-        if item["Labels"] is not None and len(labels) <= len(item["Labels"]):
+        if item["Labels"] is not None and len(labels) == len(item["Labels"]):
             return None
         item["Labels"] = labels
         return item

@@ -2,6 +2,7 @@ import datetime
 import os
 from threading import Thread
 
+import click
 import requests
 from bs4 import BeautifulSoup
 from github import Github
@@ -79,7 +80,7 @@ def insert_trending():
     )
 
 
-def insert_trending_handler():
+def insert_trending_entry():
     try:
         insert_trending()
     except Exception as e:
@@ -112,16 +113,16 @@ def update_users():
         session.commit()
 
 
-def insert_users_handler():
+def insert_users_entry():
     try:
         update_users()
     except Exception as e:
         logger.exception("failed to update user labels and feedback")
 
 
-def generate_labels():
+def optimize_labels():
     """
-    Generate labels for items without any label
+    Optimize labels for items
     """
     logger.info("start to generate labels for items")
     total_count, update_count = 0, 0
@@ -149,20 +150,33 @@ def generate_labels():
     )
 
 
-def generate_labels_handler():
+def optimize_labels_entry():
     try:
-        generate_labels()
+        optimize_labels()
     except Exception as e:
         logger.exception("failed to insert trending repositories")
 
 
-if __name__ == "__main__":
-    threads = [
-        Thread(target=generate_labels_handler),
-        Thread(target=insert_users_handler),
-        Thread(target=insert_trending_handler),
-    ]
+@click.command()
+@click.option("--optimize-labels", is_flag=True)
+@click.option("--update-users", is_flag=True)
+@click.option("--insert-trending", is_flag=True)
+def main(optimize_labels: bool, update_users: bool, insert_trending: bool):
+    threads = []
+    run_all = (
+        optimize_labels is False and update_users is False and insert_trending is False
+    )
+    if run_all or insert_trending:
+        threads.append(Thread(target=insert_trending_entry))
+    if run_all or update_users:
+        threads.append(Thread(target=insert_users_entry))
+    if run_all or optimize_labels:
+        threads.append(Thread(target=optimize_labels_entry))
     for thread in threads:
         thread.start()
     for thread in threads:
         thread.join()
+
+
+if __name__ == "__main__":
+    main()
