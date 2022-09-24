@@ -8,11 +8,10 @@ from gorse import Gorse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import common
-from labels import LabelGenerator
+from utils import *
 
 # Setup logger
-logger = common.getLogger("jobs")
+logger = get_logger("jobs")
 
 
 # Setup client
@@ -38,9 +37,9 @@ def pull(token: str):
         login = github_client.get_user().login
         # Fetch user record
         session = Session()
-        user = session.query(common.User).filter(common.User.login == login).one()
+        user = session.query(User).filter(User.login == login).one()
         try:
-            common.update_user(gorse_client, user.token["access_token"], user.pulled_at)
+            update_user(gorse_client, user.token["access_token"], user.pulled_at)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)
