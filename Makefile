@@ -7,14 +7,14 @@ export FLASK_ENV=development
 cronjobs:
 	python3 cronjobs.py
 
-trending:
-	python3 cronjobs.py
+insert-trending:
+	python3 cronjobs.py --insert-trending
 
-users:
-	python3 cronjobs.py
+update-users:
+	python3 cronjobs.py --update-users
 
-labels:
-	python3 cronjobs.py
+optimize-labels:
+	python3 cronjobs.py --optimize-labels
 
 jobs:
 	celery -A jobs worker --loglevel=INFO 

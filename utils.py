@@ -1,9 +1,12 @@
 import datetime
 import logging
 import os
+import re
 import sys
-from typing import List, Tuple, Dict
+from typing import List, Optional, Tuple, Dict
 
+import inflect
+import nltk
 import pytz
 import requests
 from dateutil import parser
@@ -11,10 +14,107 @@ from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
+from nltk.corpus import stopwords
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
-from labels import LabelGenerator
+
+class LabelGenerator:
+    """
+    LabelGenerator generate labels from repo description.
+    """
+
+    def __init__(self, gorse_client: Gorse, min_freq: Optional[int] = 5):
+        # Download punkt
+        try:
+            nltk.data.find("tokenizers/punkt")
+        except LookupError:
+            nltk.download("punkt")
+
+        # Create singular noun converter
+        self.inflect = inflect.engine()
+
+        # Load stop words
+        try:
+            nltk.data.find("corpora/stopwords")
+        except LookupError:
+            nltk.download("stopwords")
+        self.stopwords = set(stopwords.words("english"))
+
+        # Load block list
+        with open("blocklist.txt") as f:
+            self.block_list = f.readlines()
+            self.block_list = [v.strip() for v in self.block_list]
+            self.block_list = set(self.block_list)
+
+        # Load existed topics
+        topic_count = dict()
+        cursor = ""
+        while True:
+            items, cursor = gorse_client.get_items(1000, cursor)
+            for item in items:
+                if item["Labels"] is not None:
+                    for topic in item["Labels"]:
+                        if topic not in topic_count:
+                            topic_count[topic] = 1
+                        else:
+                            topic_count[topic] += 1
+            if cursor == "":
+                break
+        self.topics = []
+        for topic, count in topic_count.items():
+            if count >= min_freq and topic not in self.block_list:
+                self.topics.append(topic)
+
+    def extract(self, text: Optional[str]) -> List[str]:
+        if text is None:
+            return []
+        # Tokenize description
+        tokens = nltk.word_tokenize(text)
+        tokens = [v.lower() for v in tokens]
+        # Convert plural to singular noun
+        for i, token in enumerate(tokens):
+            singular = self.inflect.singular_noun(token)
+            if singular:
+                tokens[i] = singular
+        sentence = "-".join(tokens)
+        labels = []
+        for label in self.topics:
+            if "-" not in label:
+                if label in tokens:
+                    labels.append(label)
+            else:
+                if label in sentence:
+                    labels.append(label)
+        return labels
+
+    def optimize(self, item: dict) -> Optional[dict]:
+        # description is required
+        description = item["Comment"]
+        if description is None or len(description) == 0:
+            return None
+        # Remove URL from description
+        description = re.sub(
+            r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)",
+            "",
+            description,
+        )
+        # extract topics
+        labels = self.extract(description)
+        if len(labels) == 0:
+            return None
+        if item["Labels"] is not None and len(item["Labels"]) > 0:
+            labels.extend(item["Labels"])
+        # Remove stop words
+        labels = [w for w in labels if w not in self.stopwords]
+        # Remove block list words
+        labels = [w for w in labels if w not in self.block_list]
+        # update labels
+        labels = list(set(labels))
+        if item["Labels"] is not None and len(labels) == len(item["Labels"]):
+            return None
+        item["Labels"] = labels
+        return item
 
 
 class LogFormatter(logging.Formatter):
@@ -37,7 +137,7 @@ class LogFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def getLogger(name: str):
+def get_logger(name: str):
     """
     Create a Loki logger.
     """
@@ -61,7 +161,7 @@ def getLogger(name: str):
 
 
 # Setup logger
-logger = getLogger("common")
+logger = get_logger("common")
 
 Base = declarative_base()
 
