@@ -1003,7 +1003,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "count_over_time({job=\"$job\",level=\"fatal\"}[$__interval])",
+                    "expr": "sum(count_over_time({job=\"$job\",level=\"fatal\"}[$__interval]))",
                     "queryType": "range",
                     "refId": "A"
                 }
@@ -1528,7 +1528,7 @@
             "targets": [
                 {
                     "datasource": "${DS_LOKI}",
-                    "expr": "count_over_time({job=\"$job\",level=\"warn\"}[$__interval])",
+                    "expr": "sum(count_over_time({job=\"$job\",level=\"warn\"}[$__interval]))",
                     "queryType": "range",
                     "refId": "A"
                 }
