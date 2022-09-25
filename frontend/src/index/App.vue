@@ -8,19 +8,17 @@
           >
           <span style="font-weight: 300; font-size: 1.2rem">{{ title }}</span>
           <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><router-link to="/">Home</router-link></li>
-            <li><router-link to="/category/language:en">English</router-link></li>
-            <li><router-link to="/category/language:zh">中文专区</router-link></li>
+            <li><router-link to="/">Explore</router-link></li>
             <li><router-link to="/favorites">Favorites</router-link></li>
+            <li><a href="https://github.com/gorse-io/gitrec" target="_blank"><i class="fa-brands fa-github"></i></a></li>
           </ul>
         </div>
       </nav>
     </div>
     <ul class="sidenav" id="mobile-demo">
-      <li><router-link to="/">Home</router-link></li>
-      <li><router-link to="/category/language:en">English</router-link></li>
-      <li><router-link to="/category/language:zh">中文专区</router-link></li>
+      <li><router-link to="/">Explore</router-link></li>
       <li><router-link to="/favorites">Favorites</router-link></li>
+      <li><a href="https://github.com/gorse-io/gitrec" target="_blank"><i class="fa-brands fa-github"></i></a></li>
     </ul>
     <router-view @setTitle="setTitle"></router-view>
   </div>

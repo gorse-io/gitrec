@@ -21,3 +21,6 @@ jobs:
 
 web:
 	flask run -p 5001
+
+backend:
+	flask run -p 5002
