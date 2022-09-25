@@ -1,14 +1,12 @@
 import time
+from typing import Optional
+
 import click
-import os
 import pickledb
-from github import Github
-from github.GithubException import RateLimitExceededException
-from gorse import Gorse
-from utils import *
 from dotenv import load_dotenv
 from tqdm import tqdm
-from typing import Optional
+
+from utils import *
 
 # Load dot file
 load_dotenv()
@@ -39,35 +37,35 @@ def upsert_repo(item_id):
 def search_and_upsert(
     db: pickledb.PickleDB, topic: Optional[str] = None, language: Optional[str] = None
 ):
-        query = "stars:>100"
+    query = "stars:>100"
     if topic is not None:
         query += " topic:" + topic
     if language is not None:
         query += " language:" + language
     print("Upsert " + query)
-        repos = github_client.search_repositories(query)
-        for repo in tqdm(repos):
+    repos = github_client.search_repositories(query)
+    for repo in tqdm(repos):
         # Skip existed repo.
         if not db.exists("repo"):
             db.dcreate("repo")
         if db.dexists("repo", repo.full_name):
             continue
-            # Fetch labels.
-            labels = [topic for topic in repo.get_topics()]
-            languages = list(repo.get_languages().items())
-            if len(languages) > 0:
-                main_language = languages[0][0].lower()
-                if main_language not in labels:
-                    labels.append(main_language)
-            # Optimize labels
-            item = {
-                "ItemId": repo.full_name.replace("/", ":").lower(),
-                "Timestamp": str(repo.updated_at),
-                "Labels": labels,
-                "Categories": [],
-                "Comment": repo.description,
-            }
-            gorse_client.insert_item(item)
+        # Fetch labels.
+        labels = [topic for topic in repo.get_topics()]
+        languages = list(repo.get_languages().items())
+        if len(languages) > 0:
+            main_language = languages[0][0].lower()
+            if main_language not in labels:
+                labels.append(main_language)
+        # Optimize labels
+        item = {
+            "ItemId": repo.full_name.replace("/", ":").lower(),
+            "Timestamp": str(repo.updated_at),
+            "Labels": labels,
+            "Categories": [],
+            "Comment": repo.description,
+        }
+        gorse_client.insert_item(item)
         db.dadd("repo", (repo.full_name, None))
 
 
@@ -93,12 +91,12 @@ def upsert_repos():
         if not db.dexists("topic", topic):
             while True:
                 try:
-            search_and_upsert(db, topic=topic)
-            db.dadd("topic", (topic, None))
+                    search_and_upsert(db, topic=topic)
+                    db.dadd("topic", (topic, None))
                     break
                 except RateLimitExceededException as e:
                     print(e)
-                    time.sleep(3600)
+                    time.sleep(1800)
                     continue
                 except Exception as e:
                     print(e)
