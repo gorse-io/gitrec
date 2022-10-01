@@ -8,6 +8,8 @@ from tqdm import tqdm
 
 from utils import *
 
+MAX_COMMENT_LENGTH = 512
+
 # Load dot file
 load_dotenv()
 
@@ -65,6 +67,9 @@ def search_and_upsert(
             "Categories": [],
             "Comment": repo.description,
         }
+        # Truncate long comment
+        if item["Comment"] is not None and len(item["Comment"]) > MAX_COMMENT_LENGTH:
+            item["Comment"] = item["Comment"][:MAX_COMMENT_LENGTH]
         gorse_client.insert_item(item)
         db.dadd("repo", (repo.full_name, None))
 
@@ -100,7 +105,7 @@ def upsert_repos():
                     continue
                 except Exception as e:
                     print(e)
-                    exit(0)
+                    time.sleep(60)
 
 
 if __name__ == "__main__":

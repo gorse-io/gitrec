@@ -190,8 +190,9 @@ def get_repo(category: str = ""):
         "html_url": repo.html_url,
         "stargazers_url": repo.stargazers_url,
         "forks_url": repo.forks_url,
-        "stargazers": repo.get_stargazers().totalCount,
-        "forks": repo.get_forks().totalCount,
+        "stargazers": repo.stargazers_count,
+        "forks": repo.forks_count,
+        "watchers": repo.subscribers_count,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
 

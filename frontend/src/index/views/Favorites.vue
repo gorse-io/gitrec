@@ -38,7 +38,6 @@ export default {
     };
   },
   mounted() {
-    this.$emit("setTitle", "Favorites");
     axios.get("/api/favorites", { withCredentials: true }).then((response) => {
       this.feedbacks = response.data;
     });
@@ -53,6 +52,7 @@ export default {
 
 <style>
 .feedback-icon {
-  font-size: 14px;
+  font-size: 16px;
+  vertical-align: middle;
 }
 </style>

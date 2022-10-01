@@ -1,38 +1,26 @@
 <template>
   <div>
     <div class="container">
+      <div v-if="full_name" class="header">
+        <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
+        <div class="secondary-content">
+          <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{ stargazers }}</a>&nbsp;
+          <a :href="html_url + '/network/members'" target="__blank"><i class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks }}</a>&nbsp;
+          <a :href="html_url + '/watchers'" target="__blank"><i class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
+        </div>
+      </div>
       <article class="markdown-body" v-html="readme"></article>
     </div>
-    <footer>
-      <div class="toolbar-fixed" :class="[primaryColor]">
-        <ul>
-          <li class="waves-effect waves-light">
-            <a :href="html_url + '/stargazers'" target="__blank"
-              ><i class="fa-lg fas fa-star"></i>&nbsp;&nbsp;{{ stargazers }}</a
-            >
-          </li>
-          <li class="waves-effect waves-light">
-            <a :href="html_url + '/network/members'" target="__blank"
-              ><i class="fa-lg fa fa-code-branch" aria-hidden="true"></i
-              >&nbsp;&nbsp;{{ forks }}</a
-            >
-          </li>
-          <li class="waves-effect waves-light">
-            <a :href="html_url" target="__blank"
-              ><i class="material-icons">open_in_new</i></a
-            >
-          </li>
-          <li class="waves-effect waves-light">
-            <a @click="like"
-              ><i class="material-icons" :class="[iconColor]">favorite</i></a
-            >
-          </li>
-          <li class="waves-effect waves-light">
-            <a @click="next"><i class="material-icons">skip_next</i></a>
-          </li>
-        </ul>
-      </div>
-    </footer>
+    <div class="fixed-action-btn" style="bottom: 86px;">
+      <a class="btn-floating" :class="{'red': like_pressed}">
+        <i class="material-icons" @click="like">favorite</i>
+      </a>
+    </div>
+    <div class="fixed-action-btn">
+      <a class="btn-floating">
+        <i class="material-icons" @click="next">play_arrow</i>
+      </a>
+    </div>
   </div>
 </template>
 
@@ -40,7 +28,6 @@
 <script>
 import M from "@materializecss/materialize";
 const axios = require("axios");
-const titleDefault = "Loading...";
 const readmeDefault = `
       <div class="preloader-background">
       	<div class="preloader-wrapper big active">
@@ -61,14 +48,15 @@ const readmeDefault = `
 export default {
   data() {
     return {
-      iconColor: null,
+      like_pressed: false,
       item_id: null,
-      title: titleDefault,
+      full_name: "",
       html_url: null,
       stargazers_url: null,
       forks_url: null,
       stargazers: 0,
       forks: 0,
+      watchers: 0,
       readme: readmeDefault,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
@@ -107,25 +95,27 @@ export default {
         });
     },
     setRepository(repo) {
-      this.$emit("setTitle", repo.full_name);
       this.item_id = repo.item_id;
+      this.full_name = repo.full_name;
       this.readme = repo.readme;
       this.html_url = repo.html_url;
       this.stargazers = repo.stargazers;
       this.forks = repo.forks;
+      this.watchers = repo.watchers;
     },
     clearRepository() {
-      this.$emit("setTitle", titleDefault);
+      this.item_id = null;
+      this.full_name = "";
       this.readme = readmeDefault;
       this.stargazers = 0;
       this.forks = 0;
-      this.iconColor = null;
+      this.like_pressed = false;
     },
     like() {
       axios
         .get("/api/like/" + this.item_id, { withCredentials: true })
         .then(() => {
-          this.iconColor = "red-icon";
+          this.like_pressed = true;
         });
     },
     next() {
@@ -151,14 +141,16 @@ export default {
   min-width: 200px;
   max-width: 980px;
   margin: 0 auto;
-  padding: 45px;
-  padding-bottom: 100px;
+  padding-left: 45px;
+  padding-right: 45px;
+  padding-top: 20px;
+  padding-bottom: 45px;
 }
 
 @media (max-width: 767px) {
   .markdown-body {
     padding: 15px;
-    padding-bottom: 100px;
+    padding-bottom: 45px;
   }
 }
 
@@ -235,7 +227,22 @@ export default {
   margin-bottom: 15px;
 }
 
-.material-icons.red-icon {
-  color: red;
+.header {
+  padding-top: 10px;
+  padding-left: 45px;
+  padding-right: 45px;
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding-top: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+.header a {
+  color: #26a69a;
+  text-transform: lowercase;
 }
 </style>

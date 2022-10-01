@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="navbar-fixed">
+    <div>
       <nav :class="[primaryColor]">
         <div class="nav-wrapper container">
           <span style="font-weight: 300; font-size: 1.5rem">GitRec</span>

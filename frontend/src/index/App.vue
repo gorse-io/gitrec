@@ -1,26 +1,29 @@
 <template>
   <div id="app">
-    <div class="navbar-fixed">
-      <nav :class="[primaryColor]">
+    <div>
+      <nav :class="[primaryColor, 'nav-extended']">
         <div class="nav-wrapper container">
           <a href="#" data-target="mobile-demo" class="sidenav-trigger"
             ><i class="material-icons">menu</i></a
           >
-          <span style="font-weight: 300; font-size: 1.2rem">{{ title }}</span>
+          <span style="font-weight: 300; font-size: 1.2rem">{{ $route.name }}</span>
           <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><router-link to="/">Explore</router-link></li>
-            <li><router-link to="/favorites">Favorites</router-link></li>
-            <li><a href="https://github.com/gorse-io/gitrec" target="_blank"><i class="fa-brands fa-github"></i></a></li>
+            <li :class="{'active': $route.path=='/'}"><router-link to="/">Explore</router-link></li>
+            <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
           </ul>
         </div>
+        <!-- <div v-if="$route.path=='/'" class="nav-content container">
+          <ul class="tabs tabs-transparent hide-scrollbar">
+            <li v-for="topic in topics" v-bind:key="topic" class="tab"><a>{{ topic }}</a></li>
+          </ul>
+        </div> -->
       </nav>
     </div>
     <ul class="sidenav" id="mobile-demo">
-      <li><router-link to="/">Explore</router-link></li>
-      <li><router-link to="/favorites">Favorites</router-link></li>
-      <li><a href="https://github.com/gorse-io/gitrec" target="_blank"><i class="fa-brands fa-github"></i></a></li>
+      <li :class="{'active': $route.path=='/'}"><router-link to="/">Explore</router-link></li>
+      <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
     </ul>
-    <router-view @setTitle="setTitle"></router-view>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -32,18 +35,41 @@ export default {
       title: null,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
+      showTopics: false,
+      topics: [
+        "all",
+        "python",
+        "java",
+        "javascript",
+        "c++",
+        "go",
+        "typescript",
+        "c",
+        "c#",
+        "rust",
+        "book"
+      ]
     };
   },
   mounted() {
     document.addEventListener("DOMContentLoaded", function () {
-      var elems = document.querySelectorAll(".sidenav");
-      M.Sidenav.init(elems);
+      var sidenavElements = document.querySelectorAll(".sidenav");
+      M.Sidenav.init(sidenavElements);
+      var tabsElements = document.querySelectorAll(".tabs");
+      M.Tabs.init(tabsElements, {});
     });
-  },
-  methods: {
-    setTitle(title) {
-      this.title = title;
-    },
-  },
+  }
 };
 </script>
+
+<style>
+.hide-scrollbar::-webkit-scrollbar {
+  background: transparent; /* Chrome/Safari/Webkit */
+  width: 0px;
+}
+    
+.hide-scrollbar {
+  scrollbar-width: none;    /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+</style>
