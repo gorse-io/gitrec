@@ -29,26 +29,36 @@ Session = sessionmaker()
 Session.configure(bind=engine)
 
 
+TRENDING_PAGES = [
+    "",
+    "python",
+    "java",
+    "javascript",
+    "c++",
+    "go",
+    "typescript",
+    "php",
+    "ruby",
+    "c",
+    "c#",
+    "nix",
+    "shell",
+    "scala",
+    "rust",
+    "kotlin",
+    "dart",
+    "swift",
+    "unknown",
+]
+
+
 def get_trending():
     """
     Get trending repositories of C, C++, Go, Python, JS, Java, Rust, TS and unknown.
     """
     full_names = []
-    languages = [
-        "",
-        "c",
-        "c++",
-        "go",
-        "python",
-        "javascript",
-        "java",
-        "rust",
-        "typescript",
-        "unknown",
-        "?spoken_language_code=zh",
-    ]
-    for language in languages:
-        r = requests.get("https://github.com/trending/%s" % language)
+    for language_page in TRENDING_PAGES:
+        r = requests.get("https://github.com/trending/%s" % language_page)
         if r.status_code != 200:
             return full_names
         soup = BeautifulSoup(r.text, "html.parser")

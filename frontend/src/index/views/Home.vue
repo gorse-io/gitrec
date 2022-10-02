@@ -4,6 +4,7 @@
       <div v-if="full_name" class="header">
         <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
         <div class="secondary-content">
+          <i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;
           <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{ stargazers }}</a>&nbsp;
           <a :href="html_url + '/network/members'" target="__blank"><i class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks }}</a>&nbsp;
           <a :href="html_url + '/watchers'" target="__blank"><i class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
@@ -57,6 +58,7 @@ export default {
       stargazers: 0,
       forks: 0,
       watchers: 0,
+      language: "",
       readme: readmeDefault,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
@@ -102,6 +104,7 @@ export default {
       this.stargazers = repo.stargazers;
       this.forks = repo.forks;
       this.watchers = repo.watchers;
+      this.language = repo.language;
     },
     clearRepository() {
       this.item_id = null;
@@ -109,6 +112,8 @@ export default {
       this.readme = readmeDefault;
       this.stargazers = 0;
       this.forks = 0;
+      this.watchers = 0;
+      this.language = "";
       this.like_pressed = false;
     },
     like() {
@@ -243,6 +248,5 @@ export default {
 
 .header a {
   color: #26a69a;
-  text-transform: lowercase;
 }
 </style>

@@ -193,6 +193,7 @@ def get_repo(category: str = ""):
         "stargazers": repo.stargazers_count,
         "forks": repo.forks_count,
         "watchers": repo.subscribers_count,
+        "language": repo.language,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
 

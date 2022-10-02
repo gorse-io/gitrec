@@ -19,6 +19,20 @@ from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
 
+CATEGORIES = {
+    "python",
+    "java",
+    "javascript",
+    "c++",
+    "go",
+    "typescript",
+    "c",
+    "c#",
+    "rust",
+    "book",
+}
+
+
 class LabelGenerator:
     """
     LabelGenerator generate labels from repo description.
@@ -275,21 +289,11 @@ def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerat
         main_language = languages[0][0].lower()
         if main_language not in labels:
             labels.append(main_language)
-    # Fetch categories.
-    categories = []
-    # TODO: Generate topics from README.md
-    # try:
-    #     readme = repo.get_readme().decoded_content.decode("utf-8")
-    # except UnknownObjectException as e:
-    #     logger.warning(
-    #         "readme not found",
-    #         extra={"tags": {"full_name": full_name, "exception": str(e)}},
-    #     )
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
         "Labels": labels,
-        "Categories": categories,
+        "Categories": [],
         "Comment": repo.description,
     }
     optimized = generator.optimize(item)
