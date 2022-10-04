@@ -5,9 +5,12 @@
         <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
         <div class="secondary-content">
           <i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;
-          <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{ stargazers }}</a>&nbsp;
-          <a :href="html_url + '/network/members'" target="__blank"><i class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks }}</a>&nbsp;
-          <a :href="html_url + '/watchers'" target="__blank"><i class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
+          <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
+          stargazers }}</a>&nbsp;
+          <a :href="html_url + '/network/members'" target="__blank"><i
+              class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks }}</a>&nbsp;
+          <a :href="html_url + '/watchers'" target="__blank"><i
+              class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
         </div>
       </div>
       <article class="markdown-body" v-html="readme"></article>
@@ -118,14 +121,14 @@ export default {
     },
     like() {
       axios
-        .get("/api/like/" + this.item_id, { withCredentials: true })
+        .post("/api/like/" + this.item_id, { withCredentials: true })
         .then(() => {
           this.like_pressed = true;
         });
     },
     next() {
       axios
-        .get("/api/read/" + this.item_id, { withCredentials: true })
+        .post("/api/read/" + this.item_id, { withCredentials: true })
         .then(() => {
           // load next repo
           this.clearRepository();
@@ -170,66 +173,6 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-}
-
-.toolbar-fixed {
-  width: 100%;
-  padding: 0;
-  height: 56px;
-  position: fixed;
-  bottom: 0px;
-}
-
-.toolbar-fixed.active > a i {
-  opacity: 0;
-}
-
-.toolbar-fixed ul {
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  top: 0;
-  bottom: 0;
-}
-
-.toolbar-fixed ul li {
-  -webkit-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  display: inline-block;
-  margin: -;
-  height: 100%;
-  transition: none;
-  position: relative;
-  top: -15px;
-}
-
-.toolbar-fixed ul li a {
-  display: block;
-  overflow: hidden;
-  position: relative;
-
-  width: 100%;
-  height: 100%;
-  background-color: transparent;
-  box-shadow: none;
-  color: #fff;
-  line-height: 56px;
-  z-index: 1;
-}
-
-.toolbar-fixed ul li a i {
-  line-height: inherit;
-}
-
-.toolbar-fixed ul {
-  left: 0;
-  right: 0;
-  text-align: center;
-}
-
-.toolbar-fixed ul li {
-  margin-bottom: 15px;
 }
 
 .header {

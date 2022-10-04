@@ -14,7 +14,13 @@ from flask_cors import CORS
 from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from flask_dance.contrib.github import make_github_blueprint
-from flask_login import LoginManager, UserMixin, current_user, login_user, login_required
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_user,
+    login_required,
+)
 from flask_sqlalchemy import SQLAlchemy
 from github import Github
 from github.GithubException import UnknownObjectException
@@ -129,15 +135,25 @@ def login():
 
 
 def is_github_blob(url: str) -> bool:
-    splits = url.split('/')
-    return len(splits) > 5 and splits[0] == 'https:' and splits[2] == 'github.com' and splits[5] == 'blob'
+    splits = url.split("/")
+    return (
+        len(splits) > 5
+        and splits[0] == "https:"
+        and splits[2] == "github.com"
+        and splits[5] == "blob"
+    )
 
 
 def convert_github_blob(url: str) -> str:
-    splits = url.split('/')
-    if len(splits) > 5 and splits[0] == 'https:' and splits[2] == 'github.com' and splits[5] == 'blob':
-        splits[5] = 'raw'
-    return '/'.join(splits)
+    splits = url.split("/")
+    if (
+        len(splits) > 5
+        and splits[0] == "https:"
+        and splits[2] == "github.com"
+        and splits[5] == "blob"
+    ):
+        splits[5] = "raw"
+    return "/".join(splits)
 
 
 @app.route("/api/repo")
@@ -170,7 +186,7 @@ def get_repo(category: str = ""):
             src = a.attrs["href"]
             if not src.startswith("http://") and not src.startswith("https://"):
                 a.attrs["href"] = (
-                        repo.html_url + "/blob/" + repo.default_branch + "/" + src
+                    repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
     blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
@@ -180,8 +196,9 @@ def get_repo(category: str = ""):
             if not src.startswith("http://") and not src.startswith("https://"):
                 if src.startswith("./"):
                     src = src[2:]
-                img.attrs["src"] = repo.html_url + \
-                                   "/raw/" + repo.default_branch + "/" + src
+                img.attrs["src"] = (
+                    repo.html_url + "/raw/" + repo.default_branch + "/" + src
+                )
             elif is_github_blob(src):
                 img.attrs["src"] = convert_github_blob(src)
     return {
@@ -212,29 +229,37 @@ def get_favorites():
     return Response(json.dumps(positive_feedbacks), mimetype="application/json")
 
 
-@app.route("/api/like/<repo_name>")
+@app.route("/api/like/<repo_name>", methods=["POST"])
 @login_required
 def like_repo(repo_name: str):
     try:
-        gorse_client.insert_feedback("read", current_user.login, repo_name, datetime.now().isoformat())
-        return gorse_client.insert_feedback("like", current_user.login, repo_name, datetime.now().isoformat())
+        gorse_client.insert_feedback(
+            "read", current_user.login, repo_name, datetime.now().isoformat()
+        )
+        return gorse_client.insert_feedback(
+            "like", current_user.login, repo_name, datetime.now().isoformat()
+        )
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
 
-@app.route("/api/read/<repo_name>")
+@app.route("/api/read/<repo_name>", methods=["POST"])
 @login_required
 def read_repo(repo_name: str):
     try:
-        return gorse_client.insert_feedback("read", current_user.login, repo_name, datetime.now().isoformat())
+        return gorse_client.insert_feedback(
+            "read", current_user.login, repo_name, datetime.now().isoformat()
+        )
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
 
-@app.route("/api/neighbors/<repo_name>")
+@app.route("/api/neighbors/<repo_name>", methods=["GET"])
 def get_neighbors(repo_name: str):
     try:
-        repo_names = gorse_client.get_neighbors(repo_name.lower())
+        n = int(request.args.get["n"]) if "n" in request.args else 3
+        offset = int(request.args.get["offset"]) if "offset" in request.args else 0
+        repo_names = gorse_client.get_neighbors(repo_name.lower(), n, offset)
         return Response(json.dumps(repo_names), mimetype="application/json")
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
@@ -265,10 +290,10 @@ def extension_recommend(user_id: str):
         gorse_client.get_user(user_id)
         try:
             repo_names = gorse_client.get_recommend(user_id, n=3)
-            return Response(json.dumps({
-                'has_login': True,
-                'recommend': repo_names
-            }), mimetype="application/json")
+            return Response(
+                json.dumps({"has_login": True, "recommend": repo_names}),
+                mimetype="application/json",
+            )
         except gorse.GorseException as e:
             return Response(e.message, status=e.status_code)
     except gorse.GorseException as e:
@@ -284,11 +309,11 @@ def extension_recommend(user_id: str):
                 for v in repo_names
             ]
             scores = gorse_client.session_recommend(feedbacks, 3)
-            repo_names = [v['Id'] for v in scores]
-            return Response(json.dumps({
-                'has_login': True,
-                'recommend': repo_names
-            }), mimetype="application/json")
+            repo_names = [v["Id"] for v in scores]
+            return Response(
+                json.dumps({"has_login": True, "recommend": repo_names}),
+                mimetype="application/json",
+            )
         except gorse.GorseException as e:
             return Response(e.message, status=e.status_code)
 
