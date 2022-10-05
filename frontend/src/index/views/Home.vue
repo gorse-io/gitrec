@@ -4,7 +4,7 @@
       <div v-if="full_name" class="header">
         <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
         <div class="secondary-content">
-          <i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;
+          <a v-if="language"><i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;</a>
           <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
           stargazers }}</a>&nbsp;
           <a :href="html_url + '/network/members'" target="__blank"><i
@@ -13,7 +13,8 @@
               class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
         </div>
       </div>
-      <article class="markdown-body" v-html="readme"></article>
+      <Preloader v-if="readme == null"/>
+      <article v-else class="markdown-body" v-html="readme"></article>
     </div>
     <div class="fixed-action-btn" style="bottom: 86px;">
       <a class="btn-floating" :class="{'red': like_pressed}">
@@ -30,26 +31,14 @@
 
 
 <script>
+import Preloader from "../components/Preloader.vue";
 import M from "@materializecss/materialize";
 const axios = require("axios");
-const readmeDefault = `
-      <div class="preloader-background">
-      	<div class="preloader-wrapper big active">
-      		<div class="spinner-layer spinner-blue-only">
-      			<div class="circle-clipper left">
-      				<div class="circle"></div>
-      			</div>
-      			<div class="gap-patch">
-      				<div class="circle"></div>
-      			</div>
-      			<div class="circle-clipper right">
-      				<div class="circle"></div>
-      			</div>
-      		</div>
-      	</div>
-      </div>
-            `;
+
 export default {
+  components: {
+    Preloader
+  },
   data() {
     return {
       like_pressed: false,
@@ -62,7 +51,7 @@ export default {
       forks: 0,
       watchers: 0,
       language: "",
-      readme: readmeDefault,
+      readme: null,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
       category: "",
@@ -112,7 +101,7 @@ export default {
     clearRepository() {
       this.item_id = null;
       this.full_name = "";
-      this.readme = readmeDefault;
+      this.readme = null;
       this.stargazers = 0;
       this.forks = 0;
       this.watchers = 0;
@@ -160,19 +149,6 @@ export default {
     padding: 15px;
     padding-bottom: 45px;
   }
-}
-
-.preloader-background {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  position: fixed;
-  z-index: 100;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 
 .header {
