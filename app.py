@@ -265,6 +265,23 @@ def get_neighbors(repo_name: str):
         return Response(e.message, status=e.status_code)
 
 
+@app.route("/api/extension/recommend", methods=["GET"])
+def extension_recommend():
+    if not current_user.is_authenticated:
+        return Response(
+            json.dumps({"has_login": True}),
+            mimetype="application/json",
+        )
+    try:
+        repo_names = gorse_client.get_recommend(current_user.login, n=3)
+        return Response(
+            json.dumps({"has_login": True, "recommend": repo_names}),
+            mimetype="application/json",
+        )
+    except gorse.GorseException as e:
+        return Response(e.message, status=e.status_code)
+
+
 @app.route("/api/session/recommend", methods=["POST"])
 def session_recommend():
     try:
@@ -284,7 +301,7 @@ def session_recommend():
 
 
 @app.route("/api/extension/recommend/<user_id>", methods=["POST"])
-def extension_recommend(user_id: str):
+def extension_recommend_latency(user_id: str):
     try:
         # If the user is in Gorse.
         gorse_client.get_user(user_id)
