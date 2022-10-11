@@ -21,7 +21,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "iteration": 1653484077728,
+    "iteration": 1665457604507,
     "links": [],
     "liveNow": false,
     "panels": [
@@ -1629,7 +1629,7 @@
                 {
                     "datasource": "${DS_PROMETHEUS}",
                     "exemplar": true,
-                    "expr": "histogram_quantile(0.95, rate(gorse_server_rest_api_request_seconds_bucket{job=\"$job\"}[$__interval]))",
+                    "expr": "histogram_quantile(0.95, sum(rate(gorse_server_rest_api_request_seconds_bucket{job=\"$job\"}[$__interval])) by (api,le))",
                     "interval": "1m",
                     "legendFormat": "{{ api }}",
                     "refId": "A"
@@ -1942,8 +1942,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -2030,8 +2029,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -3245,8 +3243,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -3336,8 +3333,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -3427,8 +3423,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -3518,8 +3513,7 @@
                                 "mode": "absolute",
                                 "steps": [
                                     {
-                                        "color": "green",
-                                        "value": null
+                                        "color": "green"
                                     },
                                     {
                                         "color": "red",
@@ -3654,6 +3648,6 @@
     "timezone": "",
     "title": "Gorse Dashboard",
     "uid": "8b6_avOnk",
-    "version": 74,
+    "version": 78,
     "weekStart": ""
 }
