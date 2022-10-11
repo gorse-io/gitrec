@@ -68,8 +68,9 @@ app.register_blueprint(blueprint, url_prefix="/login")
 # cross-origin resource sharing
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# create gorse client
+# create gorse client and github client
 gorse_client = gorse.Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
+global_github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -254,11 +255,25 @@ def read_repo(repo_name: str):
         return Response(e.message, status=e.status_code)
 
 
+@app.route("/api/delete/<repo_name>", methods=["POST"])
+@login_required
+def delete_repo(repo_name: str):
+    try:
+        full_name = repo_name.replace(":", "/")
+        try:
+            global_github_client.get_repo(full_name)
+        except UnknownObjectException:
+            return gorse_client.delete_item(repo_name)
+        return '{"RowAffected": 0}'
+    except gorse.GorseException as e:
+        return Response(e.message, status=e.status_code)
+
+
 @app.route("/api/neighbors/<repo_name>", methods=["GET"])
 def get_neighbors(repo_name: str):
     try:
-        n = int(request.args.get["n"]) if "n" in request.args else 3
-        offset = int(request.args.get["offset"]) if "offset" in request.args else 0
+        n = int(request.args.get("n", default="3"))
+        offset = int(request.args.get("offset", default="0"))
         repo_names = gorse_client.get_neighbors(repo_name.lower(), n, offset)
         return Response(json.dumps(repo_names), mimetype="application/json")
     except gorse.GorseException as e:
