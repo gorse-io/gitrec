@@ -1,4 +1,4 @@
-const colors = {
+const LANGUAGE_COLORS = {
     "1C Enterprise": {
         "color": "#814CCC",
         "url": "https://github.com/trending?l=1C-Enterprise"
@@ -2249,6 +2249,6 @@ const colors = {
     }
 }
 
-function getColor(language) {
-    return colors[language].color;
+function renderLanguageColor(language) {
+    return LANGUAGE_COLORS[language].color;
 }
