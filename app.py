@@ -292,7 +292,9 @@ def extension_recommend():
             mimetype="application/json",
         )
     try:
-        repo_names = gorse_client.get_recommend(current_user.login, n=3)
+        repo_names = gorse_client.get_recommend(
+            current_user.login, n=3, write_back_type="read", write_back_delay="24h"
+        )
         return Response(
             json.dumps({"has_login": True, "recommend": repo_names}),
             mimetype="application/json",
