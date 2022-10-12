@@ -54,17 +54,14 @@ def search_and_upsert(
             continue
         # Fetch labels.
         labels = [topic for topic in repo.get_topics()]
-        languages = list(repo.get_languages().items())
-        if len(languages) > 0:
-            main_language = languages[0][0].lower()
-            if main_language not in labels:
-                labels.append(main_language)
+        if repo.language is not None and repo.language not in labels:
+            labels.append(repo.language.lower())
         # Optimize labels
         item = {
             "ItemId": repo.full_name.replace("/", ":").lower(),
             "Timestamp": str(repo.updated_at),
             "Labels": labels,
-            "Categories": [],
+            "Categories": generate_categories(labels),
             "Comment": repo.description,
         }
         # Truncate long comment

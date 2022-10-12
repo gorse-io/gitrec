@@ -19,18 +19,15 @@ from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
 
-CATEGORIES = {
-    "python",
-    "java",
-    "javascript",
-    "c++",
-    "go",
-    "typescript",
-    "c",
-    "c#",
-    "rust",
-    "book",
-}
+CATEGORIES = {"book", "game"}
+
+
+def generate_categories(labels: List[str]) -> List[str]:
+    categories = []
+    for label in labels:
+        if label in CATEGORIES:
+            categories.append(label)
+    return categories
 
 
 class LabelGenerator:
@@ -125,9 +122,18 @@ class LabelGenerator:
         labels = [w for w in labels if w not in self.block_list]
         # update labels
         labels = list(set(labels))
-        if item["Labels"] is not None and len(labels) == len(item["Labels"]):
+        # Fetch categories
+        categories = generate_categories(labels)
+
+        if (
+            item["Labels"] is not None
+            and len(labels) == len(item["Labels"])
+            and item["Categories"] is not None
+            and len(categories) == len(item["Categories"])
+        ):
             return None
         item["Labels"] = labels
+        item["Categories"] = categories
         return item
 
 
@@ -284,16 +290,13 @@ def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerat
     repo = github_client.get_repo(full_name)
     # Fetch labels.
     labels = [topic for topic in repo.get_topics()]
-    languages = list(repo.get_languages().items())
-    if len(languages) > 0:
-        main_language = languages[0][0].lower()
-        if main_language not in labels:
-            labels.append(main_language)
+    if repo.language is not None and repo.language not in labels:
+        labels.append(repo.language.lower())
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
         "Labels": labels,
-        "Categories": [],
+        "Categories": generate_categories(labels),
         "Comment": repo.description,
     }
     optimized = generator.optimize(item)
