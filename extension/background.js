@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener(
                 sendResponse(r);
             })
         } else if (request.neighbors) {
-            fetch(`https://gitrec.gorse.io/api/neighbors/${request.neighbors}?offset=${request.offset}`, {
+            fetch(`https://gitrec.gorse.io/api/neighbors/${request.neighbors}?offset=${request.offset}&n=6`, {
                 credentials: 'include'
             }).then(r => r.json()).then(r => {
                 sendResponse(r);

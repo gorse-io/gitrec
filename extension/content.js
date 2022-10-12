@@ -24,11 +24,19 @@ async function renderSimilarDiv(repositories) {
         responses.push(fetchRepo(name));
     }
     Promise.all(responses).then((res) => {
+        let count = 0;
         let rows = "";
         if (res.length > 0) {
             for (const [i, info] of res.entries()) {
                 if (info['full_name']) {
-                    rows += `
+                    let actualName = info['full_name'].replace('/', ':').toLowerCase();
+                    let expectedName = repositories[i].Id.toLowerCase();
+                    if (actualName != expectedName) {
+                        // The repository has been renamed.
+                        chrome.runtime.sendMessage({ delete: repositories[i].Id }, (r) => { console.log(r) });
+                    } else if (count < 3) {
+                        count ++;
+                        rows += `
 <div class="py-2 my-2 color-border-muted">
     <a class="f6 text-bold Link--primary d-flex no-underline wb-break-all d-inline-block" href="/${info['full_name']}">${info['full_name']}</a>
     <p class="f6 color-fg-muted mb-2" itemprop="description">${info['description'] ? info['description'] : ''}</p>
@@ -40,7 +48,9 @@ async function renderSimilarDiv(repositories) {
         ${info['stargazers_count']}
     </span>
 </div>`
+                    }
                 } else if (info.message == 'Not Found') {
+                    // The repository has been removed.
                     chrome.runtime.sendMessage({ delete: repositories[i].Id }, () => { });
                 }
             }
