@@ -261,8 +261,12 @@ def delete_repo(repo_name: str):
     try:
         full_name = repo_name.replace(":", "/")
         try:
-            global_github_client.get_repo(full_name)
+            repo = global_github_client.get_repo(full_name)
+            if repo.full_name.lower() != full_name.lower():
+                # This repository has been renamed.
+                return gorse_client.delete_item(repo_name)
         except UnknownObjectException:
+            # This repository has been removed.
             return gorse_client.delete_item(repo_name)
         return '{"RowAffected": 0}'
     except gorse.GorseException as e:
