@@ -11,8 +11,27 @@ if (splits.length === 3) {
         renderSimilarDiv(repositories);
     });
 } else if (splits.length === 2) {
+    let exploreDiv = $("[aria-label='Explore']");
+    exploreDiv.children("h2.f5").remove();
+    exploreDiv.children("div.py-2").remove();
+    exploreDiv.children("a.f6").remove();
     chrome.runtime.sendMessage({ recommend: [] }, function (result) {
-        showRecommend(result);
+        if (result.has_login) {
+            showRecommend(result);
+        } else {
+            const login = $('meta[name=user-login]').attr('content');
+            fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
+                let repoNames = result.map((value) => {
+                    return value.full_name.replace('/', ':');
+                })
+                chrome.runtime.sendMessage({ recommend: repoNames }, function (repos) {
+                    result.recommend = repos.map((value) => {
+                        return value.Id;
+                    });
+                    showRecommend(result);
+                });
+            });
+        }
     });
 }
 
@@ -35,7 +54,7 @@ async function renderSimilarDiv(repositories) {
                         // The repository has been renamed.
                         chrome.runtime.sendMessage({ delete: repositories[i].Id }, (r) => { console.log(r) });
                     } else if (count < 3) {
-                        count ++;
+                        count++;
                         rows += `
 <div class="py-2 my-2 color-border-muted">
     <a class="f6 text-bold Link--primary d-flex no-underline wb-break-all d-inline-block" href="/${info['full_name']}">${info['full_name']}</a>

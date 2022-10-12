@@ -37,11 +37,20 @@ chrome.runtime.onMessage.addListener(
                 sendResponse(r);
             })
         } else if (request.recommend) {
-            fetch('https://gitrec.gorse.io/api/extension/recommend', {
-                credentials: 'include'
-            }).then(r => r.json()).then(r => {
-                sendResponse(r);
-            })
+            if (request.recommend instanceof Array && request.recommend.length > 0) {
+                fetch('https://gitrec.gorse.io/api/session/recommend', {
+                    method: 'POST',
+                    body: JSON.stringify(request.recommend),
+                }).then(r => r.json()).then(r => {
+                    sendResponse(r);
+                });
+            } else {
+                fetch('https://gitrec.gorse.io/api/extension/recommend', {
+                    credentials: 'include'
+                }).then(r => r.json()).then(r => {
+                    sendResponse(r);
+                })
+            }
         }
         return true;
     }
