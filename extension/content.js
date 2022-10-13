@@ -1,16 +1,16 @@
 var itemId = null;
 var similarOffset = 0;
 
-const splits = location.pathname.split('/');
-if (splits.length === 3) {
-    itemId = splits[1] + ':' + splits[2];
+var splits = location.pathname.split('/').filter(s => s);
+if (splits.length === 2) {
+    itemId = splits[0] + ':' + splits[1];
     // mark read
     chrome.runtime.sendMessage({ read: itemId }, () => { });
     // get neighbors
     chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (repositories) {
         renderSimilarDiv(repositories);
     });
-} else if (splits.length === 2) {
+} else if (splits.length === 0) {
     let exploreDiv = $("[aria-label='Explore']");
     exploreDiv.children("h2.f5").remove();
     exploreDiv.children("div.py-2").remove();

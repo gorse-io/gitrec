@@ -3,9 +3,13 @@
     "description": "A recommender system for GitHub repositories based on Gorse",
     "version": "0.3",
     "manifest_version": 3,
-    "permissions": [],
+    "permissions": [
+        "scripting",
+        "webNavigation"
+    ],
     "host_permissions": [
-        "https://gitrec.gorse.io/*"
+        "https://gitrec.gorse.io/*",
+        "*://github.com/*"
     ],
     "action": {
         "default_popup": "popup.html",
@@ -26,7 +30,7 @@
                 "colors.js",
                 "content.js"
             ],
-            "run_at": "document_end"
+            "run_at": "document_idle"
         }
     ],
     "background": {
