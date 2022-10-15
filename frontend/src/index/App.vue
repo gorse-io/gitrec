@@ -8,19 +8,21 @@
           >
           <span style="font-weight: 300; font-size: 1.2rem">{{ $route.name }}</span>
           <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li :class="{'active': $route.path=='/'}"><router-link to="/">Explore</router-link></li>
+            <li :class="{'active': $route.path=='/' || $route.path.startsWith('/topic/')}"><router-link to="/">Explore</router-link></li>
             <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
           </ul>
         </div>
-        <!-- <div v-if="$route.path=='/'" class="nav-content container">
+        <div v-if="$route.path=='/' || $route.path.startsWith('/topic/')" class="nav-content container">
           <ul class="tabs tabs-transparent hide-scrollbar">
-            <li v-for="topic in topics" v-bind:key="topic" class="tab"><a>{{ topic }}</a></li>
+            <li v-for="topic in topics" v-bind:key="topic" class="tab">
+              <router-link :to="topic == 'all' ? '/' : '/topic/' + topic">{{ topic }}</router-link>
+            </li>
           </ul>
-        </div> -->
+        </div>
       </nav>
     </div>
     <ul class="sidenav" id="mobile-demo">
-      <li :class="{'active': $route.path=='/'}"><router-link to="/">Explore</router-link></li>
+      <li :class="{'active': $route.path=='/' || $route.path.startsWith('/topic/')}"><router-link to="/">Explore</router-link></li>
       <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
     </ul>
     <router-view></router-view>
@@ -38,16 +40,9 @@ export default {
       showTopics: false,
       topics: [
         "all",
-        "python",
-        "java",
-        "javascript",
-        "c++",
-        "go",
-        "typescript",
-        "c",
-        "c#",
-        "rust",
-        "book"
+        "book",
+        "game",
+        "awesome"
       ]
     };
   },
@@ -67,7 +62,7 @@ export default {
   background: transparent; /* Chrome/Safari/Webkit */
   width: 0px;
 }
-    
+
 .hide-scrollbar {
   scrollbar-width: none;    /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */

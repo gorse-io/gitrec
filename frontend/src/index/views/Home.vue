@@ -54,15 +54,15 @@ export default {
       readme: null,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
-      category: "",
+      topic: "",
     };
   },
   watch: {
     $route() {
-      if (this.$route.params.category != null) {
-        this.category = "/" + this.$route.params.category;
+      if (this.$route.params.topic != null) {
+        this.topic = "/" + this.$route.params.topic;
       } else {
-        this.category = "";
+        this.topic = "";
       }
       this.clearRepository();
       this.recommend();
@@ -83,7 +83,7 @@ export default {
   methods: {
     recommend() {
       axios
-        .get("/api/repo" + this.category, { withCredentials: true })
+        .get("/api/repo" + this.topic, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
         });
