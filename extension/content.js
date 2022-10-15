@@ -1,39 +1,41 @@
 var itemId = null;
 var similarOffset = 0;
 
-var splits = location.pathname.split('/').filter(s => s);
-if (splits.length === 2) {
-    itemId = splits[0] + ':' + splits[1];
-    // mark read
-    chrome.runtime.sendMessage({ read: itemId }, () => { });
-    // get neighbors
-    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (repositories) {
-        renderSimilarDiv(repositories);
-    });
-} else if (splits.length === 0) {
-    let exploreDiv = $("[aria-label='Explore']");
-    exploreDiv.children("h2.f5").remove();
-    exploreDiv.children("div.py-2").remove();
-    exploreDiv.children("a.f6").remove();
-    chrome.runtime.sendMessage({ recommend: [] }, function (result) {
-        if (result.has_login) {
-            showRecommend(result);
-        } else {
-            const login = $('meta[name=user-login]').attr('content');
-            fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
-                let repoNames = result.map((value) => {
-                    return value.full_name.replace('/', ':');
-                })
-                chrome.runtime.sendMessage({ recommend: repoNames }, function (repos) {
-                    result.recommend = repos.map((value) => {
-                        return value.Id;
+$(document).ready(function () {
+    const splits = location.pathname.split('/').filter(s => s);
+    if (splits.length === 2) {
+        itemId = splits[0] + ':' + splits[1];
+        // mark read
+        chrome.runtime.sendMessage({ read: itemId }, () => { });
+        // get neighbors
+        chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (repositories) {
+            renderSimilarDiv(repositories);
+        });
+    } else if (splits.length === 0) {
+        let exploreDiv = $("[aria-label='Explore']");
+        exploreDiv.children("h2.f5").remove();
+        exploreDiv.children("div.py-2").remove();
+        exploreDiv.children("a.f6").remove();
+        chrome.runtime.sendMessage({ recommend: [] }, function (result) {
+            if (result.has_login) {
+                showRecommend(result);
+            } else {
+                const login = $('meta[name=user-login]').attr('content');
+                fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
+                    let repoNames = result.map((value) => {
+                        return value.full_name.replace('/', ':');
+                    })
+                    chrome.runtime.sendMessage({ recommend: repoNames }, function (repos) {
+                        result.recommend = repos.map((value) => {
+                            return value.Id;
+                        });
+                        showRecommend(result);
                     });
-                    showRecommend(result);
                 });
-            });
-        }
-    });
-}
+            }
+        });
+    }
+})
 
 async function renderSimilarDiv(repositories) {
     // Create promises

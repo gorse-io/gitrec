@@ -179,9 +179,6 @@ module.exports = {
       "/api": {
         target: "http://127.0.0.1:5002",    // web backend address
         changeOrigin: true,
-        onProxyReq: function(proxyReq) {
-            proxyReq.setHeader("Cookie", "session=xxxxxxxx");
-        }
       },
     }
   },

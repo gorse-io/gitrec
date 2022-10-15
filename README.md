@@ -7,9 +7,9 @@
 [![Discord](https://img.shields.io/discord/830635934210588743)](https://discord.gg/x6gAtNNkAE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/gorse_io?label=Follow&style=social)](https://twitter.com/gorse_io)
 
-GitRec is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
+[GitRec](https://gitrec.gorse.io/) is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
-![](assets/gitrec.png)
+![](assets/screenshots.png)
 
 ## Browser Extensions
 
@@ -30,14 +30,15 @@ GitRec is the missing recommender system for GitHub repositories based on [Gorse
   </tbody>
 </table>
 
-## Architecture
+![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/eihokbaeiebdenibjophfipedicippfl)
+![Chrome Web Store](https://img.shields.io/chrome-web-store/users/eihokbaeiebdenibjophfipedicippfl)
+![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eihokbaeiebdenibjophfipedicippfl)
 
-<img width="480px" src="assets/architecture.png">
+The browser extension integrates GitHub with GitRec. 
+1. Recommends repositories to GitHub users based on starred repositories.
+2. Finds related repositories for popular repositories.
 
-- The trending crawler crawls trending repositories and insert them into Gorse as new items.
-- The user starred crawler crawls user starred repositories and insert them into Gorse as new feedback.
-- GitRec web service pulls recommendations from Gorse and show to users. It also submits a crawling request to the user
-  starred crawler when a new user signed in.
+![](assets/extension.png)
 
 ## Quick Start
 
@@ -101,7 +102,3 @@ docker-compose restart
 | GitRec                    | http://127.0.0.1:5000/        |
 | Grafana Dashboard         | http://127.0.0.1:3000/        |
 | Master Dashboard          | http://127.0.0.1:8088/        |
-| Master Prometheus Metrics | http://127.0.0.1:8088/metrics |
-| Server RESTful API        | http://127.0.0.1:8087/apidocs |
-| Server Prometheus Metrics | http://127.0.0.1:8087/metrics |
-| Worker Prometheus Metrics | http://127.0.0.1:8089/metrics |
