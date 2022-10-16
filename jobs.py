@@ -39,7 +39,7 @@ def pull(token: str):
         session = Session()
         user = session.query(User).filter(User.login == login).one()
         try:
-            update_user(gorse_client, user.token["access_token"], user.pulled_at)
+            update_user(gorse_client, user.token["access_token"], user.pulled_at, generator)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)

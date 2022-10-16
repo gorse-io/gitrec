@@ -1,8 +1,10 @@
+import concurrent.futures
 import json
 import logging
 import os
 import sys
 from datetime import datetime
+from typing import List, Optional
 
 import emoji
 import gorse
@@ -189,7 +191,6 @@ def get_repo(category: str = ""):
                 a.attrs["href"] = (
                     repo.html_url + "/blob/" + repo.default_branch + "/" + src
                 )
-    blob_url = repo.html_url + "/blob/"
     for img in soup.find_all("img"):
         # redirect links to github
         if "src" in img.attrs:
@@ -208,9 +209,9 @@ def get_repo(category: str = ""):
         "html_url": repo.html_url,
         "stargazers_url": repo.stargazers_url,
         "forks_url": repo.forks_url,
-        "stargazers": repo.stargazers_count,
-        "forks": repo.forks_count,
-        "watchers": repo.subscribers_count,
+        "stargazers_count": repo.stargazers_count,
+        "forks_count": repo.forks_count,
+        "subscribers_count": repo.subscribers_count,
         "language": repo.language,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
@@ -219,6 +220,9 @@ def get_repo(category: str = ""):
 @app.route("/api/favorites")
 @login_required
 def get_favorites():
+    """
+    List "star" and "like" feedback.
+    """
     positive_feedbacks = []
     for feedback_type in ["star", "like"]:
         for feedback in gorse_client.list_feedbacks(feedback_type, current_user.login):
@@ -233,6 +237,9 @@ def get_favorites():
 @app.route("/api/like/<repo_name>", methods=["POST"])
 @login_required
 def like_repo(repo_name: str):
+    """
+    Insert a "like" feedback.
+    """
     try:
         gorse_client.insert_feedback(
             "read", current_user.login, repo_name, datetime.now().isoformat()
@@ -247,6 +254,9 @@ def like_repo(repo_name: str):
 @app.route("/api/read/<repo_name>", methods=["POST"])
 @login_required
 def read_repo(repo_name: str):
+    """
+    Insert a "read" feedback.
+    """
     try:
         return gorse_client.insert_feedback(
             "read", current_user.login, repo_name, datetime.now().isoformat()
@@ -258,6 +268,9 @@ def read_repo(repo_name: str):
 @app.route("/api/delete/<repo_name>", methods=["POST"])
 @login_required
 def delete_repo(repo_name: str):
+    """
+    Delete an item if the repository has been removed or renamed.
+    """
     try:
         full_name = repo_name.replace(":", "/")
         try:
@@ -273,6 +286,41 @@ def delete_repo(repo_name: str):
         return Response(e.message, status=e.status_code)
 
 
+def fetch_repo(github_client: Github, item_id: str) -> Optional[dict]:
+    full_name = item_id.replace(":", "/")
+    try:
+        repo = github_client.get_repo(full_name)
+        if repo.full_name.lower() != full_name.lower():
+            # This repository has been renamed.
+            gorse_client.delete_item(item_id)
+            return None
+        return {
+            "item_id": item_id,
+            "full_name": repo.full_name,
+            "description": repo.description,
+            "html_url": repo.html_url,
+            "stargazers_count": repo.stargazers_count,
+            "language": repo.language,
+        }
+    except UnknownObjectException:
+        # This repository has been removed.
+        gorse_client.delete_item(item_id)
+        return None
+
+
+def fetch_repos(github_client: Github, item_ids: List[str]) -> List[dict]:
+    repos = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [
+            executor.submit(fetch_repo, github_client, item_id) for item_id in item_ids
+        ]
+    for future in concurrent.futures.as_completed(futures):
+        repo = future.result()
+        if repo is not None:
+            repos[repo["item_id"]] = repo
+    return [repos[item_id] for item_id in item_ids if item_id in repos]
+
+
 @app.route("/api/neighbors/<repo_name>", methods=["GET"])
 def get_neighbors(repo_name: str):
     try:
@@ -284,19 +332,55 @@ def get_neighbors(repo_name: str):
         return Response(e.message, status=e.status_code)
 
 
-@app.route("/api/extension/recommend", methods=["GET"])
-def extension_recommend():
+@app.route("/api/v2/neighbors/<repo_name>", methods=["GET"])
+def get_neighbors_v2(repo_name: str):
+    try:
+        n = int(request.args.get("n", default="3"))
+        offset = int(request.args.get("offset", default="0"))
+        scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
+        if not current_user.is_authenticated:
+            return Response(
+                json.dumps({"is_authenticated": False, "scores": scores}),
+                mimetype="application/json",
+            )
+        else:
+            github_client = Github(current_user.token["access_token"])
+            return Response(
+                json.dumps(
+                    {
+                        "is_authenticated": True,
+                        "scores": scores,
+                        "repos": fetch_repos(
+                            github_client, [score["Id"] for score in scores]
+                        ),
+                    }
+                ),
+                mimetype="application/json",
+            )
+    except gorse.GorseException as e:
+        return Response(e.message, status=e.status_code)
+
+
+@app.route("/api/v2/extension/recommend", methods=["GET"])
+def extension_recommend_v2():
     if not current_user.is_authenticated:
         return Response(
-            json.dumps({"has_login": True}),
+            json.dumps({"is_authenticated": False}),
             mimetype="application/json",
         )
     try:
-        repo_names = gorse_client.get_recommend(
+        recommended_items = gorse_client.get_recommend(
             current_user.login, n=3, write_back_type="read", write_back_delay="24h"
         )
+        github_client = Github(current_user.token["access_token"])
         return Response(
-            json.dumps({"has_login": True, "recommend": repo_names}),
+            json.dumps(
+                {
+                    "is_authenticated": True,
+                    "items": recommended_items,
+                    "repos": fetch_repos(github_client, recommended_items),
+                }
+            ),
             mimetype="application/json",
         )
     except gorse.GorseException as e:

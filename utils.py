@@ -18,8 +18,9 @@ from nltk.corpus import stopwords
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
+MAX_COMMENT_LENGTH = 512
 
-CATEGORIES = {"book", "game"}
+CATEGORIES = {"book", "game", "awesome"}
 
 
 def generate_categories(labels: List[str]) -> List[str]:
@@ -299,9 +300,13 @@ def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerat
         "Categories": generate_categories(labels),
         "Comment": repo.description,
     }
+    # Optimize labels
     optimized = generator.optimize(item)
     if optimized:
         item = optimized
+    # Truncate long comment
+    if item["Comment"] is not None and len(item["Comment"]) > MAX_COMMENT_LENGTH:
+        item["Comment"] = item["Comment"][:MAX_COMMENT_LENGTH]
     return item
 
 
@@ -332,7 +337,7 @@ def update_user(
 
         full_name = item_id.replace(":", "/")
         repo = github_client.get_repo(full_name)
-        if repo.stargazers_count > 100:
+        if repo.stargazers_count >= 100:
             # Repositories indexed by Gorse must have stargazers more than 100.
             item = get_repo_info(github_client, full_name, generator)
             if item is not None:
@@ -341,11 +346,18 @@ def update_user(
             pull_count += 1
     logger.info(
         "insert user starred repositories",
-        extra={"tags": {"user_id": user["UserId"], "num_items": item_count}},
+        extra={
+            "tags": {"user_id": github_client.get_user().login, "num_items": item_count}
+        },
     )
     # Insert feedback
     gorse_client.insert_feedbacks(stars)
     logger.info(
         "insert feedback from user",
-        extra={"tags": {"user_id": user["UserId"], "num_feedback": len(stars)}},
+        extra={
+            "tags": {
+                "user_id": github_client.get_user().login,
+                "num_feedback": len(stars),
+            }
+        },
     )

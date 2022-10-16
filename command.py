@@ -8,7 +8,6 @@ from tqdm import tqdm
 
 from utils import *
 
-MAX_COMMENT_LENGTH = 512
 
 # Load dot file
 load_dotenv()

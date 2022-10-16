@@ -126,7 +126,7 @@ def update_users():
 def insert_users_entry():
     try:
         update_users()
-    except Exception as e:
+    except:
         logger.exception("failed to update user labels and feedback")
 
 
@@ -163,7 +163,7 @@ def optimize_labels():
 def optimize_labels_entry():
     try:
         optimize_labels()
-    except Exception as e:
+    except:
         logger.exception("failed to insert trending repositories")
 
 

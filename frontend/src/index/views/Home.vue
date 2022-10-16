@@ -6,11 +6,11 @@
         <div class="secondary-content">
           <a v-if="language"><i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;</a>
           <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
-          stargazers }}</a>&nbsp;
+          stargazers_count }}</a>&nbsp;
           <a :href="html_url + '/network/members'" target="__blank"><i
-              class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks }}</a>&nbsp;
+              class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks_count }}</a>&nbsp;
           <a :href="html_url + '/watchers'" target="__blank"><i
-              class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ watchers }}</a>
+              class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ subscribers_count }}</a>
         </div>
       </div>
       <Preloader v-if="readme == null"/>
@@ -47,9 +47,9 @@ export default {
       html_url: null,
       stargazers_url: null,
       forks_url: null,
-      stargazers: 0,
-      forks: 0,
-      watchers: 0,
+      stargazers_count: 0,
+      forks_count: 0,
+      subscribers_count: 0,
       language: "",
       readme: null,
       primaryColor: "blue darken-1",
@@ -93,18 +93,18 @@ export default {
       this.full_name = repo.full_name;
       this.readme = repo.readme;
       this.html_url = repo.html_url;
-      this.stargazers = repo.stargazers;
-      this.forks = repo.forks;
-      this.watchers = repo.watchers;
+      this.stargazers_count = repo.stargazers_count;
+      this.forks_count = repo.forks_count;
+      this.subscribers_count = repo.subscribers_count;
       this.language = repo.language;
     },
     clearRepository() {
       this.item_id = null;
       this.full_name = "";
       this.readme = null;
-      this.stargazers = 0;
-      this.forks = 0;
-      this.watchers = 0;
+      this.stargazers_count = 0;
+      this.forks_count = 0;
+      this.subscribers_count = 0;
       this.language = "";
       this.like_pressed = false;
     },
@@ -122,7 +122,7 @@ export default {
           // load next repo
           this.clearRepository();
           axios
-            .get("/api/repo" + this.category, { withCredentials: true })
+            .get("/api/repo" + this.topic, { withCredentials: true })
             .then((response) => {
               this.setRepository(response.data);
             });
