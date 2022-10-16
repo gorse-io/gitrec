@@ -20,24 +20,28 @@ $(document).ready(function () {
             } else {
                 const login = $('meta[name=user-login]').attr('content');
                 fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
-                    let repoNames = result.map((value) => {
-                        return value.full_name.replace('/', ':');
-                    })
-                    chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
-                        // Fetch repos in client-side
-                        let responses = [];
-                        for (const score of scores) {
-                            const full_name = score.Id.replace(':', '/');
-                            responses.push(fetchRepo(full_name));
-                        }
-                        Promise.all(responses).then((repos) => {
-                            result.repos = repos;
-                            for (const [i, score] of scores.entries()) {
-                                result.repos[i].item_id = score.Id;
-                            }
-                            showRecommend(result);
+                    if (result.message) {
+                        showRecommend(result);
+                    } else {
+                        let repoNames = result.map((value) => {
+                            return value.full_name.replace('/', ':');
                         })
-                    });
+                        chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
+                            // Fetch repos in client-side
+                            let responses = [];
+                            for (const score of scores) {
+                                const full_name = score.Id.replace(':', '/');
+                                responses.push(fetchRepo(full_name));
+                            }
+                            Promise.all(responses).then((repos) => {
+                                result.repos = repos;
+                                for (const [i, score] of scores.entries()) {
+                                    result.repos[i].item_id = score.Id;
+                                }
+                                showRecommend(result);
+                            })
+                        });
+                    }
                 });
             }
         });
@@ -58,7 +62,11 @@ function loadSimilarRepos() {
             Promise.all(responses).then((repos) => {
                 result.repos = repos;
                 for (const [i, score] of result.scores.entries()) {
-                    result.repos[i].item_id = score.Id;
+                    if (repos[i].full_name) {
+                        result.repos[i].item_id = score.Id;
+                    } else {
+                        result.message = repos[i].message;
+                    }
                 }
                 renderSimilarDiv(result);
             })
@@ -71,7 +79,15 @@ async function renderSimilarDiv(result) {
     let rows = "";
     let previous = "";
     let next = "";
-    if (result.repos.length > 0) {
+    if (result.message) {
+        let errorMessage = "";
+        if (result.message.startsWith('API rate limit exceeded')) {
+            errorMessage = `API rate limit exceeded. Login <a href="https://gitrec.gorse.io" target="_blank">GitRec</a> to get a higher rate limit.`
+        } else {
+            errorMessage = result.message;
+        }
+        rows = `<div class="text-small color-fg-muted">${errorMessage}</div>`
+    } else if (result.repos.length > 0) {
         for (const repo of result.repos) {
             if (repo.full_name) {
                 if (repo.item_id != repo.full_name.replace('/', ':').toLowerCase()) {
@@ -138,9 +154,18 @@ async function showRecommend(result) {
     exploreDiv.children("h2.f5").remove();
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
+    exploreDiv.children("#error-message").remove();
     let template = `<h2 class="f5 text-bold mb-1">Explore repositories <a href="https://gitrec.gorse.io" target="_blank">by GitRec</a></h2>`;
     exploreDiv.append($($.parseHTML(template)));
-    if (result.repos.length > 0) {
+    if (result.message) {
+        let errorMessage = "";
+        if (result.message.startsWith('API rate limit exceeded')) {
+            errorMessage = `API rate limit exceeded. Login <a href="https://gitrec.gorse.io" target="_blank">GitRec</a> to get a higher rate limit.`
+        } else {
+            errorMessage = result.message;
+        }
+        template = `<div class="d-block no-underline f6 mb-3" id="error-message">${errorMessage}</div>`
+    } else if (result.repos.length > 0) {
         for (const [i, repo] of result.repos.entries()) {
             let row = `
 <div class="py-2 my-2${i == result.repos.length - 1 ? '' : ' border-bottom color-border-muted'}">
@@ -156,17 +181,17 @@ async function showRecommend(result) {
 </div>`
             exploreDiv.append($($.parseHTML(row)));
         }
-    }
-    if (result.is_authenticated) {
-        template = `
-<a class="d-block Link--secondary no-underline f6 mb-3" href="#" id="renew-button">
-    Renew recommendation →
-</a>`
-    } else {
-        template = `
-<a class="d-block Link--secondary no-underline f6 mb-3" href="https://gitrec.gorse.io" target="_blank">
-    Login GitRec for better recommendation →
-</a>`
+        if (result.is_authenticated) {
+            template = `
+    <a class="d-block Link--secondary no-underline f6 mb-3" href="#" id="renew-button">
+        Renew recommendation →
+    </a>`
+        } else {
+            template = `
+    <a class="d-block Link--secondary no-underline f6 mb-3" href="https://gitrec.gorse.io" target="_blank">
+        Login GitRec for better recommendation →
+    </a>`
+        }
     }
     exploreDiv.append($($.parseHTML(template)));
     $("a#renew-button").click(function () {
