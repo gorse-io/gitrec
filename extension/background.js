@@ -31,21 +31,21 @@ chrome.runtime.onMessage.addListener(
                 sendResponse(r);
             })
         } else if (request.neighbors) {
-            fetch(`https://gitrec.gorse.io/api/neighbors/${request.neighbors}?offset=${request.offset}&n=6`, {
+            fetch(`https://gitrec.gorse.io/api/v2/neighbors/${request.neighbors}?offset=${request.offset}&n=6`, {
                 credentials: 'include'
             }).then(r => r.json()).then(r => {
                 sendResponse(r);
             })
         } else if (request.recommend) {
             if (request.recommend instanceof Array && request.recommend.length > 0) {
-                fetch('https://gitrec.gorse.io/api/session/recommend', {
+                fetch('https://gitrec.gorse.io/api/session/recommend?n=6', {
                     method: 'POST',
                     body: JSON.stringify(request.recommend),
                 }).then(r => r.json()).then(r => {
                     sendResponse(r);
                 });
             } else {
-                fetch('https://gitrec.gorse.io/api/extension/recommend', {
+                fetch('https://gitrec.gorse.io/api/v2/extension/recommend', {
                     credentials: 'include'
                 }).then(r => r.json()).then(r => {
                     sendResponse(r);
