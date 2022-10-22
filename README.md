@@ -21,18 +21,23 @@
           <img src="https://i.loli.net/2021/04/23/IqpU7COKQvzrcyG.png" />
         </a>
       </td>
-    <td>
-      <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">
-        <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png" />
-      </a>
-    </td>
+      <td>
+        <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">
+          <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png" />
+        </a>
+      </td>
+      <td>
+        <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
+          <img src="frontend/public/tampermonkey.png" />
+        </a>
+      </td>
     </tr>
   </tbody>
 </table>
 
-![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/eihokbaeiebdenibjophfipedicippfl)
-![Chrome Web Store](https://img.shields.io/chrome-web-store/users/eihokbaeiebdenibjophfipedicippfl)
-![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eihokbaeiebdenibjophfipedicippfl)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
 
 The browser extension integrates GitHub with GitRec. 
 1. Recommends repositories to GitHub users based on starred repositories.
@@ -102,3 +107,8 @@ docker-compose restart
 | GitRec                    | http://127.0.0.1:5000/        |
 | Grafana Dashboard         | http://127.0.0.1:3000/        |
 | Master Dashboard          | http://127.0.0.1:8088/        |
+
+## Acknowledgments
+
+- Thanks [@lisonge](https://github.com/lisonge) for the Tampermonkey userscript.
+- Thanks [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/) for cloud servers.

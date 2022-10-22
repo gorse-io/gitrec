@@ -10,6 +10,7 @@
           <ul id="nav-mobile" class="right hide-on-med-and-down">
             <li :class="{'active': $route.path=='/' || $route.path.startsWith('/topic/')}"><router-link to="/">Explore</router-link></li>
             <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
+            <li><a class="dropdown-trigger" href="https://gorse.io" data-target="dropdown1">Extensions<i class="material-icons right">arrow_drop_down</i></a></li>
           </ul>
         </div>
         <div v-if="$route.path=='/' || $route.path.startsWith('/topic/')" class="nav-content container">
@@ -24,6 +25,11 @@
     <ul class="sidenav" id="mobile-demo">
       <li :class="{'active': $route.path=='/' || $route.path.startsWith('/topic/')}"><router-link to="/">Explore</router-link></li>
       <li :class="{'active': $route.path=='/favorites'}"><router-link to="/favorites">Favorites</router-link></li>
+    </ul>
+    <ul id="dropdown1" class="dropdown-content">
+      <li><a href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl" target="_blank">Chrome Extension</a></li>
+      <li><a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">Edge Add-on</a></li>
+      <li><a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">Tampermonkey Userscript</a></li>
     </ul>
     <router-view></router-view>
   </div>
@@ -41,8 +47,7 @@ export default {
       topics: [
         "all",
         "book",
-        "game",
-        "awesome"
+        "game"
       ]
     };
   },
@@ -52,6 +57,8 @@ export default {
       M.Sidenav.init(sidenavElements);
       var tabsElements = document.querySelectorAll(".tabs");
       M.Tabs.init(tabsElements, {});
+      var dropdownElements = document.querySelectorAll('.dropdown-trigger');
+      M.Dropdown.init(dropdownElements, {});
     });
   }
 };
