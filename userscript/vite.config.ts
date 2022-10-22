@@ -8,10 +8,12 @@ export default defineConfig({
             userscript: {
                 namespace: `gorse-io`,
                 name: `GitRec`,
+                version: `0.3`,
                 description: `A recommender system for GitHub repositories based on Gorse`,
                 icon: `https://gitrec.gorse.io/logo.png`,
                 match: [`*://github.com/*`],
-                connect: [`gitrec.gorse.io`], // GM_xmlhttpRequest 能访问的 host
+                connect: [`gitrec.gorse.io`],
+                license: `WTFPL`
             },
             build: {
                 externalGlobals: {
