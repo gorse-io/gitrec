@@ -69,10 +69,10 @@ export default {
     },
   },
   created() {
-    if (this.$route.params.category != null) {
-      this.category = "/" + this.$route.params.category;
+    if (this.$route.params.topic != null) {
+      this.topic = "/" + this.$route.params.topic;
     } else {
-      this.category = "";
+      this.topic = "";
     }
     this.clearRepository();
   },
