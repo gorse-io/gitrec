@@ -56,9 +56,13 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
+var url = '';
 chrome.webNavigation.onHistoryStateUpdated.addListener(function (details) {
-    chrome.scripting.executeScript({
-        target: { tabId: details.tabId },
-        files: ['content.js'],
-    });
+    if (details.url != url) {
+        url = details.url;
+        chrome.scripting.executeScript({
+            target: { tabId: details.tabId },
+            files: ['content.js'],
+        });
+    }
 });

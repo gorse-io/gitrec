@@ -1,5 +1,32 @@
+var titleTemplate = `
+<h2 class="f5 text-bold mb-1" style="display:inline-block">Explore repositories</h2>
+<details class="details-reset details-overlay dropdown float-right mt-1">
+    <summary class="pinned-items-setting-link Link--muted" aria-haspopup="menu" role="button">
+        Explore settings
+        <div class="dropdown-caret"></div>
+    </summary>
+
+    <details-menu class="dropdown-menu dropdown-menu-sw contributions-setting-menu" role="menu" style="width: 240px">
+        <button id="gitrec-button" class="dropdown-item ws-normal btn-link text-left pl-5" role="menuitem">
+            <div class="text-bold">Explore GitRec</div>
+            <span class="f6 mt-1">
+            Explore repositories from GitRec based on starred repositories.
+            </span>
+        </button>
+        <div role="none" class="dropdown-divider"></div>
+        <button id="github-button" value="1" class="dropdown-item ws-normal btn-link text-left pl-5" role="menuitem">
+            <div class="d-flex flex-items-center text-bold">Explore GitHub</div>
+            <span class="f6 mt-1">
+            Explore repositories from GitHub official recommendation.
+            </span>
+        </button>
+    </details-menu>
+</details>`;
+
 var itemId = null;
 var similarOffset = 0;
+var exploreLink = null;
+var exploreContent = null;
 
 $(document).ready(function () {
     const splits = location.pathname.split('/').filter(s => s);
@@ -10,41 +37,40 @@ $(document).ready(function () {
         // get neighbors
         loadSimilarRepos();
     } else if (splits.length === 0) {
+        // reset title
         let exploreDiv = $("[aria-label='Explore']");
+        if (exploreContent == null) {
+            exploreContent = exploreDiv.children("div.py-2");
+            exploreLink = exploreDiv.children("a.f6");
+        }
         exploreDiv.children("h2.f5").remove();
+        exploreDiv.children("details").remove();
         exploreDiv.children("div.py-2").remove();
         exploreDiv.children("a.f6").remove();
-        chrome.runtime.sendMessage({ recommend: [] }, function (result) {
-            if (result.is_authenticated) {
-                showRecommend(result);
+        exploreDiv.append($($.parseHTML(titleTemplate)));
+        $("#gitrec-button").click(function () {
+            chrome.storage.sync.set({ explore: 'gitrec' }, function () {
+                selectExploreSettings('gitrec');
+                loadRecommendRepos();
+            });
+            return false;
+        });
+        $("#github-button").click(function () {
+            chrome.storage.sync.set({ explore: 'github' }, function () {
+                selectExploreSettings('github');
+                loadRecommendRepos();
+            });
+            return false;
+        });
+        chrome.storage.sync.get(['explore'], function (result) {
+            if (result.explore == 'github') {
+                selectExploreSettings('github');
             } else {
-                const login = $('meta[name=user-login]').attr('content');
-                fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
-                    if (result.message) {
-                        showRecommend(result);
-                    } else {
-                        let repoNames = result.map((value) => {
-                            return value.full_name.replace('/', ':');
-                        })
-                        chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
-                            // Fetch repos in client-side
-                            let responses = [];
-                            for (const score of scores) {
-                                const full_name = score.Id.replace(':', '/');
-                                responses.push(fetchRepo(full_name));
-                            }
-                            Promise.all(responses).then((repos) => {
-                                result.repos = repos;
-                                for (const [i, score] of scores.entries()) {
-                                    result.repos[i].item_id = score.Id;
-                                }
-                                showRecommend(result);
-                            })
-                        });
-                    }
-                });
+                selectExploreSettings('gitrec');
             }
         });
+        // get recommend
+        loadRecommendRepos();
     }
 })
 
@@ -149,14 +175,55 @@ async function renderSimilarDiv(result) {
     });
 }
 
+function loadRecommendRepos() {
+    let exploreDiv = $("[aria-label='Explore']");
+    exploreDiv.children("div.py-2").remove();
+    exploreDiv.children("a.f6").remove();
+    chrome.storage.sync.get(['explore'], function (result) {
+        if (result.explore != 'github') {
+            chrome.runtime.sendMessage({ recommend: [] }, function (result) {
+                if (result.is_authenticated) {
+                    showRecommend(result);
+                } else {
+                    const login = $('meta[name=user-login]').attr('content');
+                    fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
+                        if (result.message) {
+                            showRecommend(result);
+                        } else {
+                            let repoNames = result.map((value) => {
+                                return value.full_name.replace('/', ':');
+                            })
+                            chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
+                                // Fetch repos in client-side
+                                let responses = [];
+                                for (const score of scores) {
+                                    const full_name = score.Id.replace(':', '/');
+                                    responses.push(fetchRepo(full_name));
+                                }
+                                Promise.all(responses).then((repos) => {
+                                    result.repos = repos;
+                                    for (const [i, score] of scores.entries()) {
+                                        result.repos[i].item_id = score.Id;
+                                    }
+                                    showRecommend(result);
+                                })
+                            });
+                        }
+                    });
+                }
+            });
+        } else {
+            exploreDiv.append(exploreContent);
+            exploreDiv.append(exploreLink);
+        }
+    });
+}
+
 async function showRecommend(result) {
     let exploreDiv = $("[aria-label='Explore']");
-    exploreDiv.children("h2.f5").remove();
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
     exploreDiv.children("#error-message").remove();
-    let template = `<h2 class="f5 text-bold mb-1">Explore repositories <a href="https://gitrec.gorse.io" target="_blank">by GitRec</a></h2>`;
-    exploreDiv.append($($.parseHTML(template)));
     if (result.message) {
         let errorMessage = "";
         if (result.message.startsWith('API rate limit exceeded')) {
@@ -184,7 +251,7 @@ async function showRecommend(result) {
         if (result.is_authenticated) {
             template = `
     <a class="d-block Link--secondary no-underline f6 mb-3" href="#" id="renew-button">
-        Renew recommendation →
+        Next batch →
     </a>`
         } else {
             template = `
@@ -222,4 +289,14 @@ function renderLanguageSpan(language) {
     } else {
         return '';
     }
+}
+
+function selectExploreSettings(setting) {
+    $("#explore-settings-select-menu-item-icon").remove();
+    const template = `
+<svg id="explore-settings-select-menu-item-icon" aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-check select-menu-item-icon mt-1">
+    <path fill-rule="evenodd" d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"></path>
+</svg>`;
+    let button = $(`#${setting}-button`);
+    button.prepend($($.parseHTML(template)));
 }
