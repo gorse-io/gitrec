@@ -6,6 +6,7 @@
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fgitrec.gorse.io)](https://gitrec.gorse.io)
 [![Discord](https://img.shields.io/discord/830635934210588743)](https://discord.gg/x6gAtNNkAE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/gorse_io?label=Follow&style=social)](https://twitter.com/gorse_io)
+
 [GitRec](https://gitrec.gorse.io/) is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
 ![](assets/screenshots.png)
@@ -92,7 +93,7 @@ SECRET_KEY=xxxxxxxx                 # random string
 docker-compose up -d
 ```
 
-- Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import to the MySQL instance.
+- Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import it to the MySQL instance.
 
 ```bash
 mysql -h 127.0.0.1 -u gorse -pgorse_pass gorse < github.sql

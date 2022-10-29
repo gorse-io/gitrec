@@ -29,19 +29,24 @@
       </h5>
       <br>
       <div class="row center-align">
-        <div class="col m2 s4 offset-m3">
+        <div class="col m2 s6 offset-m2">
           <a href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl"
              target="_blank">
             <img src="https://i.loli.net/2021/04/23/IqpU7COKQvzrcyG.png"/>
           </a>
         </div>
-        <div class="col m2 s4">
+        <div class="col m2 s6">
           <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa"
              target="_blank">
             <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png"/>
           </a>
         </div>
-        <div class="col m2 s4">
+        <div class="col m2 s6">
+          <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
+            <img src="opera.png"/>
+          </a>
+        </div>
+        <div class="col m2 s6">
           <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
             <img src="tampermonkey.png"/>
           </a>

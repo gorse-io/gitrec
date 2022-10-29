@@ -29,6 +29,7 @@
     <ul id="dropdown1" class="dropdown-content">
       <li><a href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl" target="_blank">Chrome Extension</a></li>
       <li><a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">Edge Add-on</a></li>
+      <li><a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">Opera Add-on</a></li>
       <li><a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">Tampermonkey Userscript</a></li>
     </ul>
     <router-view></router-view>
@@ -58,7 +59,7 @@ export default {
       var tabsElements = document.querySelectorAll(".tabs");
       M.Tabs.init(tabsElements, {});
       var dropdownElements = document.querySelectorAll('.dropdown-trigger');
-      M.Dropdown.init(dropdownElements, {});
+      M.Dropdown.init(dropdownElements, { constrainWidth: false });
     });
   }
 };
