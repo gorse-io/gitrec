@@ -6,7 +6,6 @@
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fgitrec.gorse.io)](https://gitrec.gorse.io)
 [![Discord](https://img.shields.io/discord/830635934210588743)](https://discord.gg/x6gAtNNkAE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/gorse_io?label=Follow&style=social)](https://twitter.com/gorse_io)
-
 [GitRec](https://gitrec.gorse.io/) is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
 ![](assets/screenshots.png)
@@ -24,6 +23,11 @@
       <td>
         <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">
           <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png" />
+        </a>
+      </td>
+      <td>
+        <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
+          <img src="frontend/public/opera.png" />
         </a>
       </td>
       <td>
