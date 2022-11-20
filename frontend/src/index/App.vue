@@ -68,6 +68,7 @@ export default {
 .hide-scrollbar::-webkit-scrollbar {
   background: transparent; /* Chrome/Safari/Webkit */
   width: 0px;
+  height: 0px;
 }
 
 .hide-scrollbar {
