@@ -169,12 +169,12 @@ def get_repo(category: str = ""):
             full_name = repo_id.replace(":", "/")
             github_client = Github(current_user.token["access_token"])
             repo = github_client.get_repo(full_name)
+            download_url = repo.get_readme().download_url.lower()
             break
         except UnknownObjectException:
             logging.warn("repo %s not found" % repo_id)
             gorse_client.delete_item(repo_id)
     # convert readme to html
-    download_url = repo.get_readme().download_url.lower()
     content = repo.get_readme().decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
@@ -242,10 +242,10 @@ def like_repo(repo_name: str):
     """
     try:
         gorse_client.insert_feedback(
-            "read", current_user.login, repo_name, datetime.now().isoformat()
+            "read", current_user.login, repo_name.lower(), datetime.now().isoformat()
         )
         return gorse_client.insert_feedback(
-            "like", current_user.login, repo_name, datetime.now().isoformat()
+            "like", current_user.login, repo_name.lower(), datetime.now().isoformat()
         )
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
@@ -259,7 +259,7 @@ def read_repo(repo_name: str):
     """
     try:
         return gorse_client.insert_feedback(
-            "read", current_user.login, repo_name, datetime.now().isoformat()
+            "read", current_user.login, repo_name.lower(), datetime.now().isoformat()
         )
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
