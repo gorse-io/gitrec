@@ -6,18 +6,19 @@
         <div class="secondary-content">
           <a v-if="language"><i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;</a>
           <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
-          stargazers_count }}</a>&nbsp;
+              stargazers_count
+          }}</a>&nbsp;
           <a :href="html_url + '/network/members'" target="__blank"><i
               class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks_count }}</a>&nbsp;
           <a :href="html_url + '/watchers'" target="__blank"><i
               class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ subscribers_count }}</a>
         </div>
       </div>
-      <Preloader v-if="readme == null"/>
+      <Preloader v-if="readme == null" />
       <article v-else class="markdown-body" v-html="readme"></article>
     </div>
     <div class="fixed-action-btn" style="bottom: 86px;">
-      <a class="btn-floating" :class="{'red': like_pressed}">
+      <a class="btn-floating" :class="{ 'red': like_pressed }">
         <i class="material-icons" @click="like">favorite</i>
       </a>
     </div>
@@ -82,8 +83,13 @@ export default {
   },
   methods: {
     recommend() {
+      let topic = this.topic;
+      if (topic == "/cpp") {
+        topic = "/c%2B%2B";
+      }
+      console.log("/api/repo" + topic);
       axios
-        .get("/api/repo" + this.topic, { withCredentials: true })
+        .get("/api/repo" + topic, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
         });
