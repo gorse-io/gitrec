@@ -25,7 +25,6 @@ var titleTemplate = `
 
 var itemId = null;
 var similarOffset = 0;
-var exploreLink = null;
 var exploreContent = null;
 
 $(document).ready(function () {
@@ -38,10 +37,9 @@ $(document).ready(function () {
         loadSimilarRepos();
     } else if (splits.length === 0) {
         // reset title
-        let exploreDiv = $("[aria-label='Explore']");
+        let exploreDiv = $("[aria-label='Explore Repositories']");
         if (exploreContent == null) {
-            exploreContent = exploreDiv.children("div.py-2");
-            exploreLink = exploreDiv.children("a.f6");
+            exploreContent = exploreDiv.children("div[data-view-component=true]");
         }
         exploreDiv.children("h2.f5").remove();
         exploreDiv.children("details").remove();
@@ -141,12 +139,12 @@ async function renderSimilarDiv(result) {
         }
         // Render previous button
         previous = similarOffset > 0 ?
-            `<a id="previous-button" class="text-small" href="#">🡠 Previous</a>` :
-            '<span id="previous-button" class="text-small color-fg-muted">🡠 Previous</span>';
+            `<a id="previous-button" class="text-small" href="#">← Previous</a>` :
+            '<span id="previous-button" class="text-small color-fg-muted">← Previous</span>';
         // Render next button
         next = similarOffset < 9 ?
-            `<a id="next-button" class="text-small" style="float: right" href="#">Next 🡢</a>` :
-            `<span id="next-button" class="text-small color-fg-muted" style="float: right">Next 🡢</span>`;
+            `<a id="next-button" class="text-small" style="float: right" href="#">Next →</a>` :
+            `<span id="next-button" class="text-small color-fg-muted" style="float: right">Next →</span>`;
     } else {
         rows = '<div class="text-small color-fg-muted">No similar repositories found</div>'
     }
@@ -176,9 +174,11 @@ async function renderSimilarDiv(result) {
 }
 
 function loadRecommendRepos() {
-    let exploreDiv = $("[aria-label='Explore']");
+    let exploreDiv = $("[aria-label='Explore Repositories']");
+    exploreDiv.children("div[data-view-component=true]").remove();
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
+    exploreDiv.children("#error-message").remove();
     chrome.storage.sync.get(['explore'], function (result) {
         if (result.explore != 'github') {
             chrome.runtime.sendMessage({ recommend: [] }, function (result) {
@@ -214,13 +214,12 @@ function loadRecommendRepos() {
             });
         } else {
             exploreDiv.append(exploreContent);
-            exploreDiv.append(exploreLink);
         }
     });
 }
 
 async function showRecommend(result) {
-    let exploreDiv = $("[aria-label='Explore']");
+    let exploreDiv = $("[aria-label='Explore Repositories']");
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
     exploreDiv.children("#error-message").remove();
