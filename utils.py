@@ -20,7 +20,21 @@ from sqlalchemy.orm import declarative_base
 
 MAX_COMMENT_LENGTH = 512
 
-CATEGORIES = {"book", "game", "awesome"}
+CATEGORIES = {
+    # genres
+    "book",
+    "game",
+    "machine-learning",
+    # programming languages
+    "python",
+    "java",
+    "c++",
+    "go",
+    "javascript",
+    "typescript",
+    "c",
+    "rust",
+}
 
 
 def generate_categories(labels: List[str]) -> List[str]:

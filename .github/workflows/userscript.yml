@@ -1,0 +1,29 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build Userscript
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: pnpm/action-setup@v2
+      with:
+        version: latest
+    - name: Install dependencies
+      working-directory: ./userscript
+      run: pnpm install
+    - name: Build userscript
+      working-directory: ./userscript
+      run: pnpm build
+    - name: Upload userscript to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: userscript/dist/gitrec.user.js
+        asset_name: gitrec.user.js
+        tag: ${{ github.ref }}
+        overwrite: true

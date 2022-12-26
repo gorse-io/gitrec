@@ -201,6 +201,24 @@ services:
       LOKI_HOST: loki
       LOKI_PORT: 3100
 
+  backup:
+    build:
+      context: .
+      dockerfile: docker/backup/Dockerfile
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: gorse
+      MYSQL_USER: gorse
+      MYSQL_PASSWORD: gorse_pass
+      S3_BUCKET: gorse.cloud
+      S3_PREFIX: /gitrec
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET_LOCATION: ${S3_BUCKET_LOCATION}
+      S3_HOST_BASE: ${S3_HOST_BASE}
+      S3_HOST_BUCKET: ${S3_HOST_BUCKET}
+
 volumes:
   mysql_data:
   worker_data:

@@ -62,12 +62,25 @@ cd gitrec
 - Create a `.env` file.
 
 ```bash
-GORSE_DASHBOARD_USER_NAME=xxxxxxxx
-GORSE_DASHBOARD_PASSWORD=xxxxxxxx
-GITHUB_ACCESS_TOKEN=xxxxxxxx
-GITHUB_OAUTH_CLIENT_ID=xxxxxxxx
-GITHUB_OAUTH_CLIENT_SECRET=xxxxxxxx
-SECRET_KEY=xxxxxxxx
+# Gorse secrets
+GORSE_DASHBOARD_USER_NAME=********
+GORSE_DASHBOARD_PASSWORD=********
+GORSE_API_KEY=********
+
+# GitHub secrets
+GITHUB_ACCESS_TOKEN=********
+GITHUB_OAUTH_CLIENT_ID=********
+GITHUB_OAUTH_CLIENT_SECRET=********
+
+# GitRec secrets
+SECRET_KEY=********
+
+# S3 secrets for backup
+S3_ACCESS_KEY=********
+S3_SECRET_KEY=********
+S3_BUCKET_LOCATION=US
+S3_HOST_BASE=s3.amazonaws.com
+S3_HOST_BUCKET=%(bucket)s.s3.amazonaws.com
 ```
 
 - Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
