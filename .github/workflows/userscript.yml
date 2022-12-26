@@ -1,0 +1,24 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build Userscript
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: pnpm/action-setup@v2
+      with:
+        version: latest
+    - name: Install dependencies
+      working-directory: ./userscript
+      run: pnpm install
+    - name: Build Userscript
+      working-directory: ./userscript
+      run: pnpm build
+    - uses: actions/upload-artifact@v3
+      with:
+        path: userscript/dist/gitrec.user.js
