@@ -16,9 +16,14 @@ jobs:
     - name: Install dependencies
       working-directory: ./userscript
       run: pnpm install
-    - name: Build Userscript
+    - name: Build userscript
       working-directory: ./userscript
       run: pnpm build
-    - uses: actions/upload-artifact@v3
+    - name: Upload userscript to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        path: userscript/dist/gitrec.user.js
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: userscript/dist/gitrec.user.js
+        asset_name: gitrec.user.js
+        tag: ${{ github.ref }}
+        overwrite: true
