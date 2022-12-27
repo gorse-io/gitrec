@@ -73,7 +73,7 @@ export default {
       var tabsElements = document.querySelectorAll(".tabs");
       M.Tabs.init(tabsElements, {});
       var dropdownElements = document.querySelectorAll('.dropdown-trigger');
-      M.Dropdown.init(dropdownElements, {});
+      M.Dropdown.init(dropdownElements, { constrainWidth: false });
     });
   }
 };

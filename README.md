@@ -101,7 +101,7 @@ SECRET_KEY=xxxxxxxx                 # random string
 docker-compose up -d
 ```
 
-- Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import to the MySQL instance.
+- Download the SQL file [github.sql](https://cdn.gorse.io/example/github.sql) and import it to the MySQL instance.
 
 ```bash
 mysql -h 127.0.0.1 -u gorse -pgorse_pass gorse < github.sql
