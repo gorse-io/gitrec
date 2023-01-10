@@ -18,9 +18,6 @@ gorse_client = Gorse("http://127.0.0.1:8088", os.getenv("GORSE_API_KEY"))
 # Create GitHub client.
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 
-# Create label generator.
-generator = LabelGenerator(gorse_client)
-
 
 @click.group()
 def command():
@@ -30,6 +27,8 @@ def command():
 @command.command()
 @click.argument("item_id")
 def upsert_repo(item_id):
+    """Upsert a repository into GitRec."""
+    generator = LabelGenerator(gorse_client)
     repo = get_repo_info(github_client, item_id, generator)
     gorse_client.insert_item(repo)
     print(repo)
@@ -72,6 +71,7 @@ def search_and_upsert(
 
 @command.command()
 def upsert_repos():
+    """Upsert popular repositories (stars >= 100) into GitRec"""
     # Load checkpoint
     db = pickledb.load("checkpoint.db", True)
     # Load existed topics
