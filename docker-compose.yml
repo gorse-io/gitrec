@@ -85,6 +85,7 @@ services:
       GORSE_DATA_STORE: mysql://gorse:gorse_pass@tcp(mysql:3306)/gorse?parseTime=true
       GORSE_DASHBOARD_USER_NAME: ${GORSE_DASHBOARD_USER_NAME}
       GORSE_DASHBOARD_PASSWORD: ${GORSE_DASHBOARD_PASSWORD}
+      GORSE_SERVER_API_KEY: ${GORSE_API_KEY}
     command: >
       -c /etc/gorse/config.toml 
       --log-path /var/log/gorse/master.log 
