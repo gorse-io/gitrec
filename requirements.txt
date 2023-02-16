@@ -28,4 +28,4 @@ redis==4.2.2
 requests==2.27.1
 sqlalchemy==1.4.32
 tqdm==4.64.0
-werkzeug==2.0.3
+werkzeug==2.2.3
