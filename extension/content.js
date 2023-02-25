@@ -37,7 +37,7 @@ $(document).ready(function () {
         loadSimilarRepos();
     } else if (splits.length === 0) {
         // reset title
-        let exploreDiv = $("[aria-label='Explore Repositories']");
+        let exploreDiv = $("[aria-label='Explore repositories']");
         if (exploreContent == null) {
             exploreContent = exploreDiv.children("div[data-view-component=true]");
         }
@@ -174,7 +174,7 @@ async function renderSimilarDiv(result) {
 }
 
 function loadRecommendRepos() {
-    let exploreDiv = $("[aria-label='Explore Repositories']");
+    let exploreDiv = $("[aria-label='Explore repositories']");
     exploreDiv.children("div[data-view-component=true]").remove();
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
@@ -219,7 +219,7 @@ function loadRecommendRepos() {
 }
 
 async function showRecommend(result) {
-    let exploreDiv = $("[aria-label='Explore Repositories']");
+    let exploreDiv = $("[aria-label='Explore repositories']");
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
     exploreDiv.children("#error-message").remove();

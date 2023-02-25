@@ -41,7 +41,7 @@ const mountFn = async () => {
         // get neighbors
         loadSimilarRepos();
     } else if (splits.length === 0) {
-        let exploreDiv = $("[aria-label='Explore Repositories']");
+        let exploreDiv = $("[aria-label='Explore repositories']");
         if (exploreContent == null) {
             exploreContent = exploreDiv.children("div[data-view-component=true]");
         }
@@ -193,7 +193,7 @@ async function renderSimilarDiv(result: any) {
 }
 
 async function loadRecommendRepos() {
-    let exploreDiv = $("[aria-label='Explore Repositories']");
+    let exploreDiv = $("[aria-label='Explore repositories']");
     exploreDiv.children("div[data-view-component=true]").remove();
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
@@ -239,7 +239,7 @@ async function loadRecommendRepos() {
 }
 
 async function showRecommend(result: any) {
-    let exploreDiv = $("[aria-label='Explore Repositories']");
+    let exploreDiv = $("[aria-label='Explore repositories']");
     exploreDiv.children("div.py-2").remove();
     exploreDiv.children("a.f6").remove();
     exploreDiv.children("#error-message").remove();
