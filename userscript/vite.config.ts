@@ -8,7 +8,7 @@ export default defineConfig({
             userscript: {
                 namespace: `gorse-io`,
                 name: `GitRec`,
-                version: `0.3`,
+                version: `0.6`,
                 description: `A recommender system for GitHub repositories based on Gorse`,
                 icon: `https://gitrec.gorse.io/logo.png`,
                 match: [`*://github.com/*`],
