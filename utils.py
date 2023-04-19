@@ -5,8 +5,6 @@ import re
 import sys
 from typing import List, Optional, Tuple, Dict
 
-import inflect
-import nltk
 import pytz
 import requests
 from dateutil import parser
@@ -14,7 +12,6 @@ from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
-from nltk.corpus import stopwords
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 
@@ -43,113 +40,6 @@ def generate_categories(labels: List[str]) -> List[str]:
         if label in CATEGORIES:
             categories.append(label)
     return categories
-
-
-class LabelGenerator:
-    """
-    LabelGenerator generate labels from repo description.
-    """
-
-    def __init__(self, gorse_client: Gorse, min_freq: Optional[int] = 5):
-        # Download punkt
-        try:
-            nltk.data.find("tokenizers/punkt")
-        except LookupError:
-            nltk.download("punkt")
-
-        # Create singular noun converter
-        self.inflect = inflect.engine()
-
-        # Load stop words
-        try:
-            nltk.data.find("corpora/stopwords")
-        except LookupError:
-            nltk.download("stopwords")
-        self.stopwords = set(stopwords.words("english"))
-
-        # Load block list
-        with open("blocklist.txt") as f:
-            self.block_list = f.readlines()
-            self.block_list = [v.strip() for v in self.block_list]
-            self.block_list = set(self.block_list)
-
-        # Load existed topics
-        topic_count = dict()
-        cursor = ""
-        while True:
-            items, cursor = gorse_client.get_items(1000, cursor)
-            for item in items:
-                if item["Labels"] is not None:
-                    for topic in item["Labels"]:
-                        if topic not in topic_count:
-                            topic_count[topic] = 1
-                        else:
-                            topic_count[topic] += 1
-            if cursor == "":
-                break
-        self.topics = []
-        for topic, count in topic_count.items():
-            if count >= min_freq and topic not in self.block_list:
-                self.topics.append(topic)
-
-    def extract(self, text: Optional[str]) -> List[str]:
-        if text is None:
-            return []
-        # Tokenize description
-        tokens = nltk.word_tokenize(text)
-        tokens = [v.lower() for v in tokens]
-        # Convert plural to singular noun
-        for i, token in enumerate(tokens):
-            singular = self.inflect.singular_noun(token)
-            if singular:
-                tokens[i] = singular
-        sentence = "-".join(tokens)
-        labels = []
-        for label in self.topics:
-            if "-" not in label:
-                if label in tokens:
-                    labels.append(label)
-            else:
-                if label in sentence:
-                    labels.append(label)
-        return labels
-
-    def optimize(self, item: dict) -> Optional[dict]:
-        # description is required
-        description = item["Comment"]
-        if description is None or len(description) == 0:
-            return None
-        # Remove URL from description
-        description = re.sub(
-            r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)",
-            "",
-            description,
-        )
-        # extract topics
-        labels = self.extract(description)
-        if len(labels) == 0:
-            return None
-        if item["Labels"] is not None and len(item["Labels"]) > 0:
-            labels.extend(item["Labels"])
-        # Remove stop words
-        labels = [w for w in labels if w not in self.stopwords]
-        # Remove block list words
-        labels = [w for w in labels if w not in self.block_list]
-        # update labels
-        labels = list(set(labels))
-        # Fetch categories
-        categories = generate_categories(labels)
-
-        if (
-            item["Labels"] is not None
-            and len(labels) == len(item["Labels"])
-            and item["Categories"] is not None
-            and len(categories) == len(item["Categories"])
-        ):
-            return None
-        item["Labels"] = labels
-        item["Categories"] = categories
-        return item
 
 
 class LogFormatter(logging.Formatter):
@@ -298,7 +188,7 @@ class GraphQLGitHub:
         return repositories
 
 
-def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerator):
+def get_repo_info(github_client: Github, full_name: str):
     """
     Get GitHub repository information.
     """
@@ -314,10 +204,6 @@ def get_repo_info(github_client: Github, full_name: str, generator: LabelGenerat
         "Categories": generate_categories(labels),
         "Comment": repo.description,
     }
-    # Optimize labels
-    optimized = generator.optimize(item)
-    if optimized:
-        item = optimized
     # Truncate long comment
     if item["Comment"] is not None and len(item["Comment"]) > MAX_COMMENT_LENGTH:
         item["Comment"] = item["Comment"][:MAX_COMMENT_LENGTH]
@@ -328,7 +214,6 @@ def update_user(
     gorse_client: Gorse,
     token: str,
     pulled_at: datetime.datetime,
-    generator: LabelGenerator,
 ):
     """
     Update GitHub user labels and starred repositories.
@@ -353,7 +238,7 @@ def update_user(
         repo = github_client.get_repo(full_name)
         if repo.stargazers_count >= 100:
             # Repositories indexed by Gorse must have stargazers more than 100.
-            item = get_repo_info(github_client, full_name, generator)
+            item = get_repo_info(github_client, full_name)
             if item is not None:
                 gorse_client.insert_item(item)
                 item_count += 1

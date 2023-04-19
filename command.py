@@ -28,8 +28,7 @@ def command():
 @click.argument("item_id")
 def upsert_repo(item_id):
     """Upsert a repository into GitRec."""
-    generator = LabelGenerator(gorse_client)
-    repo = get_repo_info(github_client, item_id, generator)
+    repo = get_repo_info(github_client, item_id)
     gorse_client.insert_item(repo)
     print(repo)
 

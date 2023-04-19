@@ -17,8 +17,6 @@ logger = get_logger("jobs")
 # Setup client
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
-# Setup label generator
-generator = LabelGenerator(gorse_client)
 
 # Setup celery
 app = Celery("jobs", broker=os.getenv("BROKER_ADDRESS"))
@@ -39,7 +37,8 @@ def pull(token: str):
         session = Session()
         user = session.query(User).filter(User.login == login).one()
         try:
-            update_user(gorse_client, user.token["access_token"], user.pulled_at, generator)
+            update_user(
+                gorse_client, user.token["access_token"], user.pulled_at)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)

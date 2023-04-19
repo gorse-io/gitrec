@@ -20,9 +20,6 @@ logger = get_logger("cronjobs")
 github_client = Github(os.getenv("GITHUB_ACCESS_TOKEN"))
 gorse_client = Gorse(os.getenv("GORSE_ADDRESS"), os.getenv("GORSE_API_KEY"))
 
-# Setup label generator
-generator = LabelGenerator(gorse_client)
-
 # Setup sqlalchemy
 engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
 Session = sessionmaker()
@@ -76,7 +73,7 @@ def insert_trending():
     trending_repos = get_trending()
     for trending_repo in trending_repos:
         try:
-            item = get_repo_info(github_client, trending_repo, generator)
+            item = get_repo_info(github_client, trending_repo)
             gorse_client.insert_item(item)
             trending_count += 1
         except Exception as e:
@@ -111,8 +108,7 @@ def update_users():
         # print(user.login, user.token["access_token"], user.pulled_at)
         try:
             update_user(
-                gorse_client, user.token["access_token"], user.pulled_at, generator
-            )
+                gorse_client, user.token["access_token"], user.pulled_at)
             user.pulled_at = datetime.datetime.now()
         except BadCredentialsException as e:
             session.delete(user)
@@ -130,43 +126,6 @@ def insert_users_entry():
         logger.exception("failed to update user labels and feedback")
 
 
-def optimize_labels():
-    """
-    Optimize labels for items
-    """
-    logger.info("start to generate labels for items")
-    total_count, update_count = 0, 0
-    cursor = ""
-    while True:
-        items, cursor = gorse_client.get_items(1000, cursor)
-        for item in items:
-            total_count += 1
-            # Optimize labels for items
-            optimized = generator.optimize(item)
-            # Update labels
-            if optimized:
-                update_count += 1
-                gorse_client.update_item(item["ItemId"], labels=optimized["Labels"])
-        if cursor == "":
-            break
-    logger.info(
-        "generate labels for items successfully",
-        extra={
-            "tags": {
-                "total_count": total_count,
-                "update_count": update_count,
-            }
-        },
-    )
-
-
-def optimize_labels_entry():
-    try:
-        optimize_labels()
-    except:
-        logger.exception("failed to insert trending repositories")
-
-
 @click.command()
 @click.option("--optimize-labels", is_flag=True)
 @click.option("--update-users", is_flag=True)
@@ -180,8 +139,6 @@ def main(optimize_labels: bool, update_users: bool, insert_trending: bool):
         threads.append(Thread(target=insert_trending_entry))
     if run_all or update_users:
         threads.append(Thread(target=insert_users_entry))
-    if run_all or optimize_labels:
-        threads.append(Thread(target=optimize_labels_entry))
     for thread in threads:
         thread.start()
     for thread in threads:
