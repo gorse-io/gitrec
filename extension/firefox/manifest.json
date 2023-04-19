@@ -13,7 +13,6 @@
         "*://github.com/*"
     ],
     "action": {
-        "default_popup": "popup.html",
         "default_icon": {
             "306": "logo.png"
         }
@@ -35,6 +34,6 @@
         }
     ],
     "background": {
-        "service_worker": "background.js"
+        "scripts": ["background.js"]
     }
 }
