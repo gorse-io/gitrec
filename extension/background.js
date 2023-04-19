@@ -66,3 +66,10 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(function (details) {
         });
     }
 });
+
+chrome.action.onClicked.addListener(() => {
+    let creating = chrome.tabs.create({
+        url: "https://gitrec.gorse.io/"
+    });
+    creating.then(onCreated, onError);
+});
