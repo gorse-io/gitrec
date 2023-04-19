@@ -27,6 +27,11 @@
         </a>
       </td>
       <td>
+        <a href="https://addons.mozilla.org/addon/gitrec/" target="_blank">
+          <img height="80" src="frontend/public/firefox.png" />
+        </a>
+      </td>
+      <td>
         <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
           <img src="frontend/public/tampermonkey.png" />
         </a>
@@ -35,9 +40,12 @@
   </tbody>
 </table>
 
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/stars/eihokbaeiebdenibjophfipedicippfl)](https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl)
+[![Mozilla Add-on](https://img.shields.io/amo/v/gitrec)](https://addons.mozilla.org/addon/gitrec/)
+[![Mozilla Add-on](https://img.shields.io/amo/users/gitrec)](https://addons.mozilla.org/addon/gitrec/)
+[![Mozilla Add-on](https://img.shields.io/amo/stars/gitrec)](https://addons.mozilla.org/addon/gitrec/)
 
 The browser extension integrates GitHub with GitRec. 
 1. Recommends repositories to GitHub users based on starred repositories.
