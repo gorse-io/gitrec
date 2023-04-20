@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y mariadb-client
 RUN pip install s3cmd
 
 # Copy files.
-COPY backup.sh ./
+COPY scripts/backup.sh ./
 
 # Run backup task.
 CMD bash backup.sh
