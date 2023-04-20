@@ -10,10 +10,6 @@ scrape_configs:
     static_configs:
     - targets: ["node-exporter:9100"]
 
-  - job_name: redis
-    static_configs:
-    - targets: ['redis_exporter:9121']
-
   - job_name: mysql
     static_configs:
     - targets: ['mysqld-exporter:9104']

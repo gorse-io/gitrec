@@ -1,21 +1,5 @@
 version: "3"
 services:
-  redis:
-    image: redis
-    restart: unless-stopped
-    ports:
-      - 6379:6379
-
-  redis_exporter:
-    image: oliver006/redis_exporter
-    restart: unless-stopped
-    ports:
-      - 9121:9121
-    environment:
-      REDIS_ADDR: redis://redis:6379
-    depends_on:
-     - redis
-
   mysql:
     image: mysql/mysql-server
     restart: unless-stopped
@@ -61,7 +45,7 @@ services:
     ports:
       - 8087:8087
     environment:
-      GORSE_CACHE_STORE: redis://redis:6379/0
+      GORSE_CACHE_STORE: sqla+mysql://gorse:gorse_pass@mysql/gorse
       GORSE_DATA_STORE: mysql://gorse:gorse_pass@tcp(mysql:3306)/gorse?parseTime=true
     command: >
       --master-host master --master-port 8086 
@@ -81,7 +65,7 @@ services:
       - 8086:8086
       - 8088:8088
     environment:
-      GORSE_CACHE_STORE: redis://redis:6379
+      GORSE_CACHE_STORE: mysql://gorse:gorse_pass@tcp(mysql:3306)/gorse?parseTime=true
       GORSE_DATA_STORE: mysql://gorse:gorse_pass@tcp(mysql:3306)/gorse?parseTime=true
       GORSE_DASHBOARD_USER_NAME: ${GORSE_DASHBOARD_USER_NAME}
       GORSE_DASHBOARD_PASSWORD: ${GORSE_DASHBOARD_PASSWORD}
@@ -95,7 +79,6 @@ services:
       - log_data:/var/log/gorse
       - master_data:/var/lib/gorse
     depends_on:
-      - redis
       - mysql
 
   node-exporter:
@@ -166,7 +149,7 @@ services:
     environment:
       GORSE_ADDRESS: http://server:8087
       GORSE_API_KEY: ${GORSE_API_KEY}
-      BROKER_ADDRESS: redis://redis:6379/1
+      BROKER_ADDRESS: sqla+mysql://gorse:gorse_pass@mysql/gorse
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
       LOKI_HOST: loki
       LOKI_PORT: 3100
@@ -194,7 +177,7 @@ services:
     environment:
       GORSE_ADDRESS: http://server:8087
       GORSE_API_KEY: ${GORSE_API_KEY}
-      BROKER_ADDRESS: redis://redis:6379/1
+      BROKER_ADDRESS: sqla+mysql://gorse:gorse_pass@mysql/gorse
       GITHUB_OAUTH_CLIENT_ID: ${GITHUB_OAUTH_CLIENT_ID}
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET}
       SECRET_KEY: ${SECRET_KEY}

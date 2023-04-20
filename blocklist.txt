@@ -1,7 +1,0 @@
-deep
-open
-open-source
-open-source-project
-project
-source
-system
