@@ -1,0 +1,11 @@
+package-chrome:
+	mkdir -p dist/
+	rm -f dist/chrome.zip
+	zip dist/chrome.zip *.js *.png manifest.json
+
+package-firefox:
+    mkdir -p dist/
+    rm -f dist/firefox.zip
+    zip dist/firefox.zip *.js *.png
+    cp manifest-firefox.json dist/manifest.json
+    cd dist/ && zip -m firefox.zip manifest.json
