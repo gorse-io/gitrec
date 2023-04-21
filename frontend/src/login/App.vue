@@ -43,7 +43,7 @@
         </div>
         <div class="col m2 s6">
           <a href="https://addons.mozilla.org/addon/gitrec/" target="_blank">
-            <img height="80" src="firefox.png"/>
+            <img src="firefox.png"/>
           </a>
         </div>
         <div class="col m2 s6">

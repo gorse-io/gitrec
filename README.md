@@ -28,7 +28,7 @@
       </td>
       <td>
         <a href="https://addons.mozilla.org/addon/gitrec/" target="_blank">
-          <img height="80" src="frontend/public/firefox.png" />
+          <img src="frontend/public/firefox.png" />
         </a>
       </td>
       <td>
