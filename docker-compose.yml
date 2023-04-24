@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     ports:
       - 3306:3306
+    command:
+      - '--skip-log-bin'
     environment:
       MYSQL_ROOT_PASSWORD: root_pass
       MYSQL_DATABASE: gorse
@@ -195,7 +197,7 @@ services:
       MYSQL_DATABASE: gorse
       MYSQL_USER: gorse
       MYSQL_PASSWORD: gorse_pass
-      S3_BUCKET: gorse.cloud
+      S3_BUCKET: gorse
       S3_PREFIX: /gitrec
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
