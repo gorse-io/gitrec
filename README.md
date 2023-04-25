@@ -132,4 +132,3 @@ docker-compose restart
 ## Acknowledgments
 
 - Thanks [@lisonge](https://github.com/lisonge) for the Tampermonkey userscript.
-- Thanks [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/) for cloud servers.
