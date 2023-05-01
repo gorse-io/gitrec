@@ -4,7 +4,7 @@ celery==5.2.7
 click==8.0.4
 docutils==0.17.1
 emoji==1.6.1
-Flask==2.1.1
+Flask==2.3.2
 flask-cors==3.0.10
 Flask-Dance[sqla]==6.2.0
 flask-login==0.6.0
