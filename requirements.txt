@@ -1,5 +1,4 @@
 beautifulsoup4==4.9.3
-blinker==1.4
 celery==5.2.7
 docutils==0.17.1
 emoji==1.6.1
@@ -23,4 +22,3 @@ pytz==2022.1
 requests==2.27.1
 sqlalchemy==1.4.32
 tqdm==4.64.0
-werkzeug==2.2.3
