@@ -26,7 +26,7 @@ services:
      - mysql
 
   worker:
-    image: zhenghaoz/gorse-worker
+    image: zhenghaoz/gorse-worker:0.5
     restart: unless-stopped
     ports:
       - 8089:8089
@@ -34,7 +34,7 @@ services:
       --master-host master --master-port 8086 
       --http-host 0.0.0.0 --http-port 8089
       --log-path /var/log/gorse/worker.log 
-      --cache-path /var/lib/gorse/worker_cache.data
+      --cache-path /var/lib/gorse/
     volumes:
       - log_data:/var/log/gorse
       - worker_data:/var/lib/gorse
@@ -42,7 +42,7 @@ services:
       - master
 
   server:
-    image: zhenghaoz/gorse-server
+    image: zhenghaoz/gorse-server:0.5
     restart: unless-stopped
     ports:
       - 8087:8087
@@ -53,7 +53,7 @@ services:
       --master-host master --master-port 8086 
       --http-host 0.0.0.0 --http-port 8087
       --log-path /var/log/gorse/server.log 
-      --cache-path /var/lib/gorse/server_cache.data
+      --cache-path /var/lib/gorse/
     volumes:
       - log_data:/var/log/gorse
       - server_data:/var/lib/gorse
@@ -61,7 +61,7 @@ services:
       - master
 
   master:
-    image: zhenghaoz/gorse-master
+    image: zhenghaoz/gorse-master:0.5
     restart: unless-stopped
     ports:
       - 8086:8086
@@ -75,7 +75,7 @@ services:
     command: >
       -c /etc/gorse/config.toml 
       --log-path /var/log/gorse/master.log 
-      --cache-path /var/lib/gorse/master_cache.data
+      --cache-path /var/lib/gorse/
     volumes:
       - ./config/gorse.toml:/etc/gorse/config.toml
       - log_data:/var/log/gorse
