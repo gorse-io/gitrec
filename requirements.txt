@@ -21,4 +21,4 @@ python-logging-loki~=0.3.1
 pytz==2022.1
 requests==2.32.0
 sqlalchemy==1.4.32
-tqdm==4.64.0
+tqdm==4.66.3
