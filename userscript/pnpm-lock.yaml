@@ -21,11 +21,11 @@ importers:
         specifier: 4.8.4
         version: 4.8.4
       vite:
-        specifier: 3.2.10
-        version: 3.2.10(@types/node@16.11.66)
+        specifier: 3.2.11
+        version: 3.2.11(@types/node@16.11.66)
       vite-plugin-monkey:
         specifier: 2.8.0
-        version: 2.8.0(vite@3.2.10(@types/node@16.11.66))
+        version: 2.8.0(vite@3.2.11(@types/node@16.11.66))
 
 packages:
 
@@ -316,8 +316,8 @@ packages:
     peerDependencies:
       vite: ^2.0.0 || ^3.0.0
 
-  vite@3.2.10:
-    resolution: {integrity: sha512-Dx3olBo/ODNiMVk/cA5Yft9Ws+snLOXrhLtrI3F4XLt4syz2Yg8fayZMWScPKoz12v5BUv7VEmQHnsfpY80fYw==}
+  vite@3.2.11:
+    resolution: {integrity: sha512-K/jGKL/PgbIgKCiJo5QbASQhFiV02X9Jh+Qq0AKCRCRKZtOTVi4t6wh75FDpGf2N9rYOnzH87OEFQNaFy6pdxQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -564,7 +564,7 @@ snapshots:
 
   typescript@4.8.4: {}
 
-  vite-plugin-monkey@2.8.0(vite@3.2.10(@types/node@16.11.66)):
+  vite-plugin-monkey@2.8.0(vite@3.2.11(@types/node@16.11.66)):
     dependencies:
       cross-spawn: 7.0.3
       detect-port: 1.5.1
@@ -572,11 +572,11 @@ snapshots:
       mrmime: 1.0.1
       open: 8.4.0
       picocolors: 1.0.0
-      vite: 3.2.10(@types/node@16.11.66)
+      vite: 3.2.11(@types/node@16.11.66)
     transitivePeerDependencies:
       - supports-color
 
-  vite@3.2.10(@types/node@16.11.66):
+  vite@3.2.11(@types/node@16.11.66):
     dependencies:
       esbuild: 0.15.12
       postcss: 8.4.31
