@@ -15,7 +15,7 @@
     "github-markdown-css": "^4.0.0",
     "material-design-icons-iconfont": "^6.7.0",
     "timeago.js": "^4.0.2",
-    "vue": "^2.6.11",
+    "vue": "^3.0.0",
     "vue-router": "^3.5.3"
   },
   "devDependencies": {
