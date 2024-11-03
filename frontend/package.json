@@ -10,7 +10,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@materializecss/materialize": "^1.1.0",
-    "axios": "^0.24.0",
+    "axios": "^0.28.0",
     "core-js": "^3.6.5",
     "github-markdown-css": "^4.0.0",
     "material-design-icons-iconfont": "^6.7.0",
