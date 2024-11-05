@@ -1,4 +1,5 @@
 import concurrent.futures
+import io
 import json
 import logging
 import os
@@ -6,9 +7,11 @@ import sys
 from datetime import datetime
 from typing import List, Optional
 
+import asciidoc3
 import emoji
 import gorse
 import mistune
+from asciidoc3.asciidoc3api import AsciiDoc3API
 from bs4 import BeautifulSoup
 from docutils.core import publish_parts
 from flask import Flask, Response, session, redirect, request, flash
@@ -178,6 +181,13 @@ def get_repo(category: str = ""):
     content = repo.get_readme().decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
+    elif download_url.endswith(".asciidoc"):
+        infile = io.StringIO(content)
+        outfile = io.StringIO()
+        asciidoc3api = AsciiDoc3API(asciidoc3.__path__[0] + '/asciidoc3.py')
+        asciidoc3api.options('--no-header-footer')
+        asciidoc3api.execute(infile, outfile, backend='html4')
+        html = outfile.getvalue()
     else:
         html = mistune.html(content)
     soup = BeautifulSoup(html, "html.parser")

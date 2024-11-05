@@ -1,3 +1,4 @@
+asciidoc3==3.2.3
 beautifulsoup4==4.9.3
 celery==5.2.7
 docutils==0.17.1
@@ -5,7 +6,7 @@ emoji==1.6.1
 Flask==2.3.2
 flask-cors==4.0.2
 Flask-Dance[sqla]==6.2.0
-flask-login==0.6.0
+flask-login==0.6.3
 Flask-SQLAlchemy==2.5.1
 gevent==23.9.1
 gunicorn==22.0.0
