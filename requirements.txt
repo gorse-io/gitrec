@@ -9,7 +9,7 @@ Flask-Dance[sqla]==6.2.0
 flask-login==0.6.3
 Flask-SQLAlchemy==2.5.1
 gevent==23.9.1
-gunicorn==22.0.0
+gunicorn==23.0.0
 language-detector>=5.0.2
 mistune==2.0.4
 mysqlclient>=2.1.0
