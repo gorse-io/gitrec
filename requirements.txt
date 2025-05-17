@@ -4,7 +4,7 @@ celery==5.2.7
 docutils==0.17.1
 emoji==1.6.1
 Flask==2.3.2
-flask-cors==4.0.2
+flask-cors==6.0.0
 Flask-Dance[sqla]==6.2.0
 flask-login==0.6.3
 Flask-SQLAlchemy==2.5.1
