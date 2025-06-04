@@ -133,6 +133,11 @@ def login():
     return app.send_static_file("login.html")
 
 
+@app.route("/privacy")
+def privacy():
+    return app.send_static_file("privacy.html")
+
+
 def is_github_blob(url: str) -> bool:
     splits = url.split("/")
     return (
