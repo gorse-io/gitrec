@@ -15,16 +15,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  mysqld-exporter:
-    image: prom/mysqld-exporter
-    restart: unless-stopped
-    environment:
-      DATA_SOURCE_NAME: gorse:gorse_pass@(mysql:3306)/
-    ports:
-      - 9104:9104
-    depends_on:
-     - mysql
-
   worker:
     image: zhenghaoz/gorse-worker:0.5
     restart: unless-stopped
@@ -34,7 +24,7 @@ services:
       --master-host master --master-port 8086 
       --http-host 0.0.0.0 --http-port 8089
       --log-path /var/log/gorse/worker.log 
-      --log-max-age 30
+      --log-max-age 7
       --cache-path /var/lib/gorse/worker
     volumes:
       - log_data:/var/log/gorse
@@ -54,7 +44,7 @@ services:
       --master-host master --master-port 8086 
       --http-host 0.0.0.0 --http-port 8087
       --log-path /var/log/gorse/server.log 
-      --log-max-age 30
+      --log-max-age 7
       --cache-path /var/lib/gorse/server
     volumes:
       - log_data:/var/log/gorse
@@ -77,74 +67,14 @@ services:
     command: >
       -c /etc/gorse/config.toml 
       --log-path /var/log/gorse/master.log 
-      --log-max-age 30
+      --log-max-age 7
       --cache-path /var/lib/gorse
     volumes:
-      - ./config/gorse.toml:/etc/gorse/config.toml
+      - ./config.toml:/etc/gorse/config.toml
       - log_data:/var/log/gorse
       - master_data:/var/lib/gorse
     depends_on:
       - mysql
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    restart: unless-stopped
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    expose:
-      - 9100
-
-  prometheus:
-    image: prom/prometheus
-    restart: unless-stopped
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    expose:
-      - 9090
-
-  grafana:
-    image: grafana/grafana:8.4.6
-    restart: unless-stopped
-    environment:
-      PROMETHEUS_HOST: prometheus
-      PROMETHEUS_PORT: 9090
-      LOKI_HOST: loki
-      LOKI_PORT: 3100
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./provisioning:/etc/grafana/provisioning
-    ports:
-      - 3000:3000
-
-  loki:
-    image: grafana/loki:2.3.0
-    restart: unless-stopped
-    command: -config.file=/etc/loki/local-config.yaml
-    ports:
-      - 3100:3100
-    volumes:
-      - ./config/loki.yaml:/etc/loki/local-config.yaml
-
-  promtail:
-    image: grafana/promtail
-    restart: unless-stopped
-    command: -config.file=/etc/promtail/config.yml
-    ports:
-      - 9080:9080
-    volumes:
-      - log_data:/var/log/gorse
-      - ./config/promtail.yml:/etc/promtail/config.yml
 
   jobs:
     build:
@@ -213,6 +143,3 @@ volumes:
   worker_data:
   server_data:
   master_data:
-  log_data:
-  prometheus_data:
-  grafana_data:
