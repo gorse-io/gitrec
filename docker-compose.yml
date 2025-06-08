@@ -27,7 +27,7 @@ services:
       --log-max-age 7
       --cache-path /var/lib/gorse/worker
     volumes:
-      - log_data:/var/log/gorse
+      - ./log/gorse-worker:/var/log/gorse:ro
       - worker_data:/var/lib/gorse
     depends_on:
       - master
@@ -47,7 +47,7 @@ services:
       --log-max-age 7
       --cache-path /var/lib/gorse/server
     volumes:
-      - log_data:/var/log/gorse
+      - ./log/gorse-server:/var/log/gorse
       - server_data:/var/lib/gorse
     depends_on:
       - master
@@ -71,7 +71,7 @@ services:
       --cache-path /var/lib/gorse
     volumes:
       - ./config.toml:/etc/gorse/config.toml
-      - log_data:/var/log/gorse
+      - ./log/gorse-master:/var/log/gorse
       - master_data:/var/lib/gorse
     depends_on:
       - mysql
