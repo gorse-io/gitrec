@@ -16,7 +16,7 @@ stop-web:
 
 # Stop cronjobs.
 stop-cronjobs:
-	docker-compose stop cronjobs
+	docker compose stop cronjobs
 
 # Stop schduled jobs.
 stop-jobs:

@@ -111,31 +111,6 @@ def upsert_repos():
                     time.sleep(60)
 
 
-def tldr(text: str) -> str:
-    prompt = "Write a short description of the GitHub repository in one sentence. "\
-    +"Don't start with 'This GitHub repository' or 'A GitHub repository'. "\
-    +f"The README of the repository is: \n\n{text}"
-    resp = openai_client.chat.completions.create(
-        model="qwen-turbo",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-    )
-    return resp.choices[0].message.content
-
-
-def embedding(text: str) -> list:
-    resp = openai_client.embeddings.create(
-        model="text-embedding-v3",
-        input=text,
-        dimensions=512,
-    )
-    return resp.data[0].embedding
-
-
 @command.command()
 def upgrade_items():
     """Upgrade items in Gorse."""

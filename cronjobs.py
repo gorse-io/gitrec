@@ -60,7 +60,7 @@ def get_trending():
             return full_names
         soup = BeautifulSoup(r.text, "html.parser")
         for article in soup.find_all("article"):
-            full_names.append(article.h1.a["href"][1:])
+            full_names.append(article.h2.a["href"][1:])
     return full_names
 
 
@@ -127,14 +127,11 @@ def insert_users_entry():
 
 
 @click.command()
-@click.option("--optimize-labels", is_flag=True)
 @click.option("--update-users", is_flag=True)
 @click.option("--insert-trending", is_flag=True)
-def main(optimize_labels: bool, update_users: bool, insert_trending: bool):
+def main(update_users: bool, insert_trending: bool):
     threads = []
-    run_all = (
-        optimize_labels is False and update_users is False and insert_trending is False
-    )
+    run_all = update_users is False and insert_trending is False
     if run_all or insert_trending:
         threads.append(Thread(target=insert_trending_entry))
     if run_all or update_users:

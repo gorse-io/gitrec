@@ -14,6 +14,7 @@ from gorse import Gorse, GorseException
 from logging_loki import LokiHandler, emitter
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
+from openai import OpenAI
 
 MAX_COMMENT_LENGTH = 512
 
@@ -32,6 +33,11 @@ CATEGORIES = {
     "c",
     "rust",
 }
+
+
+openai_client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_API_BASE")
+)
 
 
 def generate_categories(labels: List[str]) -> List[str]:
@@ -64,25 +70,15 @@ class LogFormatter(logging.Formatter):
 
 def get_logger(name: str):
     """
-    Create a Loki logger.
+    Create a logger.
     """
-    loki_logger = logging.getLogger(name)
-    loki_logger.setLevel(logging.INFO)
-    loki_host = os.getenv("LOKI_HOST")
-    loki_port = os.getenv("LOKI_PORT")
-    if loki_host is not None and loki_port is not None:
-        emitter.LokiEmitter.level_tag = "level"
-        handler = LokiHandler(
-            url="http://%s:%s/loki/api/v1/push" % (loki_host, loki_port),
-            tags={"job": "gitrec"},
-            version="1",
-        )
-        loki_logger.addHandler(handler)
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
     # Logging to stdout
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(LogFormatter())
-    loki_logger.addHandler(handler)
-    return loki_logger
+    logger.addHandler(handler)
+    return logger
 
 
 # Setup logger
@@ -188,25 +184,59 @@ class GraphQLGitHub:
         return repositories
 
 
+def embedding(text: str) -> list:
+    resp = openai_client.embeddings.create(
+        model="text-embedding-v3",
+        input=text,
+        dimensions=512,
+    )
+    return resp.data[0].embedding
+
+
+def tldr(text: str) -> str:
+    prompt = (
+        "Write a short description of the GitHub repository in one sentence. "
+        + "Don't start with 'This GitHub repository' or 'A GitHub repository'. "
+        + f"The README of the repository is: \n\n{text}"
+    )
+    resp = openai_client.chat.completions.create(
+        model="qwen-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+    )
+    return resp.choices[0].message.content
+
+
 def get_repo_info(github_client: Github, full_name: str):
     """
     Get GitHub repository information.
     """
     repo = github_client.get_repo(full_name)
-    # Fetch labels.
-    labels = [topic for topic in repo.get_topics()]
-    if repo.language is not None and repo.language not in labels:
-        labels.append(repo.language.lower())
+    # Fetch languages.
+    categories = None
+    languages = repo.get_languages()
+    if len(languages) > 0:
+        categories = [max(languages, key=languages.get).lower()]
+    # Encode embedding.
+    description = repo.description
+    if description is None:
+        description = tldr(repo.get_readme().decoded_content.decode('utf-8'))
+        print('QWEN:', description)
+    description_embedding = embedding(description)
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
         "Timestamp": str(repo.updated_at),
-        "Labels": labels,
-        "Categories": generate_categories(labels),
+        "Labels": {
+            "embedding": description_embedding,
+            "topics": repo.get_topics(),
+        },
+        "Categories": categories,
         "Comment": repo.description,
     }
-    # Truncate long comment
-    if item["Comment"] is not None and len(item["Comment"]) > MAX_COMMENT_LENGTH:
-        item["Comment"] = item["Comment"][:MAX_COMMENT_LENGTH]
     return item
 
 

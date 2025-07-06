@@ -16,7 +16,7 @@ services:
       - mysql_data:/var/lib/mysql
 
   worker:
-    image: zhenghaoz/gorse-worker:0.5
+    image: zhenghaoz/gorse-worker:nightly
     restart: unless-stopped
     ports:
       - 8089:8089
@@ -33,7 +33,7 @@ services:
       - master
 
   server:
-    image: zhenghaoz/gorse-server:0.5
+    image: zhenghaoz/gorse-server:nightly
     restart: unless-stopped
     ports:
       - 8087:8087
@@ -53,7 +53,7 @@ services:
       - master
 
   master:
-    image: zhenghaoz/gorse-master:0.5
+    image: zhenghaoz/gorse-master:nightly
     restart: unless-stopped
     ports:
       - 8086:8086
@@ -99,8 +99,8 @@ services:
       GORSE_API_KEY: ${GORSE_API_KEY}
       GITHUB_ACCESS_TOKEN: ${GITHUB_ACCESS_TOKEN}
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
-      LOKI_HOST: loki
-      LOKI_PORT: 3100
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
 
   web:
     build: 
