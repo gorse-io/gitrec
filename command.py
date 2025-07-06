@@ -112,7 +112,9 @@ def upsert_repos():
 
 
 def tldr(text: str) -> str:
-    prompt = f"Write a short description of the GitHub repositery in one paragraph: \n\n{text}"
+    prompt = "Write a short description of the GitHub repository in one sentence. "\
+    +"Don't start with 'This GitHub repository' or 'A GitHub repository'. "\
+    +f"The README of the repository is: \n\n{text}"
     resp = openai_client.chat.completions.create(
         model="qwen-turbo",
         messages=[
@@ -129,13 +131,13 @@ def embedding(text: str) -> list:
     resp = openai_client.embeddings.create(
         model="text-embedding-v3",
         input=text,
-        dimensions=64,
+        dimensions=512,
     )
     return resp.data[0].embedding
 
 
 @command.command()
-def upgarde_items():
+def upgrade_items():
     """Upgrade items in Gorse."""
     cursor = ""
     while True:
@@ -152,17 +154,26 @@ def upgarde_items():
                     print("DELETE " + item["ItemId"] + " " + str(e))
                     continue
                 except GithubException as e:
-                    if e.status == 403:
+                    if e.status == 451:
+                        gorse_client.delete_item(item["ItemId"])
+                        print("DELETE " + item["ItemId"] + " " + str(e))
+                    elif e.status and e.data["message"] in ("Repository access blocked"):
                         gorse_client.delete_item(item["ItemId"])
                         print("DELETE " + item["ItemId"] + " " + str(e))
                     else:
                         print("FAIL " + item["ItemId"] + " " + str(e))
                     continue
 
-                # Skip repo with less than 100 stars
+                # Delete repo with less than 100 stars
                 if repo.stargazers_count < 100:
                     gorse_client.delete_item(item["ItemId"])
                     print("DELETE " + repo.full_name)
+                    continue
+
+                # Delete repp with description longer than 1000 characters
+                if repo.description is not None and len(repo.description) > MAX_COMMENT_LENGTH:
+                    gorse_client.delete_item(item["ItemId"])
+                    print("DELETE " + repo.full_name + " with long description")
                     continue
 
                 # Generate categories and labels
@@ -171,8 +182,11 @@ def upgarde_items():
                     languages = repo.get_languages()
                     if len(languages) > 0:
                         language = [max(languages, key=languages.get).lower()]
-                    tldr_text = tldr(repo.get_readme().decoded_content)
-                    tldr_embedding = embedding(tldr_text)
+                    description = repo.description
+                    if description is None:
+                        description = tldr(repo.get_readme().decoded_content.decode('utf-8'))
+                        print('QWEN:', description)
+                    description_embedding = embedding(description)
                 except BadRequestError as e:
                     print("FAIL " + repo.full_name + " " + str(e))
                     continue
@@ -186,24 +200,39 @@ def upgarde_items():
                     gorse_client.delete_item(item["ItemId"])
                     print("DELETE " + item["ItemId"] + " " + str(e))
                     continue
-
-                # Truncate long description
-                description = repo.description
-                if description is not None and len(description) > MAX_COMMENT_LENGTH:
-                    description = description[:MAX_COMMENT_LENGTH]
+                except AssertionError as e:
+                    print("FAIL " + repo.full_name + " " + str(e))
+                    continue
 
                 # Update item
                 gorse_client.update_item(
                     item["ItemId"],
                     categories=language,
                     labels={
-                        "embedding": tldr_embedding,
+                        "embedding": description_embedding,
                         "topics": repo.get_topics(),
                     },
                     timestamp=repo.updated_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    comment=description,
+                    comment=repo.description,
                 )
                 print("UPDATE " + repo.full_name)
+
+
+@command.command()
+def upgrade_embedding():
+    """Upgrade embeddings."""
+    cursor = ""
+    while True:
+        items, cursor = gorse_client.get_items(1000, cursor)
+        if cursor == "":
+            break
+        for item in tqdm(items):
+            if len(item['Comment']) > 0:
+                item['Labels']['embedding'] = embedding(item['Comment'])
+                gorse_client.update_item(
+                    item["ItemId"],
+                    labels=item['Labels'],
+                )
 
 
 if __name__ == "__main__":
