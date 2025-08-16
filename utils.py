@@ -11,41 +11,16 @@ from dateutil import parser
 from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
-from logging_loki import LokiHandler, emitter
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
 
 MAX_COMMENT_LENGTH = 512
 
-CATEGORIES = {
-    # genres
-    "book",
-    "game",
-    "machine-learning",
-    # programming languages
-    "python",
-    "java",
-    "c++",
-    "go",
-    "javascript",
-    "typescript",
-    "c",
-    "rust",
-}
-
 
 openai_client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_API_BASE")
 )
-
-
-def generate_categories(labels: List[str]) -> List[str]:
-    categories = []
-    for label in labels:
-        if label in CATEGORIES:
-            categories.append(label)
-    return categories
 
 
 class LogFormatter(logging.Formatter):
@@ -224,8 +199,8 @@ def get_repo_info(github_client: Github, full_name: str):
     # Encode embedding.
     description = repo.description
     if description is None:
-        description = tldr(repo.get_readme().decoded_content.decode('utf-8'))
-        print('QWEN:', description)
+        description = tldr(repo.get_readme().decoded_content.decode("utf-8"))
+        print("QWEN:", description)
     description_embedding = embedding(description)
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
@@ -268,10 +243,13 @@ def update_user(
         repo = github_client.get_repo(full_name)
         if repo.stargazers_count >= 100:
             # Repositories indexed by Gorse must have stargazers more than 100.
-            item = get_repo_info(github_client, full_name)
-            if item is not None:
-                gorse_client.insert_item(item)
-                item_count += 1
+            try:
+                item = get_repo_info(github_client, full_name)
+                if item is not None:
+                    gorse_client.insert_item(item)
+                    item_count += 1
+            except Exception as e:
+                logger.exception("failed to get repo info")
             pull_count += 1
     logger.info(
         "insert user starred repositories",

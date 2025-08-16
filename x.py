@@ -9,11 +9,11 @@ from dotenv import load_dotenv
 from openai import BadRequestError, InternalServerError, OpenAI
 from tqdm import tqdm
 
-from utils import *
-
-
 # Load dot file
 load_dotenv()
+
+from utils import *
+
 
 # Create Gorse client
 gorse_client = Gorse("http://127.0.0.1:8088", os.getenv("GORSE_API_KEY"))
@@ -132,7 +132,9 @@ def upgrade_items():
                     if e.status == 451:
                         gorse_client.delete_item(item["ItemId"])
                         print("DELETE " + item["ItemId"] + " " + str(e))
-                    elif e.status and e.data["message"] in ("Repository access blocked"):
+                    elif e.status and e.data["message"] in (
+                        "Repository access blocked"
+                    ):
                         gorse_client.delete_item(item["ItemId"])
                         print("DELETE " + item["ItemId"] + " " + str(e))
                     else:
@@ -146,7 +148,10 @@ def upgrade_items():
                     continue
 
                 # Delete repp with description longer than 1000 characters
-                if repo.description is not None and len(repo.description) > MAX_COMMENT_LENGTH:
+                if (
+                    repo.description is not None
+                    and len(repo.description) > MAX_COMMENT_LENGTH
+                ):
                     gorse_client.delete_item(item["ItemId"])
                     print("DELETE " + repo.full_name + " with long description")
                     continue
@@ -159,8 +164,10 @@ def upgrade_items():
                         language = [max(languages, key=languages.get).lower()]
                     description = repo.description
                     if description is None:
-                        description = tldr(repo.get_readme().decoded_content.decode('utf-8'))
-                        print('QWEN:', description)
+                        description = tldr(
+                            repo.get_readme().decoded_content.decode("utf-8")
+                        )
+                        print("QWEN:", description)
                     description_embedding = embedding(description)
                 except BadRequestError as e:
                     print("FAIL " + repo.full_name + " " + str(e))
@@ -202,11 +209,11 @@ def upgrade_embedding():
         if cursor == "":
             break
         for item in tqdm(items):
-            if len(item['Comment']) > 0:
-                item['Labels']['embedding'] = embedding(item['Comment'])
+            if len(item["Comment"]) > 0:
+                item["Labels"]["embedding"] = embedding(item["Comment"])
                 gorse_client.update_item(
                     item["ItemId"],
-                    labels=item['Labels'],
+                    labels=item["Labels"],
                 )
 
 

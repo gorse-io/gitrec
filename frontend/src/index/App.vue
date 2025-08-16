@@ -52,11 +52,6 @@ export default {
       showTopics: false,
       topics: [
         "all",
-        // genres
-        "book",
-        "game",
-        "machine-learning",
-        // programming languages
         "python",
         "java",
         "cpp",
