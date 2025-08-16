@@ -31,11 +31,6 @@
           <img src="frontend/public/firefox.png" />
         </a>
       </td>
-      <td>
-        <a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">
-          <img src="frontend/public/tampermonkey.png" />
-        </a>
-      </td>
     </tr>
   </tbody>
 </table>
