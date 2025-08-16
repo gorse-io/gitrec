@@ -117,8 +117,11 @@ services:
       GITHUB_OAUTH_CLIENT_SECRET: ${GITHUB_OAUTH_CLIENT_SECRET}
       SECRET_KEY: ${SECRET_KEY}
       SQLALCHEMY_DATABASE_URI: mysql://gorse:gorse_pass@mysql:3306/gorse
-      LOKI_HOST: loki
-      LOKI_PORT: 3100
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      FLASK_LOG_PATH: /var/log/web/web.log
+    volumes:
+      - ./log/web:/var/log/web
 
   backup:
     build:
