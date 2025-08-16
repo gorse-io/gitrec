@@ -1,28 +1,3 @@
-var titleTemplate = `
-<h2 class="f5 text-bold mb-1" style="display:inline-block">Explore repositories</h2>
-<details class="details-reset details-overlay dropdown float-right mt-1">
-    <summary class="pinned-items-setting-link Link--muted" aria-haspopup="menu" role="button">
-        Explore settings
-        <div class="dropdown-caret"></div>
-    </summary>
-
-    <details-menu class="dropdown-menu dropdown-menu-sw contributions-setting-menu" role="menu" style="width: 240px">
-        <button id="gitrec-button" class="dropdown-item ws-normal btn-link text-left pl-5" role="menuitem">
-            <div class="text-bold">Explore GitRec</div>
-            <span class="f6 mt-1">
-            Explore repositories from GitRec based on starred repositories.
-            </span>
-        </button>
-        <div role="none" class="dropdown-divider"></div>
-        <button id="github-button" value="1" class="dropdown-item ws-normal btn-link text-left pl-5" role="menuitem">
-            <div class="d-flex flex-items-center text-bold">Explore GitHub</div>
-            <span class="f6 mt-1">
-            Explore repositories from GitHub official recommendation.
-            </span>
-        </button>
-    </details-menu>
-</details>`;
-
 var itemId = null;
 var similarOffset = 0;
 var exploreContent = null;
@@ -36,37 +11,6 @@ $(document).ready(function () {
         // get neighbors
         loadSimilarRepos();
     } else if (splits.length === 0) {
-        // reset title
-        let exploreDiv = $("[aria-label='Explore repositories']");
-        if (exploreContent == null) {
-            exploreContent = exploreDiv.children("div[data-view-component=true]");
-        }
-        exploreDiv.children("h2.f5").remove();
-        exploreDiv.children("details").remove();
-        exploreDiv.children("div.py-2").remove();
-        exploreDiv.children("a.f6").remove();
-        exploreDiv.append($($.parseHTML(titleTemplate)));
-        $("#gitrec-button").click(function () {
-            chrome.storage.sync.set({ explore: 'gitrec' }, function () {
-                selectExploreSettings('gitrec');
-                loadRecommendRepos();
-            });
-            return false;
-        });
-        $("#github-button").click(function () {
-            chrome.storage.sync.set({ explore: 'github' }, function () {
-                selectExploreSettings('github');
-                loadRecommendRepos();
-            });
-            return false;
-        });
-        chrome.storage.sync.get(['explore'], function (result) {
-            if (result.explore == 'github') {
-                selectExploreSettings('github');
-            } else {
-                selectExploreSettings('gitrec');
-            }
-        });
         // get recommend
         loadRecommendRepos();
     }
@@ -140,11 +84,11 @@ async function renderSimilarDiv(result) {
         // Render previous button
         previous = similarOffset > 0 ?
             `<a id="previous-button" class="text-small" href="#">← Previous</a>` :
-            '<span id="previous-button" class="text-small color-fg-muted">← Previous</span>';
+            '';
         // Render next button
         next = similarOffset < 9 ?
             `<a id="next-button" class="text-small" style="float: right" href="#">Next →</a>` :
-            `<span id="next-button" class="text-small color-fg-muted" style="float: right">Next →</span>`;
+            ``;
     } else {
         rows = '<div class="text-small color-fg-muted">No similar repositories found</div>'
     }
@@ -174,55 +118,45 @@ async function renderSimilarDiv(result) {
 }
 
 function loadRecommendRepos() {
-    let exploreDiv = $("[aria-label='Explore repositories']");
-    exploreDiv.children("div[data-view-component=true]").remove();
-    exploreDiv.children("div.py-2").remove();
-    exploreDiv.children("a.f6").remove();
-    exploreDiv.children("#error-message").remove();
-    chrome.storage.sync.get(['explore'], function (result) {
-        if (result.explore != 'github') {
-            chrome.runtime.sendMessage({ recommend: [] }, function (result) {
-                if (result.is_authenticated) {
+    chrome.runtime.sendMessage({ recommend: [] }, function (result) {
+        if (result.is_authenticated) {
+            showRecommend(result);
+        } else {
+            const login = $('meta[name=user-login]').attr('content');
+            fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
+                if (result.message) {
                     showRecommend(result);
                 } else {
-                    const login = $('meta[name=user-login]').attr('content');
-                    fetch(`https://api.github.com/users/${login}/starred?per_page=100`).then(r => r.json()).then(result => {
-                        if (result.message) {
-                            showRecommend(result);
-                        } else {
-                            let repoNames = result.map((value) => {
-                                return value.full_name.replace('/', ':');
-                            })
-                            chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
-                                // Fetch repos in client-side
-                                let responses = [];
-                                for (const score of scores) {
-                                    const full_name = score.Id.replace(':', '/');
-                                    responses.push(fetchRepo(full_name));
-                                }
-                                Promise.all(responses).then((repos) => {
-                                    result.repos = repos;
-                                    for (const [i, score] of scores.entries()) {
-                                        result.repos[i].item_id = score.Id;
-                                    }
-                                    showRecommend(result);
-                                })
-                            });
+                    let repoNames = result.map((value) => {
+                        return value.full_name.replace('/', ':');
+                    })
+                    chrome.runtime.sendMessage({ recommend: repoNames }, function (scores) {
+                        // Fetch repos in client-side
+                        let responses = [];
+                        for (const score of scores) {
+                            const full_name = score.Id.replace(':', '/');
+                            responses.push(fetchRepo(full_name));
                         }
+                        Promise.all(responses).then((repos) => {
+                            result.repos = repos;
+                            for (const [i, score] of scores.entries()) {
+                                result.repos[i].item_id = score.Id;
+                            }
+                            showRecommend(result);
+                        })
                     });
                 }
             });
-        } else {
-            exploreDiv.append(exploreContent);
         }
     });
 }
 
 async function showRecommend(result) {
-    let exploreDiv = $("[aria-label='Explore repositories']");
-    exploreDiv.children("div.py-2").remove();
-    exploreDiv.children("a.f6").remove();
-    exploreDiv.children("#error-message").remove();
+    let exploreDiv = $("[aria-label='Explore']");
+    exploreDiv.children("[aria-label='GitRec']").remove();
+    let template = `
+<div class="mb-3 dashboard-changelog &lt;color-bg-default border color-border-default p-3 rounded-2" aria-label="GitRec">
+  <h2 class="f5 text-bold mb-3">Explore repositories</h2>`;
     if (result.message) {
         let errorMessage = "";
         if (result.message.startsWith('API rate limit exceeded')) {
@@ -230,10 +164,10 @@ async function showRecommend(result) {
         } else {
             errorMessage = result.message;
         }
-        template = `<div class="d-block no-underline f6 mb-3" id="error-message">${errorMessage}</div>`
+        template += `<div class="d-block no-underline f6 mb-3" id="error-message">${errorMessage}</div>`
     } else if (result.repos.length > 0) {
         for (const [i, repo] of result.repos.entries()) {
-            let row = `
+            template += `
 <div class="py-2 my-2${i == result.repos.length - 1 ? '' : ' border-bottom color-border-muted'}">
     <a class="f6 text-bold Link--primary d-flex no-underline wb-break-all d-inline-block" href="/${repo.full_name}">${repo.full_name}</a>
     <p class="f6 color-fg-muted mb-2" itemprop="description">${repo.description ? repo.description : ''}</p>
@@ -244,21 +178,21 @@ async function showRecommend(result) {
         </svg>
     ${repo.stargazers_count}
     </span>
-</div>`
-            exploreDiv.append($($.parseHTML(row)));
+</div>`;
         }
         if (result.is_authenticated) {
-            template = `
-    <a class="d-block Link--secondary no-underline f6 mb-3" href="#" id="renew-button">
-        Next batch →
-    </a>`
+            template += `
+  <div class="ml-1 pt-2 color-border-muted">
+    <a class="text-small Link--muted" href="#" id="renew-button">Next batch →</a>
+  </div>`;
         } else {
-            template = `
-    <a class="d-block Link--secondary no-underline f6 mb-3" href="https://gitrec.gorse.io" target="_blank">
-        Login GitRec for better recommendation →
-    </a>`
+            template += `
+  <div class="ml-1 pt-2 color-border-muted">
+    <a class="text-small Link--muted" href="https://gitrec.gorse.io">Login GitRec for better experience →</a>
+  </div>`;
         }
     }
+    template += `</div>`;
     exploreDiv.append($($.parseHTML(template)));
     $("a#renew-button").click(function () {
         $("#renew-button").remove();

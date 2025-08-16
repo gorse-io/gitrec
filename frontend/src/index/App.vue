@@ -35,7 +35,6 @@
           target="_blank">Edge Add-on</a></li>
       <li><a href="https://addons.mozilla.org/addon/gitrec/"
           target="_blank">Firefox Add-on</a></li>
-      <li><a href="https://greasyfork.org/zh-CN/scripts/453527-gitrec" target="_blank">Tampermonkey Userscript</a></li>
     </ul>
     <router-view></router-view>
   </div>
