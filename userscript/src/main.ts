@@ -157,12 +157,12 @@ async function renderSimilarDiv(result: any) {
         previous =
             similarOffset > 0
                 ? `<a id="previous-button" class="text-small" href="#">← Previous</a>`
-                : '<span id="previous-button" class="text-small color-fg-muted">← Previous</span>';
+                : '';
         // Render next button
         next =
             similarOffset < 9
                 ? `<a id="next-button" class="text-small" style="float: right" href="#">Next →</a>`
-                : `<span id="next-button" class="text-small color-fg-muted" style="float: right">Next →</span>`;
+                : '';
     } else {
         rows =
             '<div class="text-small color-fg-muted">No similar repositories found</div>';
