@@ -29,7 +29,6 @@ from flask_login import (
 from flask_sqlalchemy import SQLAlchemy
 from github import Github
 from github.GithubException import UnknownObjectException
-from logging_loki import LokiHandler, emitter
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -263,7 +262,7 @@ def read_repo(repo_name: str):
     """
     try:
         return gorse_client.insert_feedback(
-            "read", current_user.login, repo_name.lower(), datetime.now().isoformat()
+            "read", current_user.login, repo_name.lower(), datetime.now().isoformat(), 1
         )
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)

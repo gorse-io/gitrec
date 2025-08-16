@@ -79,6 +79,10 @@ S3_SECRET_KEY=********
 S3_BUCKET_LOCATION=US
 S3_HOST_BASE=s3.amazonaws.com
 S3_HOST_BUCKET=%(bucket)s.s3.amazonaws.com
+
+# Open AI (Aliyun)
+OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
+OPENAI_API_KEY=********
 ```
 
 - Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
@@ -122,7 +126,3 @@ docker-compose restart
 | ------------------------- | ----------------------------- |
 | GitRec                    | http://127.0.0.1:5000/        |
 | Gorse Dashboard           | http://127.0.0.1:8088/        |
-
-## Acknowledgments
-
-- Thanks [@lisonge](https://github.com/lisonge) for the Tampermonkey userscript.
