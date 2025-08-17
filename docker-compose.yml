@@ -133,8 +133,8 @@ services:
       MYSQL_DATABASE: gorse
       MYSQL_USER: gorse
       MYSQL_PASSWORD: gorse_pass
-      S3_BUCKET: gorse
-      S3_PREFIX: /gitrec
+      S3_BUCKET: gitrec
+      S3_PREFIX: /mysql
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET_LOCATION: ${S3_BUCKET_LOCATION}
