@@ -4,7 +4,7 @@ from typing import Optional
 
 import click
 from pickledb import PickleDB
-from github.GithubException import GithubException, UnknownObjectException
+from github.GithubException import GithubException, RateLimitExceededException, UnknownObjectException
 from gorse import GorseException
 from dotenv import load_dotenv
 from openai import BadRequestError, InternalServerError, OpenAI
