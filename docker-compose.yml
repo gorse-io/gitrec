@@ -72,7 +72,7 @@ services:
     volumes:
       - ./config.toml:/etc/gorse/config.toml
       - ./log/gorse-master:/var/log/gorse
-      - master_data:/var/lib/gorse
+      - ./lib/gorse-master:/var/lib/gorse
     depends_on:
       - mysql
 
@@ -145,4 +145,3 @@ volumes:
   mysql_data:
   worker_data:
   server_data:
-  master_data:

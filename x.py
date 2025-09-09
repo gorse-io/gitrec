@@ -3,8 +3,9 @@ from requests.exceptions import ConnectionError
 from typing import Optional
 
 import click
-import pickledb
-from github.GithubException import GithubException, UnknownObjectException
+from pickledb import PickleDB
+from github.GithubException import GithubException, RateLimitExceededException, UnknownObjectException
+from gorse import GorseException
 from dotenv import load_dotenv
 from openai import BadRequestError, InternalServerError, OpenAI
 from tqdm import tqdm
@@ -41,66 +42,59 @@ def upsert_repo(item_id):
     print(repo)
 
 
-def search_and_upsert(
-    db: pickledb.PickleDB, topic: Optional[str] = None, language: Optional[str] = None
-):
+def search_and_upsert(topic: Optional[str] = None, language: Optional[str] = None):
     query = "stars:>100"
     if topic is not None:
         query += " topic:" + topic
     if language is not None:
         query += " language:" + language
-    print("Upsert " + query)
+    print("SEARCH " + query)
     repos = github_client.search_repositories(query)
-    for repo in tqdm(repos):
+    for repo in repos:
         # Skip existed repo.
-        if not db.exists("repo"):
-            db.dcreate("repo")
-        if db.dexists("repo", repo.full_name):
+        try:
+            gorse_client.get_item(repo.full_name.replace("/", ":").lower())
             continue
-        # Fetch labels.
-        labels = [topic for topic in repo.get_topics()]
-        if repo.language is not None and repo.language not in labels:
-            labels.append(repo.language.lower())
-        # Optimize labels
-        item = {
-            "ItemId": repo.full_name.replace("/", ":").lower(),
-            "Timestamp": str(repo.updated_at),
-            "Labels": labels,
-            "Categories": generate_categories(labels),
-            "Comment": repo.description,
-        }
-        # Truncate long comment
-        if item["Comment"] is not None and len(item["Comment"]) > MAX_COMMENT_LENGTH:
-            item["Comment"] = item["Comment"][:MAX_COMMENT_LENGTH]
+        except GorseException as e:
+            if e.status_code != 404:
+                print(e)
+                continue
+        except RateLimitExceededException as e:
+            print(e)
+            time.sleep(1800)
+            continue
+        except Exception as e:
+            print(e)
+            continue
+        # Insert repo
+        item = get_repo_info(github_client, repo.full_name)
         gorse_client.insert_item(item)
-        db.dadd("repo", (repo.full_name, None))
+        print("INSERT " + repo.full_name)
 
 
 @command.command()
-def upsert_repos():
-    """Upsert popular repositories (stars >= 100) into GitRec"""
+def insert_repos():
+    """Insert popular repositories (stars >= 100) into GitRec"""
     # Load checkpoint
-    db = pickledb.load("checkpoint.db", True)
+    db = PickleDB("checkpoint.json")
     # Load existed topics
     topics = set()
     cursor = ""
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
         for item in items:
-            if item["Labels"] is not None:
-                for topic in item["Labels"]:
+            if item["Labels"] is not None and item["Labels"]["topics"] is not None:
+                for topic in item["Labels"]["topics"]:
                     topics.add(topic)
         if cursor == "":
             break
     # Search and upsert
-    if not db.exists("topic"):
-        db.dcreate("topic")
     for topic in topics:
-        if not db.dexists("topic", topic):
+        if not db.get(topic):
             while True:
                 try:
-                    search_and_upsert(db, topic=topic)
-                    db.dadd("topic", (topic, None))
+                    search_and_upsert(topic)
+                    db.set(topic, True)
                     break
                 except RateLimitExceededException as e:
                     print(e)
@@ -108,7 +102,7 @@ def upsert_repos():
                     continue
                 except Exception as e:
                     print(e)
-                    time.sleep(60)
+                    break
 
 
 @command.command()
@@ -117,8 +111,6 @@ def upgrade_items():
     cursor = ""
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
-        if cursor == "":
-            break
         for item in items:
             if type(item["Labels"]) == list:
                 # Fetch repo
@@ -197,7 +189,9 @@ def upgrade_items():
                     timestamp=repo.updated_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
                     comment=repo.description,
                 )
-                print("UPDATE " + repo.full_name)
+                print("UPGRADE " + repo.full_name)
+        if cursor == "":
+            break
 
 
 @command.command()
