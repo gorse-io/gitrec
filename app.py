@@ -32,7 +32,7 @@ from github.GithubException import UnknownObjectException
 from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from jobs import pull
+from jobs import pull, upsert
 
 # create flask app
 app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
@@ -352,6 +352,14 @@ def get_neighbors_v2(repo_name: str):
                 mimetype="application/json",
             )
         else:
+            # Upsert the repository if it doesn't exist in Gorse.
+            if len(scores) == 0:
+                try:
+                    gorse_client.get_item(repo_name)
+                except gorse.GorseException as e:
+                    if e.status_code == 404:
+                        upsert.delay(current_user.token["access_token"], repo_name.replace(":", "/"))
+
             github_client = Github(current_user.token["access_token"])
             return Response(
                 json.dumps(

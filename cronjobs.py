@@ -74,8 +74,9 @@ def insert_trending():
     for trending_repo in trending_repos:
         try:
             item = get_repo_info(github_client, trending_repo)
-            gorse_client.insert_item(item)
-            trending_count += 1
+            if item is not None:
+                gorse_client.insert_item(item)
+                trending_count += 1
         except Exception as e:
             logger.error(
                 "failed to insert trending repository",
