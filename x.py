@@ -34,12 +34,29 @@ def command():
 
 
 @command.command()
-@click.argument("item_id")
-def upsert_repo(item_id):
+@click.argument("full_name")
+def upsert_repo(full_name):
     """Upsert a repository into GitRec."""
-    repo = get_repo_info(github_client, item_id)
-    gorse_client.insert_item(repo)
-    print(repo)
+    repo = get_repo_info(github_client, full_name)
+    if repo is not None:
+        gorse_client.insert_item(repo)
+        print('UPSERT', full_name)
+    else:
+        print('IGNORE', full_name)
+
+
+@command.command()
+@click.argument("full_name")
+def get_repo(full_name):
+    item = gorse_client.get_item(full_name.replace('/', ':').lower())
+    print('GET', item)
+
+
+@command.command()
+@click.argument("full_name")
+def delete_repo(full_name):
+    gorse_client.delete_item(full_name.replace('/', ':').lower())
+    print('DELETE', full_name)
 
 
 def search_and_upsert(topic: Optional[str] = None, language: Optional[str] = None):
@@ -68,8 +85,11 @@ def search_and_upsert(topic: Optional[str] = None, language: Optional[str] = Non
             continue
         # Insert repo
         item = get_repo_info(github_client, repo.full_name)
-        gorse_client.insert_item(item)
-        print("INSERT " + repo.full_name)
+        if item is not None:
+            gorse_client.insert_item(item)
+            print("INSERT " + repo.full_name)
+        else:
+            print("IGNORE " + repo.full_name)
 
 
 @command.command()
@@ -133,8 +153,8 @@ def upgrade_items():
                         print("FAIL " + item["ItemId"] + " " + str(e))
                     continue
 
-                # Delete repo with less than 100 stars
-                if repo.stargazers_count < 100:
+                # Delete repo with less than 100 stars or archived
+                if repo.stargazers_count < 100 or repo.archived:
                     gorse_client.delete_item(item["ItemId"])
                     print("DELETE " + repo.full_name)
                     continue

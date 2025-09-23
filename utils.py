@@ -186,11 +186,14 @@ def tldr(text: str) -> str:
     return resp.choices[0].message.content
 
 
-def get_repo_info(github_client: Github, full_name: str):
+def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
     """
     Get GitHub repository information.
     """
     repo = github_client.get_repo(full_name)
+    # Ignore repo with less than 100 stars or archived
+    if repo.stargazers_count < 100 or repo.archived:
+        return None
     # Fetch languages.
     categories = None
     languages = repo.get_languages()
@@ -240,17 +243,14 @@ def update_user(
             pass
 
         full_name = item_id.replace(":", "/")
-        repo = github_client.get_repo(full_name)
-        if repo.stargazers_count >= 100:
-            # Repositories indexed by Gorse must have stargazers more than 100.
-            try:
-                item = get_repo_info(github_client, full_name)
-                if item is not None:
-                    gorse_client.insert_item(item)
-                    item_count += 1
-            except Exception as e:
-                logger.exception("failed to get repo info")
-            pull_count += 1
+        try:
+            item = get_repo_info(github_client, full_name)
+            if item is not None:
+                gorse_client.insert_item(item)
+                item_count += 1
+        except Exception as e:
+            logger.exception("failed to get repo info")
+        pull_count += 1
     logger.info(
         "insert user starred repositories",
         extra={

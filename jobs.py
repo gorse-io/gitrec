@@ -49,3 +49,14 @@ def pull(token: str):
         session.commit()
     except Exception as e:
         logger.exception("failed to update user labels and feedback")
+
+
+@app.task
+def upsert(token: str, full_name: str):
+    github_client = Github(token)
+    item = get_repo_info(github_client, full_name)
+    if item is not None:
+        gorse_client.insert_item(item)
+        print("UPSERT " + full_name)
+    else:
+        print("IGNORE " + full_name)
