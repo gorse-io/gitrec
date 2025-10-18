@@ -4,7 +4,7 @@ var exploreContent = null;
 
 $(document).ready(function () {
     const splits = location.pathname.split('/').filter(s => s);
-    if (splits.length === 2) {
+    if (splits.length === 2 || (splits.length >= 4 && splits[2] === 'tree')) {
         itemId = splits[0] + ':' + splits[1];
         // mark read
         chrome.runtime.sendMessage({ read: itemId }, () => { });
