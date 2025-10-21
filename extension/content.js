@@ -1,18 +1,22 @@
 var itemId = null;
 var similarOffset = 0;
 var exploreContent = null;
+var loaded = false;
 
 $(document).ready(function () {
-    const splits = location.pathname.split('/').filter(s => s);
-    if (splits.length === 2 || (splits.length >= 4 && splits[2] === 'tree')) {
-        itemId = splits[0] + ':' + splits[1];
-        // mark read
-        chrome.runtime.sendMessage({ read: itemId }, () => { });
-        // get neighbors
-        loadSimilarRepos();
-    } else if (splits.length === 0) {
-        // get recommend
-        loadRecommendRepos();
+    if (!loaded) {
+        loaded = true;
+        const splits = location.pathname.split('/').filter(s => s);
+        if (splits.length === 2) {
+            itemId = splits[0] + ':' + splits[1];
+            // mark read
+            chrome.runtime.sendMessage({ read: itemId }, () => { });
+            // get neighbors
+            loadSimilarRepos();
+        } else if (splits.length === 0) {
+            // get recommend
+            loadRecommendRepos();
+        }
     }
 })
 
