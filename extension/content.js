@@ -7,7 +7,7 @@ $(document).ready(function () {
     if (!loaded) {
         loaded = true;
         const splits = location.pathname.split('/').filter(s => s);
-        if (splits.length === 2) {
+        if (splits.length === 2 && $("#repo-stars-counter-star").length > 0) {
             itemId = splits[0] + ':' + splits[1];
             // mark read
             chrome.runtime.sendMessage({ read: itemId }, () => { });
