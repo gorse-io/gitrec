@@ -1,0 +1,27 @@
+// The Dev Container format allows you to configure your environment. At the heart of it
+// is a Docker image or Dockerfile which controls the tools available in your environment.
+//
+// See https://aka.ms/devcontainer.json for more information.
+{
+  "name": "GitRec",
+  // Use "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  // instead of the build to use a pre-built image.
+  "build": {
+    "context": ".",
+    "dockerfile": "Dockerfile"
+  },
+  // Features add additional features to your environment. See https://containers.dev/features
+  // Beware: features are not supported on all platforms and may have unintended side-effects.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/node": {},
+    "ghcr.io/devcontainers/features/python": {},
+    "ghcr.io/devcontainers-extra/features/protoc": {},
+    "ghcr.io/guiyomh/features/just": {}
+  },
+  "postCreateCommand": [
+    "python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
+  ]
+}
