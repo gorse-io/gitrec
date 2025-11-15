@@ -20,8 +20,5 @@
     "ghcr.io/devcontainers/features/python": {},
     "ghcr.io/devcontainers-extra/features/protoc": {},
     "ghcr.io/guiyomh/features/just": {}
-  },
-  "postCreateCommand": [
-    "python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt"
-  ]
+  }
 }

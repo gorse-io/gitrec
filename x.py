@@ -1,10 +1,13 @@
+import json
 import time
 from requests.exceptions import ConnectionError
 from typing import Optional
 
 import click
+import MySQLdb
 from pickledb import PickleDB
 from github.GithubException import GithubException, RateLimitExceededException, UnknownObjectException
+from google.protobuf import message, timestamp_pb2
 from gorse import GorseException
 from dotenv import load_dotenv
 from openai import BadRequestError, InternalServerError, OpenAI
@@ -13,6 +16,7 @@ from tqdm import tqdm
 # Load dot file
 load_dotenv()
 
+import protocol_pb2
 from utils import *
 
 
@@ -135,7 +139,8 @@ def upgrade_items():
             if type(item["Labels"]) == list:
                 # Fetch repo
                 try:
-                    repo = github_client.get_repo(item["ItemId"].replace(":", "/"))
+                    repo = github_client.get_repo(
+                        item["ItemId"].replace(":", "/"))
                 except UnknownObjectException as e:
                     gorse_client.delete_item(item["ItemId"])
                     print("DELETE " + item["ItemId"] + " " + str(e))
@@ -165,7 +170,8 @@ def upgrade_items():
                     and len(repo.description) > MAX_COMMENT_LENGTH
                 ):
                     gorse_client.delete_item(item["ItemId"])
-                    print("DELETE " + repo.full_name + " with long description")
+                    print("DELETE " + repo.full_name +
+                          " with long description")
                     continue
 
                 # Generate categories and labels
@@ -229,6 +235,86 @@ def upgrade_embedding():
                     item["ItemId"],
                     labels=item["Labels"],
                 )
+
+
+def write_dump(f, data: message.Message):
+    bytes_data = data.SerializeToString()
+    f.write(len(bytes_data).to_bytes(8, byteorder='little'))
+    f.write(bytes_data)
+
+
+@command.command()
+@click.argument("database")
+@click.option("--username", "-u", prompt=True)
+@click.option("--password", "-p", prompt=True, hide_input=True)
+@click.option("--output", "-o", default="github.bin", help="Output dump file.")
+@click.option("--cores", "-c", default=5, help="Dump subset of the data in which all users and items have at least N feedback.")
+def dump_playground(database: str, username: Optional[str], password: Optional[str], output: str, cores: int = 5):
+    """Dump GitRec playground data from MySQL database."""
+
+    # Connect to MySQL
+    conn = MySQLdb.connect(
+        host="127.0.0.1",
+        user=username,
+        passwd=password,
+        db=database,
+    )
+    cursor = conn.cursor()
+
+    with open(output, "wb") as f:
+        num_users, num_items, num_feedback = 0, 0, 0
+
+        # Dump users
+        f.write((-1).to_bytes(8, byteorder='little', signed=True))
+        cursor.execute(
+            "SELECT user_id, labels, comment FROM users WHERE user_id in (select user_id from feedback group by user_id having count(*) >= %s)", (cores,))
+        for row in cursor.fetchall():
+            user_id, labels, comment = row
+            write_dump(f, protocol_pb2.User(
+                user_id=user_id,
+                labels=labels.encode('utf-8'),
+                comment=comment,
+            ))
+            num_users += 1
+
+        # Dump items
+        f.write((-2).to_bytes(8, byteorder='little', signed=True))
+        cursor.execute("SELECT item_id, is_hidden, categories, time_stamp, labels, comment FROM items WHERE item_id in (select item_id from feedback group by item_id having count(*) >= %s)", (cores,))
+        for row in cursor.fetchall():
+            item_id, is_hidden, categories, timestamp, labels, comment = row
+            timestamp_pb = timestamp_pb2.Timestamp()
+            timestamp_pb.FromDatetime(timestamp)
+            write_dump(f, protocol_pb2.Item(
+                item_id=item_id,
+                is_hidden=bool(is_hidden),
+                categories=json.loads(categories),
+                timestamp=timestamp_pb,
+                labels=labels.encode('utf-8'),
+                comment=comment,
+            ))
+            num_items += 1
+
+        # Dump feedback
+        f.write((-3).to_bytes(8, byteorder='little', signed=True))
+        cursor.execute("SELECT feedback_type, user_id, item_id, value, time_stamp, comment FROM feedback WHERE item_id in (select item_id from feedback group by item_id having count(*) >= %s) AND user_id in (select user_id from feedback group by user_id having count(*) >= %s)", (cores, cores))
+        for row in cursor.fetchall():
+            feedback_type, user_id, item_id, value, timestamp, comment = row
+            timestamp_pb = timestamp_pb2.Timestamp()
+            timestamp_pb.FromDatetime(timestamp)
+            write_dump(f, protocol_pb2.Feedback(
+                feedback_type=feedback_type,
+                user_id=user_id,
+                item_id=item_id,
+                value=value,
+                timestamp=timestamp_pb,
+                comment=comment,
+            ))
+            num_feedback += 1
+
+        # Dump EOF
+        f.write((0).to_bytes(8, byteorder='little', signed=True))
+        print(
+            f"Dump complete: {num_users} users, {num_items} items, {num_feedback} feedback.")
 
 
 if __name__ == "__main__":
