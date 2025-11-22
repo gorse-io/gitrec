@@ -17,6 +17,9 @@ while true; do
         --host=$S3_HOST_BASE \
         --host-bucket=$S3_HOST_BUCKET \
         put ${SQL_FILE}.gz s3://${S3_BUCKET}${S3_PREFIX}/${SQL_FILE}.gz
+    
+    # Remove local SQL file
+    rm *.sql.gz
 
     # Backup 1 day later.
     sleep 86400
