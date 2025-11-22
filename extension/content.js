@@ -7,10 +7,12 @@ $(document).ready(function () {
     if (!loaded) {
         loaded = true;
         const splits = location.pathname.split('/').filter(s => s);
-        if (splits.length === 2 && $("#repo-stars-counter-star").length > 0) {
+        if (splits.length >= 2 && $("#repo-stars-counter-star").length > 0) {
             itemId = splits[0] + ':' + splits[1];
             // mark read
-            chrome.runtime.sendMessage({ read: itemId }, () => { });
+            if (splits.length == 2) {
+                chrome.runtime.sendMessage({ read: itemId }, () => { });
+            }
             // get neighbors
             loadSimilarRepos();
         } else if (splits.length === 0) {
@@ -159,8 +161,8 @@ async function showRecommend(result) {
     let exploreDiv = $("[aria-label='Explore']");
     exploreDiv.children("[aria-label='GitRec']").remove();
     let template = `
-<div class="mb-3 dashboard-changelog &lt;color-bg-default border color-border-default p-3 rounded-2" aria-label="GitRec">
-  <h2 class="f5 text-bold mb-3">Explore repositories</h2>`;
+<div class="mb-3 dashboard-changelog color-bg-default border color-border-muted p-3 rounded-3" aria-label="GitRec">
+  <h2 class="f5 text-bold mb-3 width-full dashboard-changelog__title">Explore repositories</h2>`;
     if (result.message) {
         let errorMessage = "";
         if (result.message.startsWith('API rate limit exceeded')) {
