@@ -46,6 +46,17 @@ auto_insert_item = false
 # The cache size for recommended/popular/latest items. The default value is 10.
 cache_size = 100
 
+# Recommended cache expire time. The default value is 72h.
+cache_expire = "72h"
+
+# The context size for online recommendations. Online recommendations can't use all user feedbacks to generate
+# recommendations for efficiency consideration. Instead, only the latest `context_size` feedbacks are used.
+# The default value is 100.
+context_size = 100
+
+# The time-to-live (days) of active users, 0 means disabled. Recommendation won't be cached for inactive users. The default value is 0.
+active_user_ttl = 0
+
 [recommend.data_source]
 
 # The feedback types for positive events.
@@ -80,7 +91,6 @@ name = "neighbors"
 #   embedding: recommend by Euclidean distance of embeddings.
 #   tags: recommend by number of common tags.
 #   users: recommend by number of common users.
-#   chat: recommend by chat completion model.
 type = "embedding"
 
 # The column of the item embeddings. Leave blank if type is "users".
@@ -91,11 +101,10 @@ column = "item.Labels.embedding"
 # The name of the user-to-user recommender.
 name = "neighbors"
 
-# The type of the item-to-item recommender. There are three types:
+# The type of the user-to-user recommender. There are three types:
 #   embedding: recommend by Euclidean distance of embeddings.
 #   tags: recommend by number of common tags.
 #   items: recommend by number of common items.
-#   auto: recommend by number of common tags and items.
 type = "items"
 
 [[recommend.external]]
@@ -117,17 +126,16 @@ data["items"].map((item) => {
 
 [recommend.collaborative]
 
-# Enable approximate collaborative filtering recommend using vector index. The default value is true.
-enable_index = true
-
-# Minimal recall for approximate collaborative filtering recommend. The default value is 0.9.
-index_recall = 0.9
-
-# Maximal number of fit epochs for approximate collaborative filtering recommend vector index. The default value is 3.
-index_fit_epoch = 3
-
 # The time period for model fitting. The default value is "60m".
-model_fit_period = "10m"
+fit_period = "60m"
+
+# The number of epochs for model fitting. The default value is 100.
+fit_epoch = 100
+
+[recommend.collaborative.early_stopping]
+
+# Number of epochs to wait if no improvement and then stop the training. The default value is 10.
+patience = 10
 
 [recommend.replacement]
 
@@ -143,9 +151,8 @@ read_replacement_decay = 0.6
 [recommend.ranker]
 
 # The type of the ranker. There are two types:
-#   none: no ranking.
+#   none: no ranking (default).
 #   fm: factorization machines.
-#   llm: large language model.
 type = "fm"
 
 # The time period to refresh recommendation for inactive users. The default values is 120h.
@@ -159,6 +166,11 @@ fit_period = "60m"
 
 # The number of epochs for model fitting. The default value is 100.
 fit_epoch = 100
+
+[recommend.ranker.early_stopping]
+
+# Number of epochs to wait if no improvement and then stop the training. The default value is 10.
+patience = 10
 
 [recommend.fallback]
 
