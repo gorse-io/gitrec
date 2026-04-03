@@ -1,17 +1,23 @@
 <template>
-  <div>
+  <MainLayout :showTabs="true">
     <div class="container">
       <div v-if="full_name" class="header">
-        <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
+        <a :href="html_url" target="__blank">
+          <i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}
+        </a>
         <div class="secondary-content">
-          <a v-if="language"><i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;</a>
-          <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
-              stargazers_count
-          }}</a>&nbsp;
-          <a :href="html_url + '/network/members'" target="__blank"><i
-              class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks_count }}</a>&nbsp;
-          <a :href="html_url + '/watchers'" target="__blank"><i
-              class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ subscribers_count }}</a>
+          <a v-if="language">
+            <i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;
+          </a>
+          <a :href="html_url + '/stargazers'" target="__blank">
+            <i class="material-icons feedback-icon">star</i>&nbsp;{{ stargazers_count }}
+          </a>&nbsp;
+          <a :href="html_url + '/network/members'" target="__blank">
+            <i class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks_count }}
+          </a>&nbsp;
+          <a :href="html_url + '/watchers'" target="__blank">
+            <i class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ subscribers_count }}
+          </a>
         </div>
       </div>
       <Preloader v-if="readme == null" />
@@ -27,17 +33,18 @@
         <i class="material-icons" @click="next">play_arrow</i>
       </a>
     </div>
-  </div>
+  </MainLayout>
 </template>
 
-
 <script>
+import MainLayout from "../components/MainLayout.vue";
 import Preloader from "../components/Preloader.vue";
 import M from "@materializecss/materialize";
 const axios = require("axios");
 
 export default {
   components: {
+    MainLayout,
     Preloader
   },
   data() {
@@ -46,15 +53,11 @@ export default {
       item_id: null,
       full_name: "",
       html_url: null,
-      stargazers_url: null,
-      forks_url: null,
       stargazers_count: 0,
       forks_count: 0,
       subscribers_count: 0,
       language: "",
       readme: null,
-      primaryColor: "blue darken-1",
-      textColor: "white-text text-lighten-3",
       topic: "",
     };
   },
@@ -87,7 +90,6 @@ export default {
       if (topic == "/cpp") {
         topic = "/c%2B%2B";
       }
-      console.log("/api/repo" + topic);
       axios
         .get("/api/repo" + topic, { withCredentials: true })
         .then((response) => {
@@ -116,16 +118,15 @@ export default {
     },
     like() {
       axios
-        .post("/api/like/" + this.item_id, { withCredentials: true })
+        .post("/api/like/" + this.item_id, {}, { withCredentials: true })
         .then(() => {
           this.like_pressed = true;
         });
     },
     next() {
       axios
-        .post("/api/read/" + this.item_id, { withCredentials: true })
+        .post("/api/read/" + this.item_id, {}, { withCredentials: true })
         .then(() => {
-          // load next repo
           this.clearRepository();
           axios
             .get("/api/repo" + this.topic, { withCredentials: true })
