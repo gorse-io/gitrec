@@ -16,9 +16,9 @@
         <a href="https://gorse.io" target="_blank">Gorse</a> recommender system
       </h5>
       <p class="center-align">
-        <a :class="[primaryColor]" class="waves-effect waves-light btn" href="/login/github"><i
-            class="fab fa-github material-icons left"></i>Sign in with
-          GitHub</a>
+        <a :class="[primaryColor]" class="waves-effect waves-light btn" href="/login/github">
+          <i class="fab fa-github material-icons left"></i>Sign in with GitHub
+        </a>
       </p>
       <h5 class="center-align">
         Browser Extensions
@@ -31,8 +31,7 @@
           </a>
         </div>
         <div class="col m2 s4">
-          <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa"
-            target="_blank">
+          <a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">
             <img src="https://i.loli.net/2021/04/23/EnS3eDi4I86Yv2N.png" />
           </a>
         </div>
@@ -57,7 +56,7 @@
             <h5 :class="[textColor]">Links</h5>
             <ul>
               <li>
-                <a :class="[textColor]" href="/privacy">Privacy Policy</a>
+                <router-link :class="[textColor]" to="/privacy">Privacy Policy</router-link>
               </li>
               <li>
                 <a :class="[textColor]" href="https://github.com/gorse-io/gitrec" target="_blank">Source @ GitHub</a>
