@@ -5,6 +5,7 @@ FROM node:18
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY frontend frontend
 WORKDIR /frontend
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN pnpm install && pnpm build
 
 #################################
