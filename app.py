@@ -130,12 +130,12 @@ def index():
 
 @app.route("/login")
 def login():
-    return app.send_static_file("login.html")
+    return app.send_static_file("index.html")
 
 
 @app.route("/privacy")
 def privacy():
-    return app.send_static_file("privacy.html")
+    return app.send_static_file("index.html")
 
 
 def is_github_blob(url: str) -> bool:

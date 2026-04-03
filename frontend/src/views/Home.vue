@@ -34,7 +34,7 @@
 <script>
 import Preloader from "../components/Preloader.vue";
 import M from "@materializecss/materialize";
-const axios = require("axios");
+import axios from "axios";
 
 export default {
   components: {

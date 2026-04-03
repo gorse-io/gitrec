@@ -28,7 +28,7 @@
 </template>
 
 <script>
-const axios = require("axios");
+import axios from "axios";
 import * as timeago from "timeago.js";
 import Preloader from "../components/Preloader.vue";
 
