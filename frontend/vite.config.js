@@ -17,8 +17,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        login: resolve(__dirname, 'src/login/index.html'),
-        privacy: resolve(__dirname, 'src/privacy/index.html'),
+        login: resolve(__dirname, 'login.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
       },
     },
   },
