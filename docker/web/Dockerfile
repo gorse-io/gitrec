@@ -1,10 +1,12 @@
 ########################
 # STEP 1: Build frontend
 ########################
-FROM node:16
+FROM node:18
+RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY frontend frontend
 WORKDIR /frontend
-RUN yarn install && yarn build
+ENV NODE_OPTIONS=--openssl-legacy-provider
+RUN pnpm install && pnpm build
 
 #################################
 # STEP 2: Setup python enviroment
