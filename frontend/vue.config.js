@@ -13,7 +13,7 @@ module.exports = {
   pages,
   chainWebpack: (config) => config.plugins.delete("named-chunks"),
   devServer: {
-    disableHostCheck: true,
+    allowedHosts: 'all',
     proxy: {
       "/api": {
         target: "http://127.0.0.1:5001",

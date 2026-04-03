@@ -10,22 +10,21 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@materializecss/materialize": "^1.1.0",
-    "axios": "^0.24.0",
-    "core-js": "^3.6.5",
-    "github-markdown-css": "^4.0.0",
+    "axios": "^1.6.0",
+    "core-js": "^3.35.0",
+    "github-markdown-css": "^5.5.0",
     "material-design-icons-iconfont": "^6.7.0",
     "timeago.js": "^4.0.2",
-    "vue": "^2.6.11",
-    "vue-router": "^3.5.3"
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11"
+    "@babel/eslint-parser": "^7.23.0",
+    "@vue/cli-plugin-babel": "~5.0.8",
+    "@vue/cli-plugin-eslint": "~5.0.8",
+    "@vue/cli-service": "~5.0.8",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.19.0"
   },
   "eslintConfig": {
     "root": true,
@@ -33,11 +32,11 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
+      "plugin:vue/vue3-essential",
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser"
     },
     "rules": {}
   },
