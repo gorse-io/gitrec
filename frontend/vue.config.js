@@ -11,6 +11,7 @@ glob.sync("./src/**/main.js").forEach((path) => {
 });
 module.exports = {
   pages,
+  transpileDependencies: ['vuetify'],
   chainWebpack: (config) => config.plugins.delete("named-chunks"),
   devServer: {
     allowedHosts: 'all',
