@@ -20,7 +20,6 @@ from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
 from flask_dance.contrib.github import make_github_blueprint
 from flask_login import (
-    logout_user,
     LoginManager,
     UserMixin,
     current_user,
@@ -123,25 +122,20 @@ def set_headers(response):
 
 @app.route("/")
 def index():
+    if not current_user.is_authenticated:
+        return redirect("/login")
     session.permanent = True
     return app.send_static_file("index.html")
 
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect("/login")
 
-
-# Serve frontend for all non-API routes (SPA history mode)
-@app.route("/<path:path>")
-def serve_frontend(path):
-    if path.startswith("api/") or path.startswith("login/github"):
-        return app.send_static_file(path)
+@app.route("/login")
+def login():
     return app.send_static_file("index.html")
 
 
-
-
+@app.route("/privacy")
+def privacy():
+    return app.send_static_file("index.html")
 
 
 def is_github_blob(url: str) -> bool:
