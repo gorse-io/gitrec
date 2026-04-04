@@ -1,55 +1,88 @@
 <template>
-  <div id="app">
-    <div>
-      <nav :class="[primaryColor, 'nav-extended']">
-        <div class="nav-wrapper container">
-          <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-          <span style="font-weight: 300; font-size: 1.2rem">{{ $route.name }}</span>
-          <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li :class="{ 'active': $route.path == '/' || $route.path.startsWith('/topic/') }">
-              <router-link to="/">Explore</router-link>
-            </li>
-            <li :class="{ 'active': $route.path == '/favorites' }">
-              <router-link to="/favorites">Favorites</router-link>
-            </li>
-            <li><a class="dropdown-trigger" href="#" data-target="dropdown1">Extensions<i class="material-icons right">arrow_drop_down</i></a></li>
-            <li><a href="/logout">Logout</a></li>
-          </ul>
+  <div>
+    <v-navigation-drawer v-model="drawer" temporary>
+      <v-list nav density="comfortable">
+        <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
+        <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
+        <v-list-item title="Logout" href="/logout" />
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-app-bar color="primary" :elevation="1" :extended="isExploreRoute">
+      <template #prepend>
+        <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer" />
+      </template>
+
+      <v-container class="d-flex align-center">
+        <span class="route-title">{{ $route.name }}</span>
+        <v-spacer />
+        <div class="d-none d-md-flex align-center ga-1">
+          <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
+          <v-btn variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
+
+          <v-menu location="bottom end">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="text" color="white" append-icon="mdi-menu-down">
+                Extensions
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item
+                title="Chrome Extension"
+                href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl"
+                target="_blank"
+              />
+              <v-list-item
+                title="Edge Add-on"
+                href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa"
+                target="_blank"
+              />
+              <v-list-item
+                title="Firefox Add-on"
+                href="https://addons.mozilla.org/addon/gitrec/"
+                target="_blank"
+              />
+            </v-list>
+          </v-menu>
+
+          <v-btn variant="text" href="/logout" color="white">Logout</v-btn>
         </div>
-        <div v-if="$route.path == '/' || $route.path.startsWith('/topic/')" class="nav-content container">
-          <ul class="tabs tabs-transparent hide-scrollbar">
-            <li v-for="topic in topics" v-bind:key="topic" class="tab">
-              <router-link :to="topic == 'all' ? '/' : '/topic/' + topic">{{ topic.replace('-', ' ') }}</router-link>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-    <ul class="sidenav" id="mobile-demo">
-      <li :class="{ 'active': $route.path == '/' || $route.path.startsWith('/topic/') }">
-        <router-link to="/">Explore</router-link>
-      </li>
-      <li :class="{ 'active': $route.path == '/favorites' }">
-        <router-link to="/favorites">Favorites</router-link>
-      </li>
-      <li><a href="/logout">Logout</a></li>
-    </ul>
-    <ul id="dropdown1" class="dropdown-content">
-      <li><a href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl" target="_blank">Chrome Extension</a></li>
-      <li><a href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" target="_blank">Edge Add-on</a></li>
-      <li><a href="https://addons.mozilla.org/addon/gitrec/" target="_blank">Firefox Add-on</a></li>
-    </ul>
-    <router-view></router-view>
+      </v-container>
+
+      <template v-if="isExploreRoute" #extension>
+        <v-container>
+          <v-tabs
+            :model-value="activeTopic"
+            bg-color="primary"
+            color="white"
+            slider-color="white"
+            show-arrows
+            class="topic-tabs"
+          >
+            <v-tab
+              v-for="topic in topics"
+              :key="topic"
+              :value="topic"
+              :to="topicToPath(topic)"
+            >
+              {{ topicLabel(topic) }}
+            </v-tab>
+          </v-tabs>
+        </v-container>
+      </template>
+    </v-app-bar>
+
+    <v-main>
+      <router-view />
+    </v-main>
   </div>
 </template>
 
 <script>
-import M from "@materializecss/materialize";
 export default {
   data() {
     return {
-      primaryColor: "blue darken-1",
-      textColor: "white-text text-lighten-3",
+      drawer: false,
       topics: [
         "all",
         "python",
@@ -60,31 +93,42 @@ export default {
         "typescript",
         "c",
         "rust",
-      ]
+      ],
     };
   },
-  mounted() {
-    document.addEventListener("DOMContentLoaded", function () {
-      var sidenavElements = document.querySelectorAll(".sidenav");
-      M.Sidenav.init(sidenavElements);
-      var tabsElements = document.querySelectorAll(".tabs");
-      M.Tabs.init(tabsElements, {});
-      var dropdownElements = document.querySelectorAll('.dropdown-trigger');
-      M.Dropdown.init(dropdownElements, { constrainWidth: false });
-    });
-  }
+  computed: {
+    isExploreRoute() {
+      return this.$route.path === "/" || this.$route.path.startsWith("/topic/");
+    },
+    activeTopic() {
+      return this.$route.params.topic || "all";
+    },
+  },
+  methods: {
+    goTo(path) {
+      this.drawer = false;
+      if (this.$route.path !== path) {
+        this.$router.push(path);
+      }
+    },
+    topicToPath(topic) {
+      return topic === "all" ? "/" : `/topic/${topic}`;
+    },
+    topicLabel(topic) {
+      return topic.replace("-", " ");
+    },
+  },
 };
 </script>
 
 <style>
-.hide-scrollbar::-webkit-scrollbar {
-  background: transparent;
-  width: 0px;
-  height: 0px;
+.route-title {
+  font-weight: 300;
+  font-size: 1.2rem;
+  color: #f5f5f5;
 }
 
-.hide-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.topic-tabs {
+  min-height: 42px;
 }
 </style>

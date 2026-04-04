@@ -1,10 +1,8 @@
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-import "@materializecss/materialize/dist/css/materialize.min.css";
 import "github-markdown-css/github-markdown.css";
-import 'material-design-icons-iconfont/dist/material-design-icons.css';
-import "@fortawesome/fontawesome-free/css/all.css";
+import vuetify from "./plugins/vuetify";
 
 import App from "./App.vue";
 import MainLayout from "./layouts/MainLayout.vue";
@@ -31,4 +29,5 @@ const router = createRouter({
 
 const app = createApp(App);
 app.use(router);
+app.use(vuetify);
 app.mount("#app");

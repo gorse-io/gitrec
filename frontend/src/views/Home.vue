@@ -1,39 +1,53 @@
 <template>
   <div>
-    <div class="container">
-      <div v-if="full_name" class="header">
-        <a :href="html_url" target="__blank"><i class="material-icons feedback-icon">link</i>&nbsp;{{ full_name }}</a>
-        <div class="secondary-content">
-          <a v-if="language"><i class="material-icons feedback-icon">code</i>&nbsp;{{ language }}&nbsp;</a>
-          <a :href="html_url + '/stargazers'" target="__blank"><i class="material-icons feedback-icon">star</i>&nbsp;{{
-              stargazers_count
-          }}</a>&nbsp;
-          <a :href="html_url + '/network/members'" target="__blank"><i
-              class="material-icons feedback-icon">fork_right</i>&nbsp;{{ forks_count }}</a>&nbsp;
-          <a :href="html_url + '/watchers'" target="__blank"><i
-              class="material-icons feedback-icon">remove_red_eye</i>&nbsp;{{ subscribers_count }}</a>
+    <v-container>
+      <div v-if="full_name" class="repo-header">
+        <a :href="html_url" target="_blank" class="repo-link">
+          <v-icon size="18">mdi-link-variant</v-icon>
+          {{ full_name }}
+        </a>
+        <div class="repo-meta">
+          <span v-if="language" class="repo-meta-link">
+            <v-icon size="16">mdi-code-tags</v-icon>
+            {{ language }}
+          </span>
+          <a :href="html_url + '/stargazers'" target="_blank" class="repo-meta-link">
+            <v-icon size="16">mdi-star</v-icon>
+            {{ stargazers_count }}
+          </a>
+          <a :href="html_url + '/network/members'" target="_blank" class="repo-meta-link">
+            <v-icon size="16">mdi-source-fork</v-icon>
+            {{ forks_count }}
+          </a>
+          <a :href="html_url + '/watchers'" target="_blank" class="repo-meta-link">
+            <v-icon size="16">mdi-eye</v-icon>
+            {{ subscribers_count }}
+          </a>
         </div>
       </div>
       <Preloader v-if="readme == null" />
       <article v-else class="markdown-body" v-html="readme"></article>
-    </div>
-    <div class="fixed-action-btn" style="bottom: 86px;">
-      <a class="btn-floating" :class="{ 'red': like_pressed }">
-        <i class="material-icons" @click="like">favorite</i>
-      </a>
-    </div>
-    <div class="fixed-action-btn">
-      <a class="btn-floating">
-        <i class="material-icons" @click="next">play_arrow</i>
-      </a>
-    </div>
+    </v-container>
+
+    <v-btn
+      icon
+      size="large"
+      :color="like_pressed ? 'red' : 'primary'"
+      class="fab-btn fab-like"
+      @click="like"
+    >
+      <v-icon>{{ like_pressed ? "mdi-heart" : "mdi-heart-outline" }}</v-icon>
+    </v-btn>
+
+    <v-btn icon size="large" color="primary" class="fab-btn fab-next" @click="next">
+      <v-icon>mdi-play</v-icon>
+    </v-btn>
   </div>
 </template>
 
 
 <script>
 import Preloader from "../components/Preloader.vue";
-import M from "@materializecss/materialize";
 import axios from "axios";
 
 export default {
@@ -78,7 +92,6 @@ export default {
     this.clearRepository();
   },
   mounted() {
-    M.AutoInit();
     this.recommend();
   },
   methods: {
@@ -157,21 +170,58 @@ export default {
   }
 }
 
-.header {
+.repo-header {
   padding-top: 10px;
   padding-left: 45px;
   padding-right: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 767px) {
-  .header {
+  .repo-header {
     padding-top: 10px;
     padding-left: 15px;
     padding-right: 15px;
   }
 }
 
-.header a {
+.repo-link,
+.repo-meta-link {
   color: #26a69a;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.repo-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fab-btn {
+  position: fixed !important;
+  right: 24px;
+  z-index: 30;
+}
+
+.fab-like {
+  bottom: 92px;
+}
+
+.fab-next {
+  bottom: 24px;
+}
+
+@media (max-width: 767px) {
+  .fab-btn {
+    right: 16px;
+  }
 }
 </style>
