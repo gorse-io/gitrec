@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
 
-import "github-markdown-css/github-markdown.css";
+import "github-markdown-css/github-markdown-light.css";
 import vuetify from "./plugins/vuetify";
 
 import App from "./App.vue";

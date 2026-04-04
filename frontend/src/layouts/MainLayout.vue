@@ -8,7 +8,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar color="primary" :elevation="1" :extended="isExploreRoute">
+    <v-app-bar color="primary" flat :extended="isExploreRoute">
       <template #prepend>
         <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer" />
       </template>
@@ -115,7 +115,7 @@ export default {
       return topic === "all" ? "/" : `/topic/${topic}`;
     },
     topicLabel(topic) {
-      return topic.replace("-", " ");
+      return topic.replace("-", " ").toUpperCase();
     },
   },
 };
