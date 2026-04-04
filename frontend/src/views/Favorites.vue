@@ -1,30 +1,33 @@
 <template>
-  <div class="container">
+  <v-container>
     <Preloader v-if="feedbacks == null" />
     <div v-else>
-      <div class="collection">
-        <a v-for="feedback in pageFeedbacks" :key="feedback.FeedbackType + feedback.ItemId"
-          :href="'https://github.com/' + feedback.ItemId" target="__blank" class="collection-item">
-          <i v-if="feedback.FeedbackType == 'star'" class="material-icons feedback-icon">star</i>
-          <i v-if="feedback.FeedbackType == 'like'" class="material-icons feedback-icon">favorite</i>
-          {{ feedback.ItemId }}
-          <div class="secondary-content">
-            {{ formatTime(feedback.Timestamp) }}
-          </div>
-        </a>
+      <v-list class="feedback-list" lines="one">
+        <v-list-item
+          v-for="feedback in pageFeedbacks"
+          :key="feedback.FeedbackType + feedback.ItemId"
+          :href="'https://github.com/' + feedback.ItemId"
+          target="_blank"
+          rounded="lg"
+          class="feedback-item"
+        >
+          <template #prepend>
+            <v-icon size="18" class="feedback-icon">{{ feedbackIcon(feedback.FeedbackType) }}</v-icon>
+          </template>
+
+          <v-list-item-title>{{ feedback.ItemId }}</v-list-item-title>
+
+          <template #append>
+            <span class="feedback-time">{{ formatTime(feedback.Timestamp) }}</span>
+          </template>
+        </v-list-item>
+      </v-list>
+
+      <div v-if="numPage > 1" class="d-flex justify-center my-4">
+        <v-pagination v-model="currentPage" :length="numPage" :total-visible="7" color="primary" />
       </div>
-      <ul class="pagination">
-        <li :class="{'disabled': currentPage === 1, 'waves-effect': currentPage > 1}"><a @click="currentPage--"><i
-              class="material-icons">chevron_left</i></a></li>
-        <li v-for="index in numPage" :key="index"
-          :class="index === currentPage ? ['active','blue','darken-1'] : ['waves-effect']"><a
-            @click="currentPage = index">{{ index }}</a></li>
-        <li :class="{'disabled': currentPage === numPage, 'waves-effect': currentPage < numPage}"><a
-            @click="currentPage++"><i class="material-icons">chevron_right</i></a>
-        </li>
-      </ul>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script>
@@ -53,6 +56,9 @@ export default {
     formatTime(timestamp) {
       return timeago.format(timestamp);
     },
+    feedbackIcon(feedbackType) {
+      return feedbackType === "star" ? "mdi-star" : "mdi-heart";
+    },
   },
   computed: {
     numPage: function () {
@@ -75,5 +81,15 @@ export default {
 .feedback-icon {
   font-size: 16px;
   vertical-align: middle;
+}
+
+.feedback-item {
+  margin-bottom: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.feedback-time {
+  color: #6b7280;
+  font-size: 0.875rem;
 }
 </style>

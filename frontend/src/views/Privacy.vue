@@ -1,13 +1,13 @@
 <template>
-  <div id="app">
-    <div>
-      <nav :class="[primaryColor]">
-        <div class="nav-wrapper container">
-          <span style="font-weight: 300; font-size: 1.5rem">Privacy Policy</span>
-        </div>
-      </nav>
-    </div>
-    <div class="container sign-in-body">
+  <div>
+    <v-app-bar color="primary" flat>
+      <v-container>
+        <span class="page-title">Privacy Policy</span>
+      </v-container>
+    </v-app-bar>
+
+    <v-main>
+      <v-container class="sign-in-body">
       <p>This Privacy Policy describes how GitRec (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) collects, uses,
         and discloses information from users of our GitRec Chrome extension (&quot;Extension&quot;). By installing and
         using the Extension, you agree to the terms of this Privacy Policy.</p>
@@ -56,27 +56,18 @@
       <ul>
         <li><strong>Email</strong>: <strong>zhangzhenghao@hotmail.com</strong></li>
       </ul>
-    </div>
+      </v-container>
+    </v-main>
   </div>
 </template>
 
-<script>
-import M from "@materializecss/materialize";
-
-export default {
-  data() {
-    return {
-      primaryColor: "blue darken-1",
-      textColor: "white-text text-lighten-3",
-    };
-  },
-  mounted() {
-    M.AutoInit();
-  },
-};
-</script>
-
 <style>
+.page-title {
+  font-weight: 300;
+  font-size: 1.5rem;
+  color: #f5f5f5;
+}
+
 .sign-in-body {
   box-sizing: border-box;
   min-width: 200px;

@@ -1,32 +1,20 @@
 <template>
-    <div class="preloader-background">
-        <div class="preloader-wrapper big active">
-            <div class="spinner-layer spinner-blue-only">
-                <div class="circle-clipper left">
-                    <div class="circle"></div>
-                </div>
-                <div class="gap-patch">
-                    <div class="circle"></div>
-                </div>
-                <div class="circle-clipper right">
-                    <div class="circle"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+  <div class="preloader-background">
+    <v-progress-circular indeterminate color="primary" size="64" width="6" />
+  </div>
 </template>
 
 <style>
 .preloader-background {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    position: fixed;
-    z-index: 100;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 </style>
