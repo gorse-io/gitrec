@@ -85,6 +85,7 @@ export default {
       drawer: false,
       topics: [
         "all",
+        "ai",
         "python",
         "java",
         "cpp",

@@ -14,6 +14,7 @@ from gorse import Gorse, GorseException
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
+from pydantic import BaseModel
 
 MAX_COMMENT_LENGTH = 512
 
@@ -21,6 +22,9 @@ MAX_COMMENT_LENGTH = 512
 openai_client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_API_BASE")
 )
+
+# OpenAI model for chat completions (default: qwen-turbo)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "qwen-turbo")
 
 
 class LogFormatter(logging.Formatter):
@@ -175,7 +179,7 @@ def tldr(text: str) -> str:
         + f"The README of the repository is: \n\n{text}"
     )
     resp = openai_client.chat.completions.create(
-        model="qwen-turbo",
+        model=OPENAI_MODEL,
         messages=[
             {
                 "role": "user",
@@ -184,6 +188,50 @@ def tldr(text: str) -> str:
         ],
     )
     return resp.choices[0].message.content
+
+
+class AIRelevance(BaseModel):
+    """Model for AI relevance detection."""
+
+    is_ai_related: bool
+
+
+def isai(text: str) -> bool:
+    """
+    Determine if a repository is related to AI based on its description.
+
+    Args:
+        text: The repository description or README content.
+
+    Returns:
+        True if the repository is AI-related, False otherwise.
+    """
+    prompt = (
+        "Determine if this GitHub repository is related to Artificial Intelligence (AI), "
+        "Large Language Models (LLMs), Vision Language Model (VLM), World Model, "
+        "Retrieval-Augmented Generation (RAG), Vector Database, Embedding, Agent,"
+        "Vibe Coding, Harness Engineering, or other AI fields. "
+        "Consider libraries, frameworks, models, and tools for AI development.\n\n"
+        f"Repository description/README:\n{text}"
+    )
+
+    resp = openai_client.beta.chat.completions.parse(
+        model=OPENAI_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=AIRelevance,
+        extra_body={
+            "chat_template_kwargs": {
+                "enable_thinking": False,
+            }
+        },
+    )
+
+    return resp.choices[0].message.parsed.is_ai_related
 
 
 def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
@@ -204,6 +252,14 @@ def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
     if description is None:
         description = tldr(repo.get_readme().decoded_content.decode("utf-8"))
         print("QWEN:", description)
+
+    # Check if repository is AI-related and add "ai" category
+    if isai(description):
+        if categories is None:
+            categories = ["ai"]
+        elif "ai" not in categories:
+            categories.append("ai")
+
     description_embedding = embedding(description)
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
