@@ -317,5 +317,45 @@ def dump_playground(database: str, username: Optional[str], password: Optional[s
             f"Dump complete: {num_users} users, {num_items} items, {num_feedback} feedback.")
 
 
+
+@command.command()
+def upgrade_isai():
+    """Upgrade items with AI category detection."""
+    cursor = ""
+    updated_count = 0
+    while True:
+        items, cursor = gorse_client.get_items(1000, cursor)
+        if cursor == "":
+            break
+        for item in tqdm(items):
+            item_id = item["ItemId"]
+            categories = item.get("Categories") or []
+            
+            # Skip if already has "ai" category
+            if "ai" in categories:
+                continue
+            
+            # Get description from comment
+            description = item.get("Comment", "")
+            if not description:
+                continue
+            
+            # Check if AI-related
+            try:
+                if isai(description):
+                    categories.append("ai")
+                    gorse_client.update_item(
+                        item_id,
+                        categories=categories,
+                    )
+                    updated_count += 1
+                    print(f"UPDATE {item_id} -> ai")
+            except Exception as e:
+                print(f"FAIL {item_id}: {e}")
+                continue
+    
+    print(f"Upgrade complete: {updated_count} items updated with 'ai' category.")
+
+
 if __name__ == "__main__":
     command()
