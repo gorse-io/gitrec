@@ -23,6 +23,9 @@ openai_client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_API_BASE")
 )
 
+# OpenAI model for chat completions (default: qwen-turbo)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "qwen-turbo")
+
 
 class LogFormatter(logging.Formatter):
 
@@ -176,7 +179,7 @@ def tldr(text: str) -> str:
         + f"The README of the repository is: \n\n{text}"
     )
     resp = openai_client.chat.completions.create(
-        model="qwen-turbo",
+        model=OPENAI_MODEL,
         messages=[
             {
                 "role": "user",
@@ -211,7 +214,7 @@ def isai(text: str) -> bool:
     )
     
     resp = openai_client.beta.chat.completions.parse(
-        model="qwen-turbo",
+        model=OPENAI_MODEL,
         messages=[
             {
                 "role": "user",

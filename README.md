@@ -83,6 +83,7 @@ S3_HOST_BUCKET=%(bucket)s.s3.amazonaws.com
 # Open AI (Aliyun)
 OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=********
+OPENAI_MODEL=qwen-turbo
 ```
 
 - Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
