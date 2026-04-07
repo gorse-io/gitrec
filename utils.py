@@ -14,6 +14,7 @@ from gorse import Gorse, GorseException
 from sqlalchemy import Column, String, Integer, DateTime, JSON
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
+from pydantic import BaseModel
 
 MAX_COMMENT_LENGTH = 512
 
@@ -184,6 +185,43 @@ def tldr(text: str) -> str:
         ],
     )
     return resp.choices[0].message.content
+
+
+class AIRelevance(BaseModel):
+    """Model for AI relevance detection."""
+    is_ai_related: bool
+
+
+def isai(text: str) -> bool:
+    """
+    Determine if a repository is related to AI based on its description.
+    
+    Args:
+        text: The repository description or README content.
+        
+    Returns:
+        True if the repository is AI-related, False otherwise.
+    """
+    prompt = (
+        "Determine if this GitHub repository is related to Artificial Intelligence (AI), "
+        "Machine Learning (ML), Deep Learning, Natural Language Processing (NLP), "
+        "Computer Vision, or other AI/ML fields. "
+        "Consider libraries, frameworks, models, and tools for AI/ML development.\n\n"
+        f"Repository description/README:\n{text}"
+    )
+    
+    resp = openai_client.beta.chat.completions.parse(
+        model="qwen-turbo",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_format=AIRelevance,
+    )
+    
+    return resp.choices[0].message.parsed.is_ai_related
 
 
 def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
