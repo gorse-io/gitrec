@@ -192,27 +192,29 @@ def tldr(text: str) -> str:
 
 class AIRelevance(BaseModel):
     """Model for AI relevance detection."""
+
     is_ai_related: bool
 
 
 def isai(text: str) -> bool:
     """
     Determine if a repository is related to AI based on its description.
-    
+
     Args:
         text: The repository description or README content.
-        
+
     Returns:
         True if the repository is AI-related, False otherwise.
     """
     prompt = (
         "Determine if this GitHub repository is related to Artificial Intelligence (AI), "
-        "Machine Learning (ML), Deep Learning, Natural Language Processing (NLP), "
-        "Computer Vision, or other AI/ML fields. "
-        "Consider libraries, frameworks, models, and tools for AI/ML development.\n\n"
+        "Large Language Models (LLMs), Vision Language Model (VLM), World Model, "
+        "Retrieval-Augmented Generation (RAG), Vector Database, Embedding, Agent,"
+        "Vibe Coding, Harness Engineering, or other AI fields. "
+        "Consider libraries, frameworks, models, and tools for AI development.\n\n"
         f"Repository description/README:\n{text}"
     )
-    
+
     resp = openai_client.beta.chat.completions.parse(
         model=OPENAI_MODEL,
         messages=[
@@ -222,8 +224,13 @@ def isai(text: str) -> bool:
             }
         ],
         response_format=AIRelevance,
+        extra_body={
+            "chat_template_kwargs": {
+                "enable_thinking": False,
+            }
+        },
     )
-    
+
     return resp.choices[0].message.parsed.is_ai_related
 
 
@@ -245,14 +252,14 @@ def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
     if description is None:
         description = tldr(repo.get_readme().decoded_content.decode("utf-8"))
         print("QWEN:", description)
-    
+
     # Check if repository is AI-related and add "ai" category
     if isai(description):
         if categories is None:
             categories = ["ai"]
         elif "ai" not in categories:
             categories.append("ai")
-    
+
     description_embedding = embedding(description)
     item = {
         "ItemId": full_name.replace("/", ":").lower(),

@@ -226,8 +226,6 @@ def upgrade_embedding():
     cursor = ""
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
-        if cursor == "":
-            break
         for item in tqdm(items):
             if len(item["Comment"]) > 0:
                 item["Labels"]["embedding"] = embedding(item["Comment"])
@@ -235,6 +233,9 @@ def upgrade_embedding():
                     item["ItemId"],
                     labels=item["Labels"],
                 )
+        
+        if cursor == "":
+            break
 
 
 def write_dump(f, data: message.Message):
@@ -319,14 +320,12 @@ def dump_playground(database: str, username: Optional[str], password: Optional[s
 
 
 @command.command()
-def upgrade_isai():
+def upgrade_ai():
     """Upgrade items with AI category detection."""
     cursor = ""
     updated_count = 0
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
-        if cursor == "":
-            break
         for item in tqdm(items):
             item_id = item["ItemId"]
             categories = item.get("Categories") or []
@@ -353,6 +352,9 @@ def upgrade_isai():
             except Exception as e:
                 print(f"FAIL {item_id}: {e}")
                 continue
+        
+        if cursor == "":
+            break
     
     print(f"Upgrade complete: {updated_count} items updated with 'ai' category.")
 
