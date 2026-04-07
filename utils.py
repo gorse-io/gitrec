@@ -242,6 +242,14 @@ def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
     if description is None:
         description = tldr(repo.get_readme().decoded_content.decode("utf-8"))
         print("QWEN:", description)
+    
+    # Check if repository is AI-related and add "ai" category
+    if isai(description):
+        if categories is None:
+            categories = ["ai"]
+        elif "ai" not in categories:
+            categories.append("ai")
+    
     description_embedding = embedding(description)
     item = {
         "ItemId": full_name.replace("/", ":").lower(),
