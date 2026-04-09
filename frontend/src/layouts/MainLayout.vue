@@ -4,7 +4,7 @@
       <v-list nav density="comfortable">
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
         <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
-        <v-list-item title="Logout" href="/logout" />
+        <v-list-item prepend-icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
       </v-list>
     </v-navigation-drawer>
 
@@ -45,7 +45,7 @@
             </v-list>
           </v-menu>
 
-          <v-btn variant="text" href="/logout" color="white">Logout</v-btn>
+          <v-btn variant="text" href="https://github.com/gorse-io/gitrec" target="_blank" color="white" icon="mdi-github" />
         </div>
       </v-container>
 
