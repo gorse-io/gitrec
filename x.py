@@ -10,7 +10,7 @@ from github.GithubException import GithubException, RateLimitExceededException, 
 from google.protobuf import message, timestamp_pb2
 from gorse import GorseException
 from dotenv import load_dotenv
-from openai import BadRequestError, InternalServerError, OpenAI
+from openai import BadRequestError, InternalServerError, OpenAI, RateLimitError
 from tqdm import tqdm
 
 # Load dot file
@@ -319,6 +319,36 @@ def dump_playground(database: str, username: Optional[str], password: Optional[s
 
 
 
+
+def call_isai_with_retry(description: str, max_retries: int = 5, base_delay: float = 1.0) -> bool:
+    """
+    Call isai() with exponential backoff retry for RateLimitError.
+    
+    Args:
+        description: Repository description to check.
+        max_retries: Maximum number of retries.
+        base_delay: Initial delay in seconds (doubles each retry).
+    
+    Returns:
+        True if AI-related, False otherwise.
+    """
+    delay = base_delay
+    for attempt in range(max_retries):
+        try:
+            return isai(description)
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                print(f"RateLimitError (429), retrying in {delay}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                print(f"RateLimitError (429), max retries exceeded")
+                raise
+        except Exception as e:
+            # For other exceptions, don't retry
+            raise
+
+
 @command.command()
 def upgrade_ai():
     """Upgrade items with AI category detection."""
@@ -339,9 +369,9 @@ def upgrade_ai():
             if not description:
                 continue
             
-            # Check if AI-related
+            # Check if AI-related with retry logic for rate limits
             try:
-                if isai(description):
+                if call_isai_with_retry(description):
                     categories.append("ai")
                     gorse_client.update_item(
                         item_id,
@@ -349,6 +379,9 @@ def upgrade_ai():
                     )
                     updated_count += 1
                     print(f"UPDATE {item_id} -> ai")
+            except RateLimitError as e:
+                print(f"FAIL {item_id}: RateLimitError after retries - {e}")
+                continue
             except Exception as e:
                 print(f"FAIL {item_id}: {e}")
                 continue
