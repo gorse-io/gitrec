@@ -24,7 +24,7 @@ while true; do
         --region=$S3_BUCKET_LOCATION \
         --host=$S3_HOST_BASE \
         --host-bucket=$S3_HOST_BUCKET \
-        ls s3://${S3_BUCKET}${S3_PREFIX}/ | grep '\.sql\.gz$' | sort -r)
+        ls s3://${S3_BUCKET}${S3_PREFIX}/ | grep '\.sql\.gz$' | sort -r | awk '{print $4}')
     
     # Count and delete old backups
     COUNT=0
