@@ -46,6 +46,12 @@ services:
       --log-path /var/log/gorse/server.log 
       --log-max-age 7
       --cache-path /var/lib/gorse/server
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8087/api/health/ready >/dev/null 2>&1 || curl -fsS http://127.0.0.1:8087/api/health/ready >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
     volumes:
       - ./log/gorse-server:/var/log/gorse
       - server_data:/var/lib/gorse
