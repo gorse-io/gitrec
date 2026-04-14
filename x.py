@@ -321,27 +321,53 @@ def dump_playground(database: str, username: Optional[str], password: Optional[s
 
 @command.command()
 def upgrade_ai():
-    """Upgrade items with AI category detection."""
+    """Upgrade items with AI category detection and checkpoint cache."""
     cursor = ""
     updated_count = 0
+    skipped_cached_count = 0
+    checkpoint = PickleDB("upgrade_ai_checkpoint.json")
+
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
         for item in tqdm(items):
             item_id = item["ItemId"]
             categories = item.get("Categories") or []
-            
+
             # Skip if already has "ai" category
             if "ai" in categories:
                 continue
-            
+
+            cache_entry = checkpoint.get(item_id)
+            if cache_entry is not None:
+                skipped_cached_count += 1
+                if cache_entry.get("is_ai_related"):
+                    categories.append("ai")
+                    gorse_client.update_item(
+                        item_id,
+                        categories=categories,
+                    )
+                    updated_count += 1
+                    print(f"UPDATE {item_id} -> ai (cached)")
+                continue
+
             # Get description from comment
             description = item.get("Comment", "")
             if not description:
+                checkpoint.set(item_id, {
+                    "is_ai_related": False,
+                    "processed_at": int(time.time()),
+                    "reason": "empty_comment",
+                })
                 continue
-            
+
             # Check if AI-related
             try:
-                if isai(description):
+                ai_related = isai(description)
+                checkpoint.set(item_id, {
+                    "is_ai_related": ai_related,
+                    "processed_at": int(time.time()),
+                })
+                if ai_related:
                     categories.append("ai")
                     gorse_client.update_item(
                         item_id,
@@ -352,11 +378,14 @@ def upgrade_ai():
             except Exception as e:
                 print(f"FAIL {item_id}: {e}")
                 continue
-        
+
         if cursor == "":
             break
-    
-    print(f"Upgrade complete: {updated_count} items updated with 'ai' category.")
+
+    print(
+        f"Upgrade complete: {updated_count} items updated with 'ai' category, "
+        f"{skipped_cached_count} items skipped by checkpoint."
+    )
 
 
 if __name__ == "__main__":
