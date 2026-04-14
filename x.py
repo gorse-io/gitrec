@@ -324,24 +324,32 @@ def upgrade_ai():
     """Upgrade items with AI category detection."""
     cursor = ""
     updated_count = 0
+    checkpoint = PickleDB("upgrade_ai_checkpoint.json")
+
     while True:
         items, cursor = gorse_client.get_items(1000, cursor)
         for item in tqdm(items):
             item_id = item["ItemId"]
             categories = item.get("Categories") or []
-            
+
             # Skip if already has "ai" category
             if "ai" in categories:
                 continue
-            
+
+            cache_entry = checkpoint.get(item_id)
+            if cache_entry is not None:
+                continue
+
             # Get description from comment
             description = item.get("Comment", "")
             if not description:
                 continue
-            
+
             # Check if AI-related
             try:
-                if isai(description):
+                ai_related = isai(description)
+                checkpoint.set(item_id, ai_related)
+                if ai_related:
                     categories.append("ai")
                     gorse_client.update_item(
                         item_id,
@@ -352,10 +360,10 @@ def upgrade_ai():
             except Exception as e:
                 print(f"FAIL {item_id}: {e}")
                 continue
-        
+
         if cursor == "":
             break
-    
+
     print(f"Upgrade complete: {updated_count} items updated with 'ai' category.")
 
 
