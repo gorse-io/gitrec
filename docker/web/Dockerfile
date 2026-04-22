@@ -1,17 +1,16 @@
 ########################
 # STEP 1: Build frontend
 ########################
-FROM node:18
+FROM node:24
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY frontend frontend
 WORKDIR /frontend
-ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN pnpm install && pnpm build
 
 #################################
 # STEP 2: Setup python enviroment
 #################################
-FROM python:3.9
+FROM python:3.12
 
 # Install packages
 RUN apt-get update && apt-get install -y python3-dev default-libmysqlclient-dev build-essential

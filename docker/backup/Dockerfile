@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.12
 
 # Install MySQL client.
 RUN apt-get update && apt-get install -y mariadb-client

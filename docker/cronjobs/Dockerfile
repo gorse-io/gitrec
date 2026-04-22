@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM python:3.12
 
 RUN apt-get update && apt-get install -y python3-dev default-libmysqlclient-dev build-essential
 COPY requirements.txt requirements.txt
