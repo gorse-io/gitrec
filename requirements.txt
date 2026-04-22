@@ -19,7 +19,7 @@ protobuf==6.33.1
 PyGithub==1.55
 PyGorse==0.4.10
 python-dateutil==2.8.1
-python-dotenv==0.21.0
+python-dotenv==1.2.2
 pytz==2022.1
 requests==2.32.4
 sqlalchemy==1.4.32
