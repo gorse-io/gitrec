@@ -186,7 +186,7 @@ def get_repo(category: str = ""):
     content = repo.get_readme().decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
-    elif download_url.endswith(".asciidoc"):
+    elif download_url.endswith((".asciidoc", ".adoc")):
         infile = io.StringIO(content)
         outfile = io.StringIO()
         asciidoc3api = AsciiDoc3API(asciidoc3.__path__[0] + '/asciidoc3.py')
