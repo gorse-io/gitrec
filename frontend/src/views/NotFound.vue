@@ -40,7 +40,7 @@
                 <router-link class="text-on-primary" to="/privacy">Privacy Policy</router-link>
               </li>
               <li>
-                <a class="text-on-primary" href="https://github.com/gorse-io/gitrec" target="_blank">Source @ GitHub</a>
+                <a class="text-on-primary" href="https://github.com/gorse-io/gitrec" target="_blank" rel="noopener noreferrer">Source @ GitHub</a>
               </li>
             </ul>
           </v-col>
