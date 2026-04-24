@@ -122,6 +122,7 @@ export default {
       ],
       languages: [
         "all",
+        "hackernews",
         "python",
         "java",
         "cpp",

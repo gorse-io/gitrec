@@ -162,6 +162,79 @@ def get_trending():
         app.logger.error(f"Error fetching trending: {e}")
         return {"error": "Failed to fetch trending repositories"}, 500
 
+@app.route("/api/hackernews")
+def get_hackernews():
+    """Fetch GitHub repositories from Hacker News"""
+    try:
+        # Get top stories from Hacker News
+        topstories_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
+        resp = requests.get(topstories_url, timeout=10)
+        resp.raise_for_status()
+        story_ids = resp.json()
+        
+        # Fetch details for top 50 stories
+        repos = []
+        for i, story_id in enumerate(story_ids[:50]):
+            try:
+                story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                story_resp = requests.get(story_url, timeout=5)
+                story_resp.raise_for_status()
+                story = story_resp.json()
+                
+                if not story or not story.get("url"):
+                    continue
+                
+                # Check if the URL is a GitHub repository
+                url = story["url"]
+                if "github.com" in url and not "gist.github.com" in url:
+                    # Extract repository name from URL
+                    # Format: https://github.com/owner/repo
+                    parts = url.split("/")
+                    if len(parts) >= 5:
+                        owner = parts[3]
+                        repo_name = parts[4]
+                        full_name = f"{owner}/{repo_name}"
+                        
+                        # Get additional info from GitHub API
+                        try:
+                            gh_url = f"https://api.github.com/repos/{full_name}"
+                            gh_resp = requests.get(gh_url, timeout=5)
+                            gh_resp.raise_for_status()
+                            gh_data = gh_resp.json()
+                            
+                            repos.append({
+                                "id": story_id,
+                                "full_name": full_name,
+                                "html_url": url,
+                                "description": gh_data.get("description", story.get("title", "")),
+                                "stargazers_count": gh_data.get("stargazers_count", 0),
+                                "language": gh_data.get("language", ""),
+                                "forks": gh_data.get("forks_count", 0),
+                                "points": story.get("score", 0),
+                                "title": story.get("title", ""),
+                            })
+                        except Exception:
+                            # If GitHub API fails, use basic info
+                            repos.append({
+                                "id": story_id,
+                                "full_name": full_name,
+                                "html_url": url,
+                                "description": story.get("title", ""),
+                                "stargazers_count": 0,
+                                "language": "",
+                                "forks": 0,
+                                "points": story.get("score", 0),
+                                "title": story.get("title", ""),
+                            })
+            except Exception as e:
+                app.logger.warning(f"Error fetching story {story_id}: {e}")
+                continue
+        
+        return repos
+    except Exception as e:
+        app.logger.error(f"Error fetching Hacker News: {e}")
+        return {"error": "Failed to fetch Hacker News stories"}, 500
+
 
 @app.errorhandler(404)
 def page_not_found(e):

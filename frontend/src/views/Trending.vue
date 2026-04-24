@@ -3,14 +3,14 @@
     <v-container>
       <v-row>
         <v-col cols="12">
-          <h2 class="text-h4 mb-4">Trending Repositories</h2>
+          <h2 class="text-h4 mb-4">{{ isHackerNews ? 'Hacker News Repositories' : 'Trending Repositories' }}</h2>
         </v-col>
       </v-row>
 
       <Preloader v-if="loading" />
 
       <v-row v-else>
-        <v-col cols="12" md="6" lg="4" v-for="repo in repos" :key="repo.full_name">
+        <v-col cols="12" md="6" lg="4" v-for="repo in repos" :key="repo.id || repo.full_name">
           <v-card class="repo-card" :href="repo.html_url" target="_blank">
             <v-card-title class="d-flex align-center ga-2">
               <v-icon color="primary">mdi-book-open-variant</v-icon>
@@ -27,11 +27,15 @@
                 </span>
                 <span class="d-flex align-center ga-1">
                   <v-icon size="16">mdi-star</v-icon>
-                  {{ formatNumber(repo.stargazers_count) }}
+                  {{ formatNumber(repo.stargazers_count || repo.score) }}
                 </span>
-                <span class="d-flex align-center ga-1">
+                <span v-if="repo.forks" class="d-flex align-center ga-1">
                   <v-icon size="16">mdi-source-fork</v-icon>
                   {{ formatNumber(repo.forks) }}
+                </span>
+                <span v-if="repo.points" class="d-flex align-center ga-1">
+                  <v-icon size="16">mdi-message</v-icon>
+                  {{ repo.points }} comments
                 </span>
               </div>
 
@@ -60,7 +64,7 @@
 
       <v-row v-if="!loading && repos.length === 0">
         <v-col cols="12" class="text-center">
-          <p class="text-h6">No trending repositories found</p>
+          <p class="text-h6">{{ isHackerNews ? 'No GitHub repositories found in Hacker News' : 'No trending repositories found' }}</p>
         </v-col>
       </v-row>
     </v-container>
@@ -82,6 +86,11 @@ export default {
       language: "",
     };
   },
+  computed: {
+    isHackerNews() {
+      return this.language === "hackernews";
+    },
+  },
   watch: {
     $route() {
       this.language = this.$route.params.language || "";
@@ -97,22 +106,40 @@ export default {
   methods: {
     fetchTrending() {
       this.loading = true;
-      let lang = this.language;
-      // Map topic names to language names for the API
-      if (lang === "cpp") lang = "c++";
-      if (lang === "ai") lang = ""; // AI is not a language, show all
       
-      const params = new URLSearchParams();
-      if (lang) params.append("language", lang);
-      
+      if (this.isHackerNews) {
+        // Fetch Hacker News stories with GitHub repos
+        this.fetchHackerNews();
+      } else {
+        // Fetch GitHub Trending
+        let lang = this.language;
+        if (lang === "cpp") lang = "c++";
+        if (lang === "ai") lang = "";
+        
+        const params = new URLSearchParams();
+        if (lang) params.append("language", lang);
+        
+        axios
+          .get("/api/trending?" + params.toString(), { withCredentials: true })
+          .then((response) => {
+            this.repos = response.data;
+            this.loading = false;
+          })
+          .catch((error) {
+            console.error("Error fetching trending:", error);
+            this.loading = false;
+          });
+      }
+    },
+    fetchHackerNews() {
       axios
-        .get("/api/trending?" + params.toString(), { withCredentials: true })
+        .get("/api/hackernews", { withCredentials: true })
         .then((response) => {
           this.repos = response.data;
           this.loading = false;
         })
-        .catch((error) => {
-          console.error("Error fetching trending:", error);
+        .catch((error) {
+          console.error("Error fetching Hacker News:", error);
           this.loading = false;
         });
     },
@@ -136,7 +163,7 @@ export default {
         PHP: "#4F5D95",
         Swift: "#ffac45",
         Kotlin: "#A97BFF",
-        Scala: "#c22d40",
+        Scala: "c22d40",
         Shell: "#89e051",
         HTML: "#e34c26",
         CSS: "#563d7c",
