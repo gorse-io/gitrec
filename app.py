@@ -2,6 +2,7 @@ import concurrent.futures
 import io
 import json
 import logging
+import requests
 import os
 import sys
 from datetime import datetime
@@ -136,6 +137,30 @@ def login():
 @app.route("/privacy")
 def privacy():
     return app.send_static_file("index.html")
+
+
+
+
+@app.route("/api/trending")
+def get_trending():
+    """Fetch trending repositories from GitHub Trending API"""
+    language = request.args.get("language", "")
+    since = request.args.get("since", "daily")
+    
+    # GitHub Trending API endpoint
+    url = "https://github-trending-api.now.sh/repositories"
+    
+    params = {"since": since}
+    if language:
+        params["language"] = language
+    
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        app.logger.error(f"Error fetching trending: {e}")
+        return {"error": "Failed to fetch trending repositories"}, 500
 
 
 @app.errorhandler(404)
@@ -469,3 +494,14 @@ if __name__ == "__main__":
             db.create_all()
             db.session.commit()
             print("Database tables created")
+
+@app.route("/<path:path>")
+def catch_all(path):
+    # Skip API routes and static files
+    if path.startswith("api/") or path.startswith("assets/") or "." in path:
+        # Let Flask handle as normal (will return 404 for invalid API routes)
+        return app.send_static_file(path) if "." in path else "Not Found", 404
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    session.permanent = True
+    return app.send_static_file("index.html")
