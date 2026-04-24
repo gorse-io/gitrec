@@ -52,7 +52,7 @@
       <template v-if="isExploreRoute" #extension>
         <v-container>
           <v-tabs
-            :model-value="activeTopic"
+            :model-value="activeTopicPath"
             bg-color="primary"
             color="white"
             slider-color="white"
@@ -62,8 +62,9 @@
             <v-tab
               v-for="topic in topics"
               :key="topic"
-              :value="topic"
+              :value="topicToPath(topic)"
               :to="topicToPath(topic)"
+              exact
             >
               {{ topicLabel(topic) }}
             </v-tab>
@@ -101,8 +102,8 @@ export default {
     isExploreRoute() {
       return this.$route.path === "/" || this.$route.path.startsWith("/topic/");
     },
-    activeTopic() {
-      return this.$route.params.topic || "all";
+    activeTopicPath() {
+      return this.$route.params.topic ? `/topic/${this.$route.params.topic}` : "/";
     },
   },
   methods: {
