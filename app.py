@@ -495,13 +495,3 @@ if __name__ == "__main__":
             db.session.commit()
             print("Database tables created")
 
-@app.route("/<path:path>")
-def catch_all(path):
-    # Skip API routes and static files
-    if path.startswith("api/") or path.startswith("assets/") or "." in path:
-        # Let Flask handle as normal (will return 404 for invalid API routes)
-        return app.send_static_file(path) if "." in path else "Not Found", 404
-    if not current_user.is_authenticated:
-        return redirect("/login")
-    session.permanent = True
-    return app.send_static_file("index.html")
