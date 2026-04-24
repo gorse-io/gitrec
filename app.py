@@ -457,7 +457,7 @@ def extension_recommend_latency(user_id: str):
 
 
 @app.route("/<path:path>")
-def catch_all(path):
+def catch_all(_path):
     if not current_user.is_authenticated:
         return redirect("/login")
     session.permanent = True

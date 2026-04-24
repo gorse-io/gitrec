@@ -9,7 +9,7 @@
     <v-main>
       <v-container class="not-found-body">
         <p class="text-center">
-          <img src="/logo.png" width="256px" />
+          <img src="/logo.png" width="256px" alt="GitRec logo" />
         </p>
         <h1 class="text-center text-h2 mb-4">404</h1>
         <h5 class="text-center mb-6">
