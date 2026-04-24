@@ -456,6 +456,14 @@ def extension_recommend_latency(user_id: str):
             return Response(e.message, status=e.status_code)
 
 
+@app.route("/<path:path>")
+def catch_all(_path):
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    session.permanent = True
+    return app.send_static_file("index.html")
+
+
 if __name__ == "__main__":
     if "--setup" in sys.argv:
         with app.app_context():
