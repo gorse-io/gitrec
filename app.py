@@ -138,6 +138,13 @@ def privacy():
     return app.send_static_file("index.html")
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    return app.send_static_file("index.html")
+
+
 def is_github_blob(url: str) -> bool:
     splits = url.split("/")
     return (
@@ -454,14 +461,6 @@ def extension_recommend_latency(user_id: str):
             )
         except gorse.GorseException as e:
             return Response(e.message, status=e.status_code)
-
-
-@app.route("/<path:path>")
-def catch_all(_path):
-    if not current_user.is_authenticated:
-        return redirect("/login")
-    session.permanent = True
-    return app.send_static_file("index.html")
 
 
 if __name__ == "__main__":
