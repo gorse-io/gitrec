@@ -125,7 +125,7 @@ export default {
             this.repos = response.data;
             this.loading = false;
           })
-          .catch((error) {
+          .catch((error) => {
             console.error("Error fetching trending:", error);
             this.loading = false;
           });
@@ -138,7 +138,7 @@ export default {
           this.repos = response.data;
           this.loading = false;
         })
-        .catch((error) {
+        .catch((error) => {
           console.error("Error fetching Hacker News:", error);
           this.loading = false;
         });
