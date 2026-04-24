@@ -137,6 +137,21 @@ def login():
 def privacy():
     return app.send_static_file("index.html")
 
+@app.route("/favorites")
+def favorites():
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    session.permanent = True
+    return app.send_static_file("index.html")
+
+
+@app.route("/topic/<topic>")
+def topic(topic):
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    session.permanent = True
+    return app.send_static_file("index.html")
+
 
 def is_github_blob(url: str) -> bool:
     splits = url.split("/")
