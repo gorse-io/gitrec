@@ -138,18 +138,6 @@ def privacy():
     return app.send_static_file("index.html")
 
 
-@app.route("/<path:path>")
-def catch_all(path):
-    # Skip API routes and static files
-    if path.startswith("api/") or path.startswith("assets/") or "." in path:
-        # Let Flask handle as normal (will return 404 for invalid API routes)
-        return app.send_static_file(path) if "." in path else "Not Found", 404
-    if not current_user.is_authenticated:
-        return redirect("/login")
-    session.permanent = True
-    return app.send_static_file("index.html")
-
-
 def is_github_blob(url: str) -> bool:
     splits = url.split("/")
     return (
@@ -466,6 +454,14 @@ def extension_recommend_latency(user_id: str):
             )
         except gorse.GorseException as e:
             return Response(e.message, status=e.status_code)
+
+
+@app.route("/<path:path>")
+def catch_all(path):
+    if not current_user.is_authenticated:
+        return redirect("/login")
+    session.permanent = True
+    return app.send_static_file("index.html")
 
 
 if __name__ == "__main__":
