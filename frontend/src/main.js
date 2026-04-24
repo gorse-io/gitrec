@@ -10,6 +10,7 @@ import Home from "./views/Home.vue";
 import Favorites from "./views/Favorites.vue";
 import Login from "./views/Login.vue";
 import Privacy from "./views/Privacy.vue";
+import NotFound from "./views/NotFound.vue";
 
 const routes = [
   { path: '/', component: MainLayout, children: [
@@ -20,6 +21,7 @@ const routes = [
   { name: 'Login', path: '/login', component: Login },
   { name: 'Privacy', path: '/privacy', component: Privacy },
   { path: '/logout', redirect: '/login' },
+  { name: 'NotFound', path: '/:pathMatch(.*)*', component: NotFound },
 ];
 
 const router = createRouter({
