@@ -171,8 +171,31 @@ export default {
       }
       return repo.title || repo.full_name || "";
     },
+    sanitizeRepoUrl(url) {
+      if (typeof url !== "string" || !url) {
+        return "";
+      }
+
+      try {
+        const parsedUrl = new URL(url);
+        const allowedHosts = ["github.com", "www.github.com", "news.ycombinator.com"];
+
+        if (parsedUrl.protocol !== "https:") {
+          return "";
+        }
+
+        if (!allowedHosts.includes(parsedUrl.hostname)) {
+          return "";
+        }
+
+        return parsedUrl.toString();
+      } catch (error) {
+        return "";
+      }
+    },
     repoUrl(repo) {
-      return repo.url || repo.html_url || "";
+      const url = repo.url || repo.html_url || "";
+      return this.sanitizeRepoUrl(url);
     },
     repoStars(repo) {
       return repo.stars || repo.stargazers_count || repo.score || 0;

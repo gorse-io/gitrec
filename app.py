@@ -179,41 +179,41 @@ def get_trending():
 
 
 def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
-            try:
-                story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
-                story_resp = requests.get(story_url, timeout=5)
-                story_resp.raise_for_status()
-                story = story_resp.json()
-                
-                if not story or not story.get("url"):
+    try:
+        story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+        story_resp = requests.get(story_url, timeout=5)
+        story_resp.raise_for_status()
+        story = story_resp.json()
+
+        if not story or not story.get("url"):
             return None
-                
-                url = story["url"]
+
+        url = story["url"]
         if "github.com" not in url or "gist.github.com" in url:
             return None
 
-                    # Format: https://github.com/owner/repo
-                    parts = url.split("/")
+        # Format: https://github.com/owner/repo
+        parts = url.split("/")
         if len(parts) < 5:
             return None
 
-                        owner = parts[3]
-                        repo_name = parts[4]
-                        full_name = f"{owner}/{repo_name}"
-                        
+        owner = parts[3]
+        repo_name = parts[4]
+        full_name = f"{owner}/{repo_name}"
+
         return {
-                                "id": story_id,
-                                "full_name": full_name,
-                                "html_url": url,
-                                "description": story.get("title", ""),
-                                "stargazers_count": 0,
-                                "language": "",
-                                "forks": 0,
-                                "points": story.get("score", 0),
-                                "title": story.get("title", ""),
+            "id": story_id,
+            "full_name": full_name,
+            "html_url": url,
+            "description": story.get("title", ""),
+            "stargazers_count": 0,
+            "language": "",
+            "forks": 0,
+            "points": story.get("score", 0),
+            "title": story.get("title", ""),
         }
-            except Exception as e:
-                app.logger.warning(f"Error fetching story {story_id}: {e}")
+    except Exception as e:
+        app.logger.warning(f"Error fetching story {story_id}: {e}")
         return None
 
 
