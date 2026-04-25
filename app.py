@@ -267,6 +267,14 @@ def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
 @app.route("/api/hackernews")
 def get_hackernews():
     """Fetch GitHub repositories from Hacker News"""
+    # Check cache first
+    cache_key = "hackernews:showstories"
+    cached = get_cached(cache_key)
+    if cached:
+        response = make_response(cached)
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
+    
     try:
         # Get top stories from Hacker News
         topstories_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
@@ -278,7 +286,12 @@ def get_hackernews():
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             repos = list(executor.map(fetch_hackernews_repo, story_ids[:50]))
 
-        response = make_response([repo for repo in repos if repo is not None])
+        result = [repo for repo in repos if repo is not None]
+        
+        # Save to cache (1 hour expiry)
+        save_cache(cache_key, result, expiry_hours=1)
+        
+        response = make_response(result)
         response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
         return response
     except Exception as e:
