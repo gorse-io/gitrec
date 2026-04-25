@@ -2,6 +2,7 @@ import concurrent.futures
 import io
 import json
 import logging
+import requests
 import os
 import sys
 from datetime import datetime
@@ -14,7 +15,7 @@ import mistune
 from asciidoc3.asciidoc3api import AsciiDoc3API
 from bs4 import BeautifulSoup
 from docutils.core import publish_parts
-from flask import Flask, Response, session, redirect, request, flash
+from flask import Flask, Response, session, redirect, request, flash, make_response
 from flask_cors import CORS
 from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
@@ -136,6 +137,106 @@ def login():
 @app.route("/privacy")
 def privacy():
     return app.send_static_file("index.html")
+
+
+@app.route("/api/trending")
+def get_trending():
+    """Fetch trending repositories from GitHub Trending API."""
+    language = request.args.get("language", "all")
+    since = request.args.get("since", "daily")
+    url = (
+        "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
+        f"data/{since}/{language}.json"
+    )
+    
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        payload = resp.json()
+    except requests.RequestException as e:
+        app.logger.error(f"Error fetching trending: {e}")
+        return {"error": "Failed to fetch trending repositories"}, 500
+    except ValueError as e:
+        app.logger.error(f"Error decoding trending response: {e}")
+        return {"error": "Failed to decode trending repositories"}, 502
+
+    if not isinstance(payload, dict):
+        app.logger.error(
+            f"Unexpected trending response type: {type(payload).__name__}"
+        )
+        return {"error": "Unexpected trending repositories response"}, 502
+
+    repos = payload.get("items")
+    if not isinstance(repos, list):
+        app.logger.error(
+            f"Unexpected trending items type: {type(repos).__name__}"
+        )
+        return {"error": "Unexpected trending repositories response"}, 502
+
+    response = make_response(repos)
+    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+    return response
+
+
+def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
+    try:
+        story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+        story_resp = requests.get(story_url, timeout=5)
+        story_resp.raise_for_status()
+        story = story_resp.json()
+
+        if not story or not story.get("url"):
+            return None
+
+        url = story["url"]
+        if "github.com" not in url or "gist.github.com" in url:
+            return None
+
+        # Format: https://github.com/owner/repo
+        parts = url.split("/")
+        if len(parts) < 5:
+            return None
+
+        owner = parts[3]
+        repo_name = parts[4]
+        full_name = f"{owner}/{repo_name}"
+
+        return {
+            "id": story_id,
+            "full_name": full_name,
+            "html_url": url,
+            "description": story.get("title", ""),
+            "stargazers_count": 0,
+            "language": "",
+            "forks": 0,
+            "points": story.get("score", 0),
+            "title": story.get("title", ""),
+        }
+    except Exception as e:
+        app.logger.warning(f"Error fetching story {story_id}: {e}")
+        return None
+
+
+@app.route("/api/hackernews")
+def get_hackernews():
+    """Fetch GitHub repositories from Hacker News"""
+    try:
+        # Get top stories from Hacker News
+        topstories_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
+        resp = requests.get(topstories_url, timeout=10)
+        resp.raise_for_status()
+        story_ids = resp.json()
+
+        # Fetch details for top 50 stories in parallel while preserving order.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            repos = list(executor.map(fetch_hackernews_repo, story_ids[:50]))
+
+        response = make_response([repo for repo in repos if repo is not None])
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
+    except Exception as e:
+        app.logger.error(f"Error fetching Hacker News: {e}")
+        return {"error": "Failed to fetch Hacker News stories"}, 500
 
 
 @app.errorhandler(404)

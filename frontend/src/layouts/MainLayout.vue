@@ -3,12 +3,13 @@
     <v-navigation-drawer v-model="drawer" temporary>
       <v-list nav density="comfortable">
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
+        <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
         <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
         <v-list-item prepend-icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar color="primary" flat :extended="isExploreRoute">
+    <v-app-bar color="primary" flat :extended="isExploreRoute || isTrendingRoute">
       <template #prepend>
         <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer" />
       </template>
@@ -18,6 +19,7 @@
         <v-spacer />
         <div class="d-none d-md-flex align-center ga-1">
           <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
+          <v-btn variant="text" :to="'/trending'" :active="isTrendingRoute" color="white">Trending</v-btn>
           <v-btn variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
 
           <v-menu location="bottom end">
@@ -71,6 +73,28 @@
           </v-tabs>
         </v-container>
       </template>
+
+      <template v-if="isTrendingRoute" #extension>
+        <v-container>
+          <v-tabs
+            :model-value="activeLanguage"
+            bg-color="primary"
+            color="white"
+            slider-color="white"
+            show-arrows
+            class="topic-tabs"
+          >
+            <v-tab
+              v-for="lang in languages"
+              :key="lang"
+              :value="lang"
+              :to="languageToPath(lang)"
+            >
+              {{ lang === 'all' ? 'GITHUB' : topicLabel(lang) }}
+            </v-tab>
+          </v-tabs>
+        </v-container>
+      </template>
     </v-app-bar>
 
     <v-main>
@@ -96,14 +120,32 @@ export default {
         "c",
         "rust",
       ],
+      languages: [
+        "all",
+        "hackernews",
+        "python",
+        "java",
+        "cpp",
+        "go",
+        "javascript",
+        "typescript",
+        "c",
+        "rust",
+      ],
     };
   },
   computed: {
     isExploreRoute() {
       return this.$route.path === "/" || this.$route.path.startsWith("/topic/");
     },
+    isTrendingRoute() {
+      return this.$route.path === "/trending" || this.$route.path.startsWith("/trending/");
+    },
     activeTopicPath() {
       return this.$route.params.topic ? `/topic/${this.$route.params.topic}` : "/";
+    },
+    activeLanguage() {
+      return this.$route.params.language || "all";
     },
   },
   methods: {
@@ -115,6 +157,9 @@ export default {
     },
     topicToPath(topic) {
       return topic === "all" ? "/" : `/topic/${topic}`;
+    },
+    languageToPath(lang) {
+      return lang === "all" ? "/trending" : `/trending/${lang}`;
     },
     topicLabel(topic) {
       return topic.replace("-", " ").toUpperCase();
