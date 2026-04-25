@@ -16,7 +16,7 @@
           <a href="https://gorse.io" target="_blank">Gorse</a> recommender system
         </h5>
         <p class="text-center">
-          <v-btn color="primary" size="large" href="/login/github" prepend-icon="mdi-github" class="text-none">
+          <v-btn color="primary" size="large" href="/login/github" prepend-icon="mdi-github" class="text-none" variant="flat">
             Sign in with GitHub
           </v-btn>
         </p>

@@ -9,13 +9,13 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar color="primary" flat :extended="isExploreRoute || isTrendingRoute">
+    <v-app-bar color="primary" flat :extended="isExploreRoute || isTrendingRoute" extension-height="42">
       <template #prepend>
         <v-app-bar-nav-icon class="d-md-none" @click="drawer = !drawer" />
       </template>
 
       <v-container class="d-flex align-center">
-        <span class="route-title">{{ $route.name }}</span>
+        <span class="route-title">GitRec</span>
         <v-spacer />
         <div class="d-none d-md-flex align-center ga-1">
           <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
@@ -52,7 +52,7 @@
       </v-container>
 
       <template v-if="isExploreRoute" #extension>
-        <v-container>
+        <v-container class="topic-tabs-container">
           <v-tabs
             :model-value="activeTopicPath"
             bg-color="primary"
@@ -75,7 +75,7 @@
       </template>
 
       <template v-if="isTrendingRoute" #extension>
-        <v-container>
+        <v-container class="topic-tabs-container">
           <v-tabs
             :model-value="activeLanguage"
             bg-color="primary"
@@ -135,6 +135,15 @@ export default {
     };
   },
   computed: {
+    routeTitle() {
+      if (this.isTrendingRoute) {
+        return "Trending";
+      }
+      if (this.isExploreRoute) {
+        return "Explore";
+      }
+      return this.$route.name;
+    },
     isExploreRoute() {
       return this.$route.path === "/" || this.$route.path.startsWith("/topic/");
     },
@@ -177,5 +186,10 @@ export default {
 
 .topic-tabs {
   min-height: 42px;
+}
+
+.topic-tabs-container {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>

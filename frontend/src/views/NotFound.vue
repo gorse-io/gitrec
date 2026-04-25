@@ -16,7 +16,7 @@
           Page not found
         </h5>
         <p class="text-center">
-          <v-btn color="primary" size="large" to="/" prepend-icon="mdi-home" class="text-none">
+          <v-btn color="primary" size="large" to="/" prepend-icon="mdi-home" class="text-none" variant="flat">
             Go Home
           </v-btn>
         </p>
