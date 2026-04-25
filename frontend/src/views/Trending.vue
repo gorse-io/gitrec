@@ -1,66 +1,75 @@
 <template>
   <div>
     <v-container>
-      <v-row>
-        <v-col cols="12">
-          <h2 class="text-h4 mb-4">{{ isHackerNews ? 'Hacker News Repositories' : 'Trending Repositories' }}</h2>
-        </v-col>
-      </v-row>
-
       <Preloader v-if="loading" />
 
-      <v-row v-else>
-        <v-col cols="12" md="6" lg="4" v-for="repo in repos" :key="repo.id || repo.full_name">
-          <v-card class="repo-card" :href="repo.html_url" target="_blank">
-            <v-card-title class="d-flex align-center ga-2">
-              <v-icon color="primary">mdi-book-open-variant</v-icon>
-              <span class="repo-name">{{ repo.full_name }}</span>
-            </v-card-title>
+      <v-list v-else class="repo-list" lines="one">
+        <v-list-item
+          v-for="repo in repos"
+          :key="repo.id || repo.url || repo.title || repo.full_name"
+          rounded="lg"
+          class="repo-item"
+        >
+          <div class="repo-card">
+            <div class="repo-main">
+              <div class="repo-header">
+                <div class="repo-title-row">
+                  <v-icon color="primary" size="18" class="repo-icon">mdi-source-repository</v-icon>
+                  <a class="repo-name" :href="repoUrl(repo)" target="_blank" rel="noopener noreferrer">
+                    {{ repoTitle(repo) }}
+                  </a>
+                </div>
 
-            <v-card-text>
+                <v-btn
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  class="repo-action"
+                  :href="repoUrl(repo)"
+                  target="_blank"
+                  prepend-icon="mdi-github"
+                >
+                  View
+                </v-btn>
+              </div>
+
               <p class="repo-description">{{ repo.description || 'No description available' }}</p>
 
-              <div class="repo-meta mt-3">
-                <span v-if="repo.language" class="d-flex align-center ga-1">
-                  <span class="language-dot" :style="{ backgroundColor: getLanguageColor(repo.language) }"></span>
-                  {{ repo.language }}
-                </span>
-                <span class="d-flex align-center ga-1">
+              <div class="repo-footer">
+                <div class="repo-meta">
+                  <span v-if="repo.language" class="repo-meta-item">
+                    <span class="language-dot" :style="{ backgroundColor: getLanguageColor(repo.language) }"></span>
+                    {{ repo.language }}
+                  </span>
+                  <span class="repo-meta-item">
+                    <v-icon size="16">mdi-star</v-icon>
+                    {{ formatNumber(repoStars(repo)) }}
+                  </span>
+                  <span v-if="repo.forks" class="repo-meta-item">
+                    <v-icon size="16">mdi-source-fork</v-icon>
+                    {{ formatNumber(repo.forks) }}
+                  </span>
+                  <div v-if="repoContributors(repo).length > 0" class="built-by">
+                    <span class="built-by-label">Built by</span>
+                    <v-avatar size="24" v-for="user in repoContributors(repo).slice(0, 5)" :key="user.username || user.name" class="built-by-avatar">
+                      <img :src="user.avatar" :alt="user.username || user.name" />
+                    </v-avatar>
+                  </div>
+                  <span v-if="repo.points" class="repo-meta-item">
+                    <v-icon size="16">mdi-message</v-icon>
+                    {{ repo.points }} comments
+                  </span>
+                </div>
+
+                <span v-if="repoAddedStars(repo)" class="repo-trending-score">
                   <v-icon size="16">mdi-star</v-icon>
-                  {{ formatNumber(repo.stargazers_count || repo.score) }}
-                </span>
-                <span v-if="repo.forks" class="d-flex align-center ga-1">
-                  <v-icon size="16">mdi-source-fork</v-icon>
-                  {{ formatNumber(repo.forks) }}
-                </span>
-                <span v-if="repo.points" class="d-flex align-center ga-1">
-                  <v-icon size="16">mdi-message</v-icon>
-                  {{ repo.points }} comments
+                  {{ formatNumber(repoAddedStars(repo)) }} stars today
                 </span>
               </div>
-
-              <div v-if="repo.built_by && repo.built_by.length > 0" class="built-by mt-3">
-                <span class="text-caption">Built by</span>
-                <v-avatar size="24" v-for="user in repo.built_by.slice(0, 5)" :key="user.username" class="ml-1">
-                  <img :src="user.avatar" :alt="user.username" />
-                </v-avatar>
-              </div>
-            </v-card-text>
-
-            <v-card-actions>
-              <v-btn
-                color="primary"
-                variant="text"
-                :href="repo.html_url"
-                target="_blank"
-                prepend-icon="mdi-github"
-              >
-                View on GitHub
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </v-row>
+            </div>
+          </div>
+        </v-list-item>
+      </v-list>
 
       <v-row v-if="!loading && repos.length === 0">
         <v-col cols="12" class="text-center">
@@ -114,7 +123,7 @@ export default {
         // Fetch GitHub Trending
         let lang = this.language;
         if (lang === "cpp") lang = "c++";
-        if (lang === "ai") lang = "";
+        if (lang === "ai") lang = "all";
         
         const params = new URLSearchParams();
         if (lang) params.append("language", lang);
@@ -144,10 +153,28 @@ export default {
         });
     },
     formatNumber(num) {
+      if (typeof num === "string") {
+        return num;
+      }
       if (num >= 1000) {
         return (num / 1000).toFixed(1) + "k";
       }
       return num;
+    },
+    repoTitle(repo) {
+      return repo.title || repo.full_name || "";
+    },
+    repoUrl(repo) {
+      return repo.url || repo.html_url || "";
+    },
+    repoStars(repo) {
+      return repo.stars || repo.stargazers_count || repo.score || 0;
+    },
+    repoAddedStars(repo) {
+      return repo.addStars || repo.current_period_stars || 0;
+    },
+    repoContributors(repo) {
+      return repo.contributors || repo.builtBy || repo.built_by || [];
     },
     getLanguageColor(language) {
       const colors = {
@@ -175,50 +202,146 @@ export default {
 </script>
 
 <style>
-.repo-card {
-  height: 100%;
-  transition: transform 0.2s;
+.repo-list {
+  padding: 0;
 }
 
-.repo-card:hover {
-  transform: translateY(-4px);
+.repo-item {
+  margin-bottom: 4px;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.repo-card {
+  width: 100%;
+  padding: 24px;
+}
+
+.repo-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.repo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.repo-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .repo-name {
-  font-size: 1rem;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: rgb(var(--v-theme-primary));
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.repo-name:hover {
+  text-decoration: underline;
+}
+
+.repo-icon {
+  flex: 0 0 auto;
+  margin-top: 3px;
 }
 
 .repo-description {
-  color: #666;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  min-height: 60px;
+  color: #57606a;
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.975rem;
+}
+
+.repo-action {
+  flex-shrink: 0;
+}
+
+.repo-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .repo-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   font-size: 0.875rem;
-  color: #666;
+  color: #57606a;
+}
+
+.repo-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .language-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  flex: 0 0 auto;
 }
 
 .built-by {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
+}
+
+.built-by-label {
+  color: #57606a;
+}
+
+.built-by-avatar {
+  margin-left: 0;
+  border: 1px solid #d0d7de;
+}
+
+.repo-trending-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: #57606a;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .repo-card {
+    padding: 18px 16px;
+  }
+
+  .repo-header {
+    flex-direction: column;
+  }
+
+  .repo-action {
+    align-self: flex-start;
+  }
+
+  .repo-footer {
+    align-items: flex-start;
+  }
+
+  .repo-trending-score {
+    margin-left: 0;
+  }
 }
 </style>

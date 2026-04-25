@@ -139,28 +139,41 @@ def privacy():
     return app.send_static_file("index.html")
 
 
-
-
 @app.route("/api/trending")
 def get_trending():
-    """Fetch trending repositories from GitHub Trending API"""
-    language = request.args.get("language", "")
+    """Fetch trending repositories from GitHub Trending API."""
+    language = request.args.get("language", "all")
     since = request.args.get("since", "daily")
-    
-    # GitHub Trending API endpoint
-    url = "https://github-trending-api.now.sh/repositories"
-    
-    params = {"since": since}
-    if language:
-        params["language"] = language
+    url = (
+        "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
+        f"data/{since}/{language}.json"
+    )
     
     try:
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, timeout=10)
         resp.raise_for_status()
-        return resp.json()
-    except Exception as e:
+        payload = resp.json()
+    except requests.RequestException as e:
         app.logger.error(f"Error fetching trending: {e}")
         return {"error": "Failed to fetch trending repositories"}, 500
+    except ValueError as e:
+        app.logger.error(f"Error decoding trending response: {e}")
+        return {"error": "Failed to decode trending repositories"}, 502
+
+    if not isinstance(payload, dict):
+        app.logger.error(
+            f"Unexpected trending response type: {type(payload).__name__}"
+        )
+        return {"error": "Unexpected trending repositories response"}, 502
+
+    repos = payload.get("items")
+    if not isinstance(repos, list):
+        app.logger.error(
+            f"Unexpected trending items type: {type(repos).__name__}"
+        )
+        return {"error": "Unexpected trending repositories response"}, 502
+
+    return repos
 
 @app.route("/api/hackernews")
 def get_hackernews():
@@ -567,4 +580,3 @@ if __name__ == "__main__":
             db.create_all()
             db.session.commit()
             print("Database tables created")
-

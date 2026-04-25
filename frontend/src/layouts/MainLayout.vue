@@ -3,8 +3,8 @@
     <v-navigation-drawer v-model="drawer" temporary>
       <v-list nav density="comfortable">
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
-        <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
+        <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
         <v-list-item prepend-icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
       </v-list>
     </v-navigation-drawer>
@@ -19,8 +19,8 @@
         <v-spacer />
         <div class="d-none d-md-flex align-center ga-1">
           <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
-          <v-btn variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
           <v-btn variant="text" :to="'/trending'" :active="isTrendingRoute" color="white">Trending</v-btn>
+          <v-btn variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
