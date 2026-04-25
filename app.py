@@ -178,6 +178,16 @@ def get_trending():
     """Fetch trending repositories from GitHub Trending API."""
     language = request.args.get("language", "all")
     since = request.args.get("since", "daily")
+    
+    # Check cache first (cache key: trending:{language}:{since})
+    cache_key = f"trending:{language}:{since}"
+    cached = get_cached(cache_key)
+    if cached:
+        response = make_response(cached)
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
+    
+    # Fetch from GitHub Trending API
     url = (
         "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
         f"data/{since}/{language}.json"
@@ -207,6 +217,9 @@ def get_trending():
         )
         return {"error": "Unexpected trending repositories response"}, 502
 
+    # Save to cache (1 hour expiry for trending data)
+    save_cache(cache_key, repos, expiry_hours=1)
+    
     response = make_response(repos)
     response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
     return response
