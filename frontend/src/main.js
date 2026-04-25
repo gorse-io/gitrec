@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
+import axios from "axios";
 
 import "github-markdown-css/github-markdown-light.css";
 import vuetify from "./plugins/vuetify";
@@ -15,11 +16,11 @@ import NotFound from "./views/NotFound.vue";
 
 const routes = [
   { path: '/', component: MainLayout, children: [
-    { name: 'Explore', path: '', component: Home },
-    { name: 'Favorites', path: 'favorites', component: Favorites },
+    { name: 'Explore', path: '', component: Home, meta: { requiresAuth: true } },
+    { name: 'Favorites', path: 'favorites', component: Favorites, meta: { requiresAuth: true } },
     { name: 'Trending', path: 'trending', component: Trending },
     { name: 'Trending Language', path: 'trending/:language', component: Trending },
-    { name: 'Explore Topic', path: 'topic/:topic', component: Home },
+    { name: 'Explore Topic', path: 'topic/:topic', component: Home, meta: { requiresAuth: true } },
   ]},
   { name: 'Login', path: '/login', component: Login },
   { name: 'Privacy', path: '/privacy', component: Privacy },
@@ -30,6 +31,24 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
+});
+
+// Router guard: check authentication before accessing protected routes
+router.beforeEach(async (to, from, next) => {
+  if (to.meta.requiresAuth) {
+    try {
+      const response = await axios.get("/api/me", { withCredentials: true });
+      if (response.data.is_authenticated) {
+        next();
+      } else {
+        next("/login");
+      }
+    } catch (error) {
+      next("/login");
+    }
+  } else {
+    next();
+  }
 });
 
 const app = createApp(App);

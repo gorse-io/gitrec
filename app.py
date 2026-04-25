@@ -120,14 +120,17 @@ def github_logged_in(blueprint, token):
 @app.after_request
 def set_headers(response):
     response.headers["Referrer-Policy"] = "no-referrer"
+    
+    # Disable CDN caching for API endpoints
+    if request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
+    
     return response
 
 
+# Serve SPA for all page routes (CDN-friendly)
 @app.route("/")
 def index():
-    if not current_user.is_authenticated:
-        return redirect("/login")
-    session.permanent = True
     return app.send_static_file("index.html")
 
 
@@ -269,9 +272,22 @@ def get_hackernews():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    if not current_user.is_authenticated:
-        return redirect("/login")
     return app.send_static_file("index.html")
+
+
+# API endpoint for frontend to check authentication status
+@app.route("/api/me")
+def get_me():
+    if current_user.is_authenticated:
+        return Response(
+            json.dumps({"is_authenticated": True, "login": current_user.login}),
+            mimetype="application/json"
+        )
+    else:
+        return Response(
+            json.dumps({"is_authenticated": False}),
+            mimetype="application/json"
+        )
 
 
 def is_github_blob(url: str) -> bool:
