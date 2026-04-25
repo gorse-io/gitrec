@@ -5,7 +5,7 @@ import logging
 import requests
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import asciidoc3
@@ -53,6 +53,40 @@ db = SQLAlchemy(app)
 class OAuth(OAuthConsumerMixin, UserMixin, db.Model):
     login = db.Column(db.String(256), unique=True, nullable=False)
     pulled_at = db.Column(db.DateTime())
+
+
+class KvCache(db.Model):
+    __tablename__ = 'kv_cache'
+    
+    k = db.Column(db.String(256), primary_key=True)
+    v = db.Column(db.Text, nullable=False)
+    expire = db.Column(db.DateTime, nullable=False)
+    
+    DEFAULT_EXPIRY_HOURS = 24
+    
+    def is_expired(self):
+        return self.expire < datetime.utcnow()
+
+
+def get_cached(k: str) -> Optional[dict]:
+    """从缓存获取数据"""
+    cache = KvCache.query.get(k)
+    if cache and not cache.is_expired():
+        return json.loads(cache.v)
+    return None
+
+
+def save_cache(k: str, v: dict, expiry_hours: int = KvCache.DEFAULT_EXPIRY_HOURS):
+    """保存数据到缓存"""
+    cache = KvCache.query.get(k)
+    expire_time = datetime.utcnow() + timedelta(hours=expiry_hours)
+    if cache:
+        cache.v = json.dumps(v)
+        cache.expire = expire_time
+    else:
+        cache = KvCache(k=k, v=json.dumps(v), expire=expire_time)
+        db.session.add(cache)
+    db.session.commit()
 
 
 # setup SQLAlchemy backend
@@ -272,18 +306,31 @@ def convert_github_blob(url: str) -> str:
 @app.route("/api/repo/<category>")
 @login_required
 def get_repo(category: str = ""):
+    # Get recommended repo
+    repo_id = None
     for _ in range(2):
         try:
             repo_id = gorse_client.get_recommend(current_user.login, category)[0]
-            full_name = repo_id.replace(":", "/")
-            github_client = Github(current_user.token["access_token"])
-            repo = github_client.get_repo(full_name)
-            download_url = repo.get_readme().download_url.lower()
             break
         except UnknownObjectException:
             logging.warn("repo %s not found" % repo_id)
             gorse_client.delete_item(repo_id)
-    # convert readme to html
+    
+    if repo_id is None:
+        return Response("No repository found", status=404)
+    
+    # Check cache first
+    cached = get_cached(repo_id)
+    if cached:
+        return cached
+    
+    # Fetch from GitHub API
+    full_name = repo_id.replace(":", "/")
+    github_client = Github(current_user.token["access_token"])
+    repo = github_client.get_repo(full_name)
+    download_url = repo.get_readme().download_url.lower()
+    
+    # Convert readme to html
     content = repo.get_readme().decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
@@ -319,7 +366,8 @@ def get_repo(category: str = ""):
                 )
             elif is_github_blob(src):
                 img.attrs["src"] = convert_github_blob(src)
-    return {
+    
+    result = {
         "item_id": repo_id,
         "full_name": repo.full_name,
         "html_url": repo.html_url,
@@ -331,6 +379,11 @@ def get_repo(category: str = ""):
         "language": repo.language,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
+    
+    # Save to cache
+    save_cache(repo_id, result)
+    
+    return result
 
 
 @app.route("/api/favorites")
