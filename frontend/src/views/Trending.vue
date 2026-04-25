@@ -12,13 +12,13 @@
         >
           <div class="repo-card">
             <div class="repo-main">
-              <div class="repo-header">
-                <div class="repo-title-row">
-                  <v-icon color="primary" size="18" class="repo-icon">mdi-source-repository</v-icon>
+              <v-row>
+                <v-col class="repo-title-row">
+                  <v-icon color="primary" size="18" class="repo-icon">mdi-git</v-icon>
                   <a class="repo-name" :href="repoUrl(repo)" target="_blank" rel="noopener noreferrer">
                     {{ repoTitle(repo) }}
                   </a>
-                </div>
+                </v-col>
 
                 <v-btn
                   color="primary"
@@ -31,37 +31,41 @@
                 >
                   View
                 </v-btn>
-              </div>
+              </v-row>
 
               <p class="repo-description">{{ repo.description || 'No description available' }}</p>
 
               <div class="repo-footer">
                 <div class="repo-meta">
-                  <span v-if="repo.language" class="repo-meta-item">
+                  <span v-if="isHackerNews && repo.points" class="repo-meta-item">
+                    <v-icon size="16">mdi-arrow-up</v-icon>
+                    {{ formatNumber(repo.points) }} points
+                  </span>
+                  <span v-else-if="repo.language" class="repo-meta-item">
                     <span class="language-dot" :style="{ backgroundColor: getLanguageColor(repo.language) }"></span>
                     {{ repo.language }}
                   </span>
-                  <span class="repo-meta-item">
+                  <span v-if="!isHackerNews" class="repo-meta-item">
                     <v-icon size="16">mdi-star</v-icon>
                     {{ formatNumber(repoStars(repo)) }}
                   </span>
-                  <span v-if="repo.forks" class="repo-meta-item">
+                  <span v-if="!isHackerNews && repo.forks" class="repo-meta-item">
                     <v-icon size="16">mdi-source-fork</v-icon>
                     {{ formatNumber(repo.forks) }}
                   </span>
-                  <div v-if="repoContributors(repo).length > 0" class="built-by">
+                  <div v-if="!isHackerNews && repoContributors(repo).length > 0" class="built-by">
                     <span class="built-by-label">Built by</span>
                     <v-avatar size="24" v-for="user in repoContributors(repo).slice(0, 5)" :key="user.username || user.name" class="built-by-avatar">
                       <img :src="user.avatar" :alt="user.username || user.name" />
                     </v-avatar>
                   </div>
-                  <span v-if="repo.points" class="repo-meta-item">
+                  <span v-if="!isHackerNews && repo.points" class="repo-meta-item">
                     <v-icon size="16">mdi-message</v-icon>
                     {{ repo.points }} comments
                   </span>
                 </div>
 
-                <span v-if="repoAddedStars(repo)" class="repo-trending-score">
+                <span v-if="!isHackerNews && repoAddedStars(repo)" class="repo-trending-score">
                   <v-icon size="16">mdi-star</v-icon>
                   {{ formatNumber(repoAddedStars(repo)) }} stars today
                 </span>
@@ -162,6 +166,9 @@ export default {
       return num;
     },
     repoTitle(repo) {
+      if (this.isHackerNews) {
+        return repo.full_name || repo.title || "";
+      }
       return repo.title || repo.full_name || "";
     },
     repoUrl(repo) {
@@ -223,13 +230,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.repo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
 }
 
 .repo-title-row {
@@ -326,10 +326,6 @@ export default {
 @media (max-width: 600px) {
   .repo-card {
     padding: 18px 16px;
-  }
-
-  .repo-header {
-    flex-direction: column;
   }
 
   .repo-action {

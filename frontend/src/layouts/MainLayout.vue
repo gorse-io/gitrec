@@ -90,7 +90,7 @@
               :value="lang"
               :to="languageToPath(lang)"
             >
-              {{ topicLabel(lang) }}
+              {{ lang === 'all' ? 'GITHUB' : topicLabel(lang) }}
             </v-tab>
           </v-tabs>
         </v-container>

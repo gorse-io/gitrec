@@ -15,7 +15,7 @@ import mistune
 from asciidoc3.asciidoc3api import AsciiDoc3API
 from bs4 import BeautifulSoup
 from docutils.core import publish_parts
-from flask import Flask, Response, session, redirect, request, flash
+from flask import Flask, Response, session, redirect, request, flash, make_response
 from flask_cors import CORS
 from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage.sqla import OAuthConsumerMixin, SQLAlchemyStorage
@@ -173,7 +173,49 @@ def get_trending():
         )
         return {"error": "Unexpected trending repositories response"}, 502
 
-    return repos
+    response = make_response(repos)
+    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+    return response
+
+
+def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
+            try:
+                story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
+                story_resp = requests.get(story_url, timeout=5)
+                story_resp.raise_for_status()
+                story = story_resp.json()
+                
+                if not story or not story.get("url"):
+            return None
+                
+                url = story["url"]
+        if "github.com" not in url or "gist.github.com" in url:
+            return None
+
+                    # Format: https://github.com/owner/repo
+                    parts = url.split("/")
+        if len(parts) < 5:
+            return None
+
+                        owner = parts[3]
+                        repo_name = parts[4]
+                        full_name = f"{owner}/{repo_name}"
+                        
+        return {
+                                "id": story_id,
+                                "full_name": full_name,
+                                "html_url": url,
+                                "description": story.get("title", ""),
+                                "stargazers_count": 0,
+                                "language": "",
+                                "forks": 0,
+                                "points": story.get("score", 0),
+                                "title": story.get("title", ""),
+        }
+            except Exception as e:
+                app.logger.warning(f"Error fetching story {story_id}: {e}")
+        return None
+
 
 @app.route("/api/hackernews")
 def get_hackernews():
@@ -184,66 +226,14 @@ def get_hackernews():
         resp = requests.get(topstories_url, timeout=10)
         resp.raise_for_status()
         story_ids = resp.json()
-        
-        # Fetch details for top 50 stories
-        repos = []
-        for i, story_id in enumerate(story_ids[:50]):
-            try:
-                story_url = f"https://hacker-news.firebaseio.com/v0/item/{story_id}.json"
-                story_resp = requests.get(story_url, timeout=5)
-                story_resp.raise_for_status()
-                story = story_resp.json()
-                
-                if not story or not story.get("url"):
-                    continue
-                
-                # Check if the URL is a GitHub repository
-                url = story["url"]
-                if "github.com" in url and not "gist.github.com" in url:
-                    # Extract repository name from URL
-                    # Format: https://github.com/owner/repo
-                    parts = url.split("/")
-                    if len(parts) >= 5:
-                        owner = parts[3]
-                        repo_name = parts[4]
-                        full_name = f"{owner}/{repo_name}"
-                        
-                        # Get additional info from GitHub API
-                        try:
-                            gh_url = f"https://api.github.com/repos/{full_name}"
-                            gh_resp = requests.get(gh_url, timeout=5)
-                            gh_resp.raise_for_status()
-                            gh_data = gh_resp.json()
-                            
-                            repos.append({
-                                "id": story_id,
-                                "full_name": full_name,
-                                "html_url": url,
-                                "description": gh_data.get("description", story.get("title", "")),
-                                "stargazers_count": gh_data.get("stargazers_count", 0),
-                                "language": gh_data.get("language", ""),
-                                "forks": gh_data.get("forks_count", 0),
-                                "points": story.get("score", 0),
-                                "title": story.get("title", ""),
-                            })
-                        except Exception:
-                            # If GitHub API fails, use basic info
-                            repos.append({
-                                "id": story_id,
-                                "full_name": full_name,
-                                "html_url": url,
-                                "description": story.get("title", ""),
-                                "stargazers_count": 0,
-                                "language": "",
-                                "forks": 0,
-                                "points": story.get("score", 0),
-                                "title": story.get("title", ""),
-                            })
-            except Exception as e:
-                app.logger.warning(f"Error fetching story {story_id}: {e}")
-                continue
-        
-        return repos
+
+        # Fetch details for top 50 stories in parallel while preserving order.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            repos = list(executor.map(fetch_hackernews_repo, story_ids[:50]))
+
+        response = make_response([repo for repo in repos if repo is not None])
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
     except Exception as e:
         app.logger.error(f"Error fetching Hacker News: {e}")
         return {"error": "Failed to fetch Hacker News stories"}, 500
