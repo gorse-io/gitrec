@@ -16,11 +16,11 @@ import NotFound from "./views/NotFound.vue";
 
 const routes = [
   { path: '/', component: MainLayout, children: [
-    { name: 'Explore', path: '', component: Home, meta: { requiresAuth: true } },
+    { name: 'Explore', path: '', component: Home },
     { name: 'Favorites', path: 'favorites', component: Favorites, meta: { requiresAuth: true } },
     { name: 'Trending', path: 'trending', component: Trending },
     { name: 'Trending Language', path: 'trending/:language', component: Trending },
-    { name: 'Explore Topic', path: 'topic/:topic', component: Home, meta: { requiresAuth: true } },
+    { name: 'Explore Topic', path: 'topic/:topic', component: Home },
   ]},
   { name: 'Login', path: '/login', component: Login },
   { name: 'Privacy', path: '/privacy', component: Privacy },
@@ -62,12 +62,14 @@ function clearCachedAuthState() {
 }
 
 // Global axios interceptor for 401 errors
+// Only redirect to login for Favorites route (requires auth)
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       clearCachedAuthState();
-      if (window.location.pathname !== "/login") {
+      // Only redirect to login if on Favorites page
+      if (window.location.pathname === "/favorites") {
         router.push("/login");
       }
     }

@@ -4,7 +4,7 @@
       <v-list nav density="comfortable">
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
-        <v-list-item title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
+        <v-list-item v-if="isAuthenticated" title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
         <v-list-item prepend-icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
       </v-list>
     </v-navigation-drawer>
@@ -20,7 +20,7 @@
         <div class="d-none d-md-flex align-center ga-1">
           <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
           <v-btn variant="text" :to="'/trending'" :active="isTrendingRoute" color="white">Trending</v-btn>
-          <v-btn variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
+          <v-btn v-if="isAuthenticated" variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
@@ -48,7 +48,8 @@
           </v-menu>
 
           <v-btn variant="text" href="https://github.com/gorse-io/gitrec" target="_blank" color="white" icon="mdi-github" />
-          <v-btn variant="text" color="white" icon="mdi-logout" @click="logout" />
+          <v-btn v-if="isAuthenticated" variant="text" color="white" icon="mdi-logout" @click="logout" />
+          <v-btn v-if="!isAuthenticated" variant="text" color="white" icon="mdi-login" to="/login" />
         </div>
       </v-container>
 
@@ -63,7 +64,7 @@
             class="topic-tabs"
           >
             <v-tab
-              v-for="topic in topics"
+              v-for="topic in visibleTopics"
               :key="topic"
               :value="topicToPath(topic)"
               :to="topicToPath(topic)"
@@ -111,6 +112,7 @@ export default {
   data() {
     return {
       drawer: false,
+      isAuthenticated: false,
       topics: [
         "all",
         "ai",
@@ -159,8 +161,42 @@ export default {
     activeLanguage() {
       return this.$route.params.language || "all";
     },
+    // Filter topics: hide 'ai' for anonymous users
+    visibleTopics() {
+      if (this.isAuthenticated) {
+        return this.topics;
+      }
+      return this.topics.filter(topic => topic !== "ai");
+    },
+  },
+  async mounted() {
+    await this.checkAuth();
   },
   methods: {
+    async checkAuth() {
+      const cached = localStorage.getItem("gitrec_auth_state");
+      if (cached) {
+        const { is_authenticated, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          this.isAuthenticated = is_authenticated;
+          return;
+        }
+      }
+      
+      try {
+        const response = await axios.get("/api/me", { withCredentials: true });
+        this.isAuthenticated = response.data.is_authenticated;
+        if (this.isAuthenticated) {
+          localStorage.setItem("gitrec_auth_state", JSON.stringify({
+            is_authenticated: true,
+            login: response.data.login,
+            timestamp: Date.now()
+          }));
+        }
+      } catch (error) {
+        this.isAuthenticated = false;
+      }
+    },
     goTo(path) {
       this.drawer = false;
       if (this.$route.path !== path) {
