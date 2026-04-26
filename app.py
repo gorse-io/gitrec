@@ -34,6 +34,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull, upsert
+from utils import KvCache, get_cached, save_cache
 
 # create flask app
 app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
@@ -54,39 +55,6 @@ class OAuth(OAuthConsumerMixin, UserMixin, db.Model):
     login = db.Column(db.String(256), unique=True, nullable=False)
     pulled_at = db.Column(db.DateTime())
 
-
-class KvCache(db.Model):
-    __tablename__ = 'kv_cache'
-    
-    k = db.Column(db.String(256), primary_key=True)
-    v = db.Column(db.Text, nullable=False)
-    expire = db.Column(db.DateTime, nullable=False)
-    
-    DEFAULT_EXPIRY_HOURS = 24
-    
-    def is_expired(self):
-        return self.expire < datetime.utcnow()
-
-
-def get_cached(k: str) -> Optional[dict]:
-    """从缓存获取数据"""
-    cache = KvCache.query.get(k)
-    if cache and not cache.is_expired():
-        return json.loads(cache.v)
-    return None
-
-
-def save_cache(k: str, v: dict, expiry_hours: int = KvCache.DEFAULT_EXPIRY_HOURS):
-    """保存数据到缓存"""
-    cache = KvCache.query.get(k)
-    expire_time = datetime.utcnow() + timedelta(hours=expiry_hours)
-    if cache:
-        cache.v = json.dumps(v)
-        cache.expire = expire_time
-    else:
-        cache = KvCache(k=k, v=json.dumps(v), expire=expire_time)
-        db.session.add(cache)
-    db.session.commit()
 
 
 # setup SQLAlchemy backend
@@ -406,8 +374,9 @@ def get_repo(category: str = ""):
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
     
-    # Save to cache
-    save_cache(repo_id, result)
+    # Save to cache (only for public repos to avoid leaking private content)
+    if not repo.private:
+        save_cache(repo_id, result)
     
     return result
 

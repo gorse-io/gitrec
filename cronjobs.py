@@ -12,7 +12,7 @@ from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
 from utils import *
-from app import KvCache
+from utils import KvCache
 
 # Setup logger
 logger = get_logger("cronjobs")
@@ -94,11 +94,17 @@ def cleanup_expired_cache():
     Clean up expired KV cache entries.
     """
     session = Session()
-    expired_count = session.query(KvCache).filter(
-        KvCache.expire < datetime.datetime.utcnow()
-    ).delete()
-    session.commit()
-    logger.info(f"Cleaned up {expired_count} expired cache entries")
+    try:
+        expired_count = session.query(KvCache).filter(
+            KvCache.expire < datetime.datetime.utcnow()
+        ).delete(synchronize_session=False)
+        session.commit()
+        logger.info(f"Cleaned up {expired_count} expired cache entries")
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def insert_trending_entry():
