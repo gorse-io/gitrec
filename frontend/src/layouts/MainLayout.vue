@@ -48,6 +48,7 @@
           </v-menu>
 
           <v-btn variant="text" href="https://github.com/gorse-io/gitrec" target="_blank" color="white" icon="mdi-github" />
+          <v-btn variant="text" color="white" icon="mdi-logout" @click="logout" />
         </div>
       </v-container>
 
@@ -104,6 +105,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
@@ -172,6 +175,15 @@ export default {
     },
     topicLabel(topic) {
       return topic.replace("-", " ").toUpperCase();
+    },
+    async logout() {
+      try {
+        await axios.get("/api/logout");
+        localStorage.removeItem("gitrec_auth_state");
+        this.$router.push("/login");
+      } catch (error) {
+        console.error("Logout failed:", error);
+      }
     },
   },
 };

@@ -26,6 +26,7 @@ from flask_login import (
     current_user,
     login_user,
     login_required,
+    logout_user,
 )
 from flask_sqlalchemy import SQLAlchemy
 from github import Github
@@ -284,6 +285,15 @@ def get_me():
             mimetype="application/json"
         )
 
+
+@app.route("/api/logout")
+def logout():
+    """Logout the current user."""
+    logout_user()
+    return Response(
+        json.dumps({"is_authenticated": False}),
+        mimetype="application/json"
+    )
 
 def is_github_blob(url: str) -> bool:
     splits = url.split("/")
