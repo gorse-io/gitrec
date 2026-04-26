@@ -120,11 +120,6 @@ def github_logged_in(blueprint, token):
 @app.after_request
 def set_headers(response):
     response.headers["Referrer-Policy"] = "no-referrer"
-    
-    # Disable CDN caching for API endpoints
-    if request.path.startswith("/api/"):
-        response.headers["Cache-Control"] = "private, no-store, no-cache, must-revalidate"
-    
     return response
 
 
@@ -528,7 +523,7 @@ def get_neighbors_v2(repo_name: str):
                 mimetype="application/json",
             )
             response.headers["Cache-Control"] = "private, max-age=3600"
-            response.headers["Vary"] = "Cookie"
+            response.vary.add("Cookie")
             return response
         else:
             # Upsert the repository if it doesn't exist in Gorse.
@@ -553,7 +548,7 @@ def get_neighbors_v2(repo_name: str):
                 mimetype="application/json",
             )
             response.headers["Cache-Control"] = "private, max-age=3600"
-            response.headers["Vary"] = "Cookie"
+            response.vary.add("Cookie")
             return response
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
