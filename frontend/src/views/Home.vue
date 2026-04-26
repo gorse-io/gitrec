@@ -42,7 +42,17 @@
           </a>
         </div>
       </div>
-      <Preloader v-if="readme == null" />
+      <Preloader v-if="readme == null && error == null" />
+      <v-alert v-else-if="error" type="error" variant="tonal" class="error-alert">
+        <div class="error-alert__content">
+          <v-icon start>mdi-alert-circle</v-icon>
+          {{ error }}
+        </div>
+        <v-btn color="error" variant="text" @click="retry" class="retry-btn">
+          <v-icon start>mdi-refresh</v-icon>
+          Retry
+        </v-btn>
+      </v-alert>
       <article v-else class="markdown-body" v-html="readme"></article>
     </v-container>
 
@@ -86,6 +96,7 @@ export default {
       subscribers_count: 0,
       language: "",
       readme: null,
+      error: null,
       primaryColor: "blue darken-1",
       textColor: "white-text text-lighten-3",
       topic: "",
@@ -155,12 +166,21 @@ export default {
       if (topic == "/cpp") {
         topic = "/c%2B%2B";
       }
+      this.error = null;
       console.log("/api/repo" + topic);
       axios
         .get("/api/repo" + topic, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to fetch repository. Please try again.";
+          console.error("Recommend error:", error);
         });
+    },
+    retry() {
+      this.clearRepository();
+      this.recommend();
     },
     setRepository(repo) {
       this.item_id = repo.item_id;
@@ -176,6 +196,7 @@ export default {
       this.item_id = null;
       this.full_name = "";
       this.readme = null;
+      this.error = null;
       this.stargazers_count = 0;
       this.forks_count = 0;
       this.subscribers_count = 0;
@@ -194,6 +215,7 @@ export default {
         });
     },
     next() {
+      this.error = null;
       axios
         .post("/api/read/" + this.item_id, { withCredentials: true })
         .then(() => {
@@ -203,7 +225,15 @@ export default {
             .get("/api/repo" + this.topic, { withCredentials: true })
             .then((response) => {
               this.setRepository(response.data);
+            })
+            .catch((error) => {
+              this.error = error.response?.data?.error || "Failed to fetch repository. Please try again.";
+              console.error("Next repo error:", error);
             });
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to mark as read. Please try again.";
+          console.error("Read error:", error);
         });
     },
   },
@@ -218,6 +248,21 @@ export default {
 .login-alert__text {
   white-space: normal;
   line-height: 1.5;
+}
+
+.error-alert {
+  margin: 20px auto;
+  max-width: 600px;
+}
+
+.error-alert__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.retry-btn {
+  margin-top: 12px;
 }
 
 .markdown-body {
