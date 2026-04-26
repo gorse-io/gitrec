@@ -348,15 +348,16 @@ def get_repo(category: str = ""):
         github_client = Github(current_user.token["access_token"])
     else:
         # For anonymous users, get a random trending repo
+        language = category.lower() if category else "all"
         # First try to get from trending cache
-        trending_cache_key = "api:trending:all:daily"
+        trending_cache_key = f"api:trending:{language}:daily"
         trending_data = get_cached(trending_cache_key)
         
         if trending_data is None:
             # Fetch trending data if not cached
             url = (
                 "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
-                "data/daily/all.json"
+                f"data/daily/{language}.json"
             )
             try:
                 resp = requests.get(url, timeout=10)
@@ -386,7 +387,11 @@ def get_repo(category: str = ""):
         
         # Randomly select a trending repo
         random_repo = random.choice(available_repos)
-        full_name = random_repo.get("full_name", "")
+        full_name = random_repo.get("url", "")
+        if full_name.startswith("https://github.com/"):
+            full_name = full_name.removeprefix("https://github.com/").strip("/")
+        else:
+            full_name = ""
         repo_id = full_name.replace("/", ":").lower()
         
         if not full_name:

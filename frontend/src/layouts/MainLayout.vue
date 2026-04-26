@@ -5,7 +5,18 @@
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
         <v-list-item v-if="isAuthenticated" title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
-        <v-list-item prepend-icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
+        <v-list-item v-if="isAuthenticated">
+          <div class="d-flex align-center w-100">
+            <v-btn variant="text" icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
+            <v-btn variant="text" icon="mdi-logout" @click="logout" />
+          </div>
+        </v-list-item>
+        <v-list-item v-if="!isAuthenticated">
+          <div class="d-flex align-center w-100">
+            <v-btn variant="text" icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
+            <v-btn variant="text" icon="mdi-login" @click="goTo('/login')" />
+          </div>
+        </v-list-item>
       </v-list>
     </v-navigation-drawer>
 
@@ -216,7 +227,7 @@ export default {
       try {
         await axios.get("/api/logout");
         localStorage.removeItem("gitrec_auth_state");
-        this.$router.push("/login");
+        this.$router.push("/");
       } catch (error) {
         console.error("Logout failed:", error);
       }

@@ -1,7 +1,7 @@
 asciidoc3==3.2.3
 beautifulsoup4==4.9.3
 celery==5.2.7
-docutils==0.17.1
+docutils==0.22.4
 emoji==1.6.1
 Flask==3.1.3
 flask-cors==4.0.2
@@ -11,7 +11,7 @@ Flask-SQLAlchemy>=3.0.0
 gevent==26.4.0
 gunicorn==23.0.0
 language-detector>=5.0.2
-mistune==2.0.4
+mistune==3.2.0
 mysqlclient>=2.1.0
 openai~=1.77.0
 pickledb==1.3.2

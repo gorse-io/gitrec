@@ -1,21 +1,17 @@
 <template>
   <div>
     <!-- Login prompt for anonymous users -->
-    <v-banner 
+    <v-alert
       v-if="!isAuthenticated && !hideLoginPrompt"
-      color="info"
-      lines="one"
-      class="login-banner"
+      type="info"
+      variant="tonal"
+      class="login-alert"
+      @click="goToLogin"
     >
-      <v-banner-text>
-        <v-icon start>mdi-information</v-icon>
+      <div class="login-alert__text">
         Login with GitHub to get personalized recommendations based on your starred repositories
-      </v-banner-text>
-      <template #actions>
-        <v-btn color="primary" to="/login" variant="text">Login</v-btn>
-        <v-btn variant="text" @click="hideLoginPrompt = true">Dismiss</v-btn>
-      </template>
-    </v-banner>
+      </div>
+    </v-alert>
 
     <v-container>
       <div v-if="full_name" class="repo-header">
@@ -115,6 +111,9 @@ export default {
     this.recommend();
   },
   methods: {
+    goToLogin() {
+      this.$router.push("/login");
+    },
     async checkAuth() {
       const cached = localStorage.getItem("gitrec_auth_state");
       if (cached) {
@@ -200,6 +199,15 @@ export default {
 </script>
 
 <style>
+.login-alert {
+  cursor: pointer;
+}
+
+.login-alert__text {
+  white-space: normal;
+  line-height: 1.5;
+}
+
 .markdown-body {
   box-sizing: border-box;
   min-width: 200px;
