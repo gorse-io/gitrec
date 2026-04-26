@@ -2,6 +2,7 @@ import concurrent.futures
 import io
 import json
 import logging
+import random
 import requests
 import os
 import sys
@@ -319,30 +320,76 @@ def convert_github_blob(url: str) -> str:
 
 @app.route("/api/repo")
 @app.route("/api/repo/<category>")
-@login_required
 def get_repo(category: str = ""):
-    # Get recommended repo
-    repo_id = None
-    for _ in range(2):
-        try:
-            repo_id = gorse_client.get_recommend(current_user.login, category)[0]
-            break
-        except UnknownObjectException:
-            logging.warn("repo %s not found" % repo_id)
-            gorse_client.delete_item(repo_id)
+    """Get a recommended repository. Uses Gorse for logged-in users, 
+    or random trending repo for anonymous users."""
     
-    if repo_id is None:
-        return Response("No repository found", status=404)
-
-    # Check cache first
-    cache_key = f"repo:{repo_id}"
-    cached = get_cached(cache_key)
-    if cached is not None:
-        return cached
-
+    if current_user.is_authenticated:
+        # Get recommended repo for logged-in users
+        repo_id = None
+        for _ in range(2):
+            try:
+                repo_id = gorse_client.get_recommend(current_user.login, category)[0]
+                break
+            except UnknownObjectException:
+                logging.warn("repo %s not found" % repo_id)
+                gorse_client.delete_item(repo_id)
+        
+        if repo_id is None:
+            return Response("No repository found", status=404)
+        
+        # Check cache first
+        cache_key = f"repo:{repo_id}"
+        cached = get_cached(cache_key)
+        if cached is not None:
+            return cached
+        
+        full_name = repo_id.replace(":", "/")
+        github_client = Github(current_user.token["access_token"])
+    else:
+        # For anonymous users, get a random trending repo
+        # First try to get from trending cache
+        trending_cache_key = "api:trending:all:daily"
+        trending_data = get_cached(trending_cache_key)
+        
+        if trending_data is None:
+            # Fetch trending data if not cached
+            url = (
+                "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
+                "data/daily/all.json"
+            )
+            try:
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                payload = resp.json()
+                trending_data = payload.get("items", [])
+                if trending_data:
+                    save_cache(trending_cache_key, trending_data, expiry_hours=1)
+            except Exception as e:
+                app.logger.error(f"Error fetching trending for anonymous user: {e}")
+                return Response("Failed to fetch trending repositories", status=500)
+        
+        if not trending_data:
+            return Response("No trending repositories available", status=404)
+        
+        # Randomly select a trending repo
+        random_repo = random.choice(trending_data)
+        full_name = random_repo.get("full_name", "")
+        repo_id = full_name.replace("/", ":").lower()
+        
+        if not full_name:
+            return Response("Invalid trending repository", status=500)
+        
+        # Check cache first
+        cache_key = f"repo:{repo_id}"
+        cached = get_cached(cache_key)
+        if cached is not None:
+            return cached
+        
+        # Use global github client for anonymous users
+        github_client = global_github_client
+    
     # Fetch from GitHub API
-    full_name = repo_id.replace(":", "/")
-    github_client = Github(current_user.token["access_token"])
     repo = github_client.get_repo(full_name)
     readme = repo.get_readme()
     download_url = readme.download_url.lower()
