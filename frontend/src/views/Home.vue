@@ -124,8 +124,20 @@ export default {
   async mounted() {
     await this.checkAuth();
     this.recommend();
+    
+    // Listen for auth change events from MainLayout
+    window.addEventListener('gitrec-auth-change', this.handleAuthChange);
+  },
+  beforeUnmount() {
+    window.removeEventListener('gitrec-auth-change', this.handleAuthChange);
   },
   methods: {
+    handleAuthChange(event) {
+      this.isAuthenticated = event.detail.authenticated;
+      if (!this.isAuthenticated) {
+        this.hideLoginPrompt = false;
+      }
+    },
     goToLogin() {
       this.$router.push("/login");
     },

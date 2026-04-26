@@ -237,6 +237,7 @@ export default {
             login: response.data.login,
             timestamp: Date.now()
           }));
+          window.dispatchEvent(new CustomEvent('gitrec-auth-change', { detail: { authenticated: true } }));
         } else {
           localStorage.removeItem("gitrec_auth_state");
         }
@@ -265,6 +266,8 @@ export default {
         await axios.get("/api/logout");
         localStorage.removeItem("gitrec_auth_state");
         this.isAuthenticated = false;
+        // Dispatch logout event for other components
+        window.dispatchEvent(new CustomEvent('gitrec-auth-change', { detail: { authenticated: false } }));
         this.$router.push("/");
       } catch (error) {
         console.error("Logout failed:", error);
