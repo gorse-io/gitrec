@@ -123,11 +123,9 @@ def set_headers(response):
     return response
 
 
+# Serve SPA for all page routes (CDN-friendly)
 @app.route("/")
 def index():
-    if not current_user.is_authenticated:
-        return redirect("/login")
-    session.permanent = True
     return app.send_static_file("index.html")
 
 
@@ -269,9 +267,22 @@ def get_hackernews():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    if not current_user.is_authenticated:
-        return redirect("/login")
     return app.send_static_file("index.html")
+
+
+# API endpoint for frontend to check authentication status
+@app.route("/api/me")
+def get_me():
+    if current_user.is_authenticated:
+        return Response(
+            json.dumps({"is_authenticated": True, "login": current_user.login}),
+            mimetype="application/json"
+        )
+    else:
+        return Response(
+            json.dumps({"is_authenticated": False}),
+            mimetype="application/json"
+        )
 
 
 def is_github_blob(url: str) -> bool:
@@ -512,7 +523,7 @@ def get_neighbors_v2(repo_name: str):
                 mimetype="application/json",
             )
             response.headers["Cache-Control"] = "private, max-age=3600"
-            response.headers["Vary"] = "Cookie"
+            response.vary.add("Cookie")
             return response
         else:
             # Upsert the repository if it doesn't exist in Gorse.
@@ -537,7 +548,7 @@ def get_neighbors_v2(repo_name: str):
                 mimetype="application/json",
             )
             response.headers["Cache-Control"] = "private, max-age=3600"
-            response.headers["Vary"] = "Cookie"
+            response.vary.add("Cookie")
             return response
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
