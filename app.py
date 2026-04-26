@@ -34,7 +34,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull, upsert
-from utils import KvCache, get_cached, save_cache
+from utils import Base, get_cached, save_cache
 
 # create flask app
 app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
@@ -146,21 +146,21 @@ def get_trending():
     """Fetch trending repositories from GitHub Trending API."""
     language = request.args.get("language", "all")
     since = request.args.get("since", "daily")
-    
+
     # Check cache first (cache key: trending:{language}:{since})
-    cache_key = f"trending:{language}:{since}"
+    cache_key = f"api:trending:{language}:{since}"
     cached = get_cached(cache_key)
-    if cached:
+    if cached is not None:
         response = make_response(cached)
         response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
         return response
-    
+
     # Fetch from GitHub Trending API
     url = (
         "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
         f"data/{since}/{language}.json"
     )
-    
+
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
@@ -187,7 +187,7 @@ def get_trending():
 
     # Save to cache (1 hour expiry for trending data)
     save_cache(cache_key, repos, expiry_hours=1)
-    
+
     response = make_response(repos)
     response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
     return response
@@ -236,13 +236,13 @@ def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
 def get_hackernews():
     """Fetch GitHub repositories from Hacker News"""
     # Check cache first
-    cache_key = "hackernews:showstories"
+    cache_key = "api:hackernews:showstories"
     cached = get_cached(cache_key)
-    if cached:
+    if cached is not None:
         response = make_response(cached)
         response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
         return response
-    
+
     try:
         # Get top stories from Hacker News
         topstories_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
@@ -255,10 +255,10 @@ def get_hackernews():
             repos = list(executor.map(fetch_hackernews_repo, story_ids[:50]))
 
         result = [repo for repo in repos if repo is not None]
-        
+
         # Save to cache (1 hour expiry)
         save_cache(cache_key, result, expiry_hours=1)
-        
+
         response = make_response(result)
         response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
         return response
@@ -312,20 +312,22 @@ def get_repo(category: str = ""):
     
     if repo_id is None:
         return Response("No repository found", status=404)
-    
+
     # Check cache first
-    cached = get_cached(repo_id)
-    if cached:
+    cache_key = f"repo:{repo_id}"
+    cached = get_cached(cache_key)
+    if cached is not None:
         return cached
-    
+
     # Fetch from GitHub API
     full_name = repo_id.replace(":", "/")
     github_client = Github(current_user.token["access_token"])
     repo = github_client.get_repo(full_name)
-    download_url = repo.get_readme().download_url.lower()
-    
+    readme = repo.get_readme()
+    download_url = readme.download_url.lower()
+
     # Convert readme to html
-    content = repo.get_readme().decoded_content.decode("utf-8")
+    content = readme.decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
     elif download_url.endswith((".asciidoc", ".adoc")):
@@ -373,11 +375,11 @@ def get_repo(category: str = ""):
         "language": repo.language,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
-    
+
     # Save to cache (only for public repos to avoid leaking private content)
     if not repo.private:
-        save_cache(repo_id, result)
-    
+        save_cache(cache_key, result)
+
     return result
 
 
@@ -616,5 +618,6 @@ if __name__ == "__main__":
     if "--setup" in sys.argv:
         with app.app_context():
             db.create_all()
+            Base.metadata.create_all(bind=db.engine)
             db.session.commit()
             print("Database tables created")

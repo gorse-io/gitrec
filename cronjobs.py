@@ -12,7 +12,6 @@ from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
 from utils import *
-from utils import KvCache
 
 # Setup logger
 logger = get_logger("cronjobs")
