@@ -57,6 +57,7 @@ export default {
   data() {
     return {
       like_pressed: false,
+      isAuthenticated: false,
       item_id: null,
       full_name: "",
       html_url: null,
@@ -91,10 +92,35 @@ export default {
     }
     this.clearRepository();
   },
-  mounted() {
+  async mounted() {
+    await this.checkAuth();
     this.recommend();
   },
   methods: {
+    async checkAuth() {
+      const cached = localStorage.getItem("gitrec_auth_state");
+      if (cached) {
+        const { is_authenticated, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          this.isAuthenticated = is_authenticated;
+          return;
+        }
+      }
+      
+      try {
+        const response = await axios.get("/api/me", { withCredentials: true });
+        this.isAuthenticated = response.data.is_authenticated;
+        if (this.isAuthenticated) {
+          localStorage.setItem("gitrec_auth_state", JSON.stringify({
+            is_authenticated: true,
+            login: response.data.login,
+            timestamp: Date.now()
+          }));
+        }
+      } catch (error) {
+        this.isAuthenticated = false;
+      }
+    },
     recommend() {
       let topic = this.topic;
       if (topic == "/cpp") {
@@ -128,6 +154,10 @@ export default {
       this.like_pressed = false;
     },
     like() {
+      if (!this.isAuthenticated) {
+        this.$router.push("/login");
+        return;
+      }
       axios
         .post("/api/like/" + this.item_id, { withCredentials: true })
         .then(() => {
