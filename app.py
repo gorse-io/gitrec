@@ -2,6 +2,7 @@ import concurrent.futures
 import io
 import json
 import logging
+import random
 import requests
 import os
 import sys
@@ -319,30 +320,103 @@ def convert_github_blob(url: str) -> str:
 
 @app.route("/api/repo")
 @app.route("/api/repo/<category>")
-@login_required
 def get_repo(category: str = ""):
-    # Get recommended repo
-    repo_id = None
-    for _ in range(2):
-        try:
-            repo_id = gorse_client.get_recommend(current_user.login, category)[0]
-            break
-        except UnknownObjectException:
-            logging.warn("repo %s not found" % repo_id)
-            gorse_client.delete_item(repo_id)
+    """Get a recommended repository. Uses Gorse for logged-in users, 
+    or random trending repo for anonymous users."""
     
-    if repo_id is None:
-        return Response("No repository found", status=404)
-
-    # Check cache first
-    cache_key = f"repo:{repo_id}"
-    cached = get_cached(cache_key)
-    if cached is not None:
-        return cached
-
+    if current_user.is_authenticated:
+        # Get recommended repo for logged-in users
+        repo_id = None
+        for _ in range(2):
+            try:
+                repo_id = gorse_client.get_recommend(current_user.login, category)[0]
+                break
+            except UnknownObjectException:
+                logging.warn("repo %s not found" % repo_id)
+                gorse_client.delete_item(repo_id)
+        
+        if repo_id is None:
+            return Response("No repository found", status=404)
+        
+        # Check cache first
+        cache_key = f"repo:{repo_id}"
+        cached = get_cached(cache_key)
+        if cached is not None:
+            return cached
+        
+        full_name = repo_id.replace(":", "/")
+        github_client = Github(current_user.token["access_token"])
+    else:
+        # For anonymous users, get a random trending repo
+        language = category.lower() if category else "all"
+        # First try to get from trending cache
+        trending_cache_key = f"api:trending:{language}:daily"
+        trending_data = get_cached(trending_cache_key)
+        
+        if trending_data is None:
+            # Fetch trending data if not cached
+            url = (
+                "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
+                f"data/daily/{language}.json"
+            )
+            try:
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                payload = resp.json()
+                trending_data = payload.get("items", [])
+                if trending_data:
+                    save_cache(trending_cache_key, trending_data, expiry_hours=1)
+            except Exception as e:
+                app.logger.error(f"Error fetching trending for anonymous user: {e}")
+                return Response("Failed to fetch trending repositories", status=500)
+        
+        if not trending_data:
+            return Response("No trending repositories available", status=404)
+        
+        # Filter out already read repos from session
+        read_repos = session.get("read_repos", [])
+        available_repos = [
+            repo
+            for repo in trending_data
+            if isinstance(repo.get("full_name"), str)
+            and repo.get("full_name", "").strip()
+            and "/" in repo.get("full_name", "").strip()
+            and repo.get("full_name", "").strip().replace("/", ":").lower() not in read_repos
+        ]
+        
+        # If all repos have been read, reset session and use all valid trending repos
+        if not available_repos:
+            available_repos = [
+                repo
+                for repo in trending_data
+                if isinstance(repo.get("full_name"), str)
+                and repo.get("full_name", "").strip()
+                and "/" in repo.get("full_name", "").strip()
+            ]
+            session["read_repos"] = []
+        
+        if not available_repos:
+            return Response("No valid trending repositories available", status=404)
+        
+        # Randomly select a trending repo
+        random_repo = random.choice(available_repos)
+        full_name = random_repo.get("full_name", "").strip()
+        
+        if not full_name or "/" not in full_name:
+            return Response("Invalid trending repository", status=500)
+        
+        repo_id = full_name.replace("/", ":").lower()
+        
+        # Check cache first
+        cache_key = f"repo:{repo_id}"
+        cached = get_cached(cache_key)
+        if cached is not None:
+            return cached
+        
+        # Use global github client for anonymous users
+        github_client = global_github_client
+    
     # Fetch from GitHub API
-    full_name = repo_id.replace(":", "/")
-    github_client = Github(current_user.token["access_token"])
     repo = github_client.get_repo(full_name)
     readme = repo.get_readme()
     download_url = readme.download_url.lower()
@@ -439,17 +513,28 @@ def like_repo(repo_name: str):
 
 
 @app.route("/api/read/<repo_name>", methods=["POST"])
-@login_required
 def read_repo(repo_name: str):
     """
     Insert a "read" feedback.
+    For logged-in users: insert to Gorse.
+    For anonymous users: save to session.
     """
-    try:
-        return gorse_client.insert_feedback(
-            "read", current_user.login, repo_name.lower(), datetime.now().isoformat(), 1
-        )
-    except gorse.GorseException as e:
-        return Response(e.message, status=e.status_code)
+    repo_name = repo_name.lower()
+    
+    if current_user.is_authenticated:
+        try:
+            return gorse_client.insert_feedback(
+                "read", current_user.login, repo_name, datetime.now().isoformat(), 1
+            )
+        except gorse.GorseException as e:
+            return Response(e.message, status=e.status_code)
+    else:
+        # For anonymous users, save read repos in session
+        read_repos = session.get("read_repos", [])
+        if repo_name not in read_repos:
+            read_repos.append(repo_name)
+            session["read_repos"] = read_repos
+        return Response(json.dumps({"success": True}), mimetype="application/json")
 
 
 @app.route("/api/delete/<repo_name>", methods=["POST"])

@@ -1,5 +1,22 @@
 <template>
   <div>
+    <!-- Login prompt for anonymous users -->
+    <v-alert
+      v-if="!isAuthenticated && !hideLoginPrompt"
+      type="info"
+      variant="tonal"
+      class="login-alert"
+      role="button"
+      tabindex="0"
+      @click="goToLogin"
+      @keydown.enter="goToLogin"
+      @keydown.space.prevent="goToLogin"
+    >
+      <div class="login-alert__text">
+        Login with GitHub to get personalized recommendations based on your starred repositories
+      </div>
+    </v-alert>
+
     <v-container>
       <div v-if="full_name" class="repo-header">
         <a :href="html_url" target="_blank" class="repo-link">
@@ -57,6 +74,8 @@ export default {
   data() {
     return {
       like_pressed: false,
+      isAuthenticated: false,
+      hideLoginPrompt: false,
       item_id: null,
       full_name: "",
       html_url: null,
@@ -91,10 +110,45 @@ export default {
     }
     this.clearRepository();
   },
-  mounted() {
+  async mounted() {
+    await this.checkAuth();
     this.recommend();
   },
   methods: {
+    goToLogin() {
+      this.$router.push("/login");
+    },
+    async checkAuth() {
+      const cached = localStorage.getItem("gitrec_auth_state");
+      if (cached) {
+        try {
+          const { is_authenticated, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < 5 * 60 * 1000) {
+            this.isAuthenticated = is_authenticated;
+            return;
+          }
+        } catch (error) {
+          localStorage.removeItem("gitrec_auth_state");
+        }
+      }
+      
+      try {
+        const response = await axios.get("/api/me", { withCredentials: true });
+        this.isAuthenticated = response.data.is_authenticated;
+        if (this.isAuthenticated) {
+          localStorage.setItem("gitrec_auth_state", JSON.stringify({
+            is_authenticated: true,
+            login: response.data.login,
+            timestamp: Date.now()
+          }));
+        } else {
+          localStorage.removeItem("gitrec_auth_state");
+        }
+      } catch (error) {
+        this.isAuthenticated = false;
+        localStorage.removeItem("gitrec_auth_state");
+      }
+    },
     recommend() {
       let topic = this.topic;
       if (topic == "/cpp") {
@@ -128,6 +182,10 @@ export default {
       this.like_pressed = false;
     },
     like() {
+      if (!this.isAuthenticated) {
+        this.$router.push("/login");
+        return;
+      }
       axios
         .post("/api/like/" + this.item_id, { withCredentials: true })
         .then(() => {
@@ -152,6 +210,15 @@ export default {
 </script>
 
 <style>
+.login-alert {
+  cursor: pointer;
+}
+
+.login-alert__text {
+  white-space: normal;
+  line-height: 1.5;
+}
+
 .markdown-body {
   box-sizing: border-box;
   min-width: 200px;
