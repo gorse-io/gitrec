@@ -187,10 +187,14 @@ export default {
     async checkAuth() {
       const cached = localStorage.getItem("gitrec_auth_state");
       if (cached) {
-        const { is_authenticated, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < 5 * 60 * 1000) {
-          this.isAuthenticated = is_authenticated;
-          return;
+        try {
+          const { is_authenticated, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < 5 * 60 * 1000) {
+            this.isAuthenticated = is_authenticated;
+            return;
+          }
+        } catch (error) {
+          localStorage.removeItem("gitrec_auth_state");
         }
       }
       
@@ -203,8 +207,11 @@ export default {
             login: response.data.login,
             timestamp: Date.now()
           }));
+        } else {
+          localStorage.removeItem("gitrec_auth_state");
         }
       } catch (error) {
+        localStorage.removeItem("gitrec_auth_state");
         this.isAuthenticated = false;
       }
     },
@@ -227,6 +234,7 @@ export default {
       try {
         await axios.get("/api/logout");
         localStorage.removeItem("gitrec_auth_state");
+        this.isAuthenticated = false;
         this.$router.push("/");
       } catch (error) {
         console.error("Logout failed:", error);

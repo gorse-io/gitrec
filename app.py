@@ -376,26 +376,36 @@ def get_repo(category: str = ""):
         # Filter out already read repos from session
         read_repos = session.get("read_repos", [])
         available_repos = [
-            repo for repo in trending_data 
-            if repo.get("full_name", "").replace("/", ":").lower() not in read_repos
+            repo
+            for repo in trending_data
+            if isinstance(repo.get("full_name"), str)
+            and repo.get("full_name", "").strip()
+            and "/" in repo.get("full_name", "").strip()
+            and repo.get("full_name", "").strip().replace("/", ":").lower() not in read_repos
         ]
         
-        # If all repos have been read, reset session and use all trending repos
+        # If all repos have been read, reset session and use all valid trending repos
         if not available_repos:
-            available_repos = trending_data
+            available_repos = [
+                repo
+                for repo in trending_data
+                if isinstance(repo.get("full_name"), str)
+                and repo.get("full_name", "").strip()
+                and "/" in repo.get("full_name", "").strip()
+            ]
             session["read_repos"] = []
+        
+        if not available_repos:
+            return Response("No valid trending repositories available", status=404)
         
         # Randomly select a trending repo
         random_repo = random.choice(available_repos)
-        full_name = random_repo.get("url", "")
-        if full_name.startswith("https://github.com/"):
-            full_name = full_name.removeprefix("https://github.com/").strip("/")
-        else:
-            full_name = ""
-        repo_id = full_name.replace("/", ":").lower()
+        full_name = random_repo.get("full_name", "").strip()
         
-        if not full_name:
+        if not full_name or "/" not in full_name:
             return Response("Invalid trending repository", status=500)
+        
+        repo_id = full_name.replace("/", ":").lower()
         
         # Check cache first
         cache_key = f"repo:{repo_id}"

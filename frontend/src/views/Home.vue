@@ -6,7 +6,11 @@
       type="info"
       variant="tonal"
       class="login-alert"
+      role="button"
+      tabindex="0"
       @click="goToLogin"
+      @keydown.enter="goToLogin"
+      @keydown.space.prevent="goToLogin"
     >
       <div class="login-alert__text">
         Login with GitHub to get personalized recommendations based on your starred repositories
@@ -117,10 +121,14 @@ export default {
     async checkAuth() {
       const cached = localStorage.getItem("gitrec_auth_state");
       if (cached) {
-        const { is_authenticated, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < 5 * 60 * 1000) {
-          this.isAuthenticated = is_authenticated;
-          return;
+        try {
+          const { is_authenticated, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < 5 * 60 * 1000) {
+            this.isAuthenticated = is_authenticated;
+            return;
+          }
+        } catch (error) {
+          localStorage.removeItem("gitrec_auth_state");
         }
       }
       
@@ -133,9 +141,12 @@ export default {
             login: response.data.login,
             timestamp: Date.now()
           }));
+        } else {
+          localStorage.removeItem("gitrec_auth_state");
         }
       } catch (error) {
         this.isAuthenticated = false;
+        localStorage.removeItem("gitrec_auth_state");
       }
     },
     recommend() {
