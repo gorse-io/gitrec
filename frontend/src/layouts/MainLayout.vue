@@ -5,6 +5,36 @@
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
         <v-list-item v-if="isAuthenticated" title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
+        
+        <v-list-group value="extensions">
+          <template #activator="{ props }">
+            <v-list-item
+              v-bind="props"
+              title="Extensions"
+              prepend-icon="mdi-puzzle"
+            />
+          </template>
+          
+          <v-list-item
+            title="Chrome"
+            prepend-icon="mdi-google-chrome"
+            href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl"
+            target="_blank"
+          />
+          <v-list-item
+            title="Edge"
+            prepend-icon="mdi-microsoft-edge"
+            href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa"
+            target="_blank"
+          />
+          <v-list-item
+            title="Firefox"
+            prepend-icon="mdi-firefox"
+            href="https://addons.mozilla.org/addon/gitrec/"
+            target="_blank"
+          />
+        </v-list-group>
+        
         <v-list-item v-if="isAuthenticated">
           <div class="d-flex align-center w-100">
             <v-btn variant="text" icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
