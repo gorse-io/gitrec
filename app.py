@@ -8,6 +8,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from typing import List, Optional
+from urllib.parse import urlparse
 
 import asciidoc3
 import emoji
@@ -318,6 +319,21 @@ def convert_github_blob(url: str) -> str:
     return "/".join(splits)
 
 
+def get_github_repo_full_name(repo_data: dict) -> str:
+    url = str(repo_data.get("url") or repo_data.get("html_url") or "").strip()
+    if url:
+        parsed = urlparse(url)
+        path_parts = [part for part in parsed.path.split("/") if part]
+        if parsed.netloc == "github.com" and len(path_parts) >= 2:
+            return f"{path_parts[0]}/{path_parts[1]}"
+
+    full_name = str(repo_data.get("full_name") or "").strip()
+    if "/" in full_name:
+        return full_name
+
+    return ""
+
+
 @app.route("/api/repo")
 @app.route("/api/repo/<category>")
 def get_repo(category: str = ""):
@@ -378,10 +394,8 @@ def get_repo(category: str = ""):
         available_repos = [
             repo
             for repo in trending_data
-            if isinstance(repo.get("full_name"), str)
-            and repo.get("full_name", "").strip()
-            and "/" in repo.get("full_name", "").strip()
-            and repo.get("full_name", "").strip().replace("/", ":").lower() not in read_repos
+            if get_github_repo_full_name(repo)
+            and get_github_repo_full_name(repo).replace("/", ":").lower() not in read_repos
         ]
         
         # If all repos have been read, reset session and use all valid trending repos
@@ -389,9 +403,7 @@ def get_repo(category: str = ""):
             available_repos = [
                 repo
                 for repo in trending_data
-                if isinstance(repo.get("full_name"), str)
-                and repo.get("full_name", "").strip()
-                and "/" in repo.get("full_name", "").strip()
+                if get_github_repo_full_name(repo)
             ]
             session["read_repos"] = []
         
@@ -400,7 +412,7 @@ def get_repo(category: str = ""):
         
         # Randomly select a trending repo
         random_repo = random.choice(available_repos)
-        full_name = random_repo.get("full_name", "").strip()
+        full_name = get_github_repo_full_name(random_repo)
         
         if not full_name or "/" not in full_name:
             return Response("Invalid trending repository", status=500)
