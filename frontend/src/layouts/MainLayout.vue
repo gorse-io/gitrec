@@ -5,16 +5,31 @@
         <v-list-item title="Explore" :active="isExploreRoute" @click="goTo('/')" />
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
         <v-list-item v-if="isAuthenticated" title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
-        <v-list-item v-if="isAuthenticated">
+        
+        <v-list-group value="extensions">
+          <template #activator="{ props }">
+            <v-list-item
+              v-bind="props"
+              title="Extensions"
+              prepend-icon="mdi-puzzle"
+            />
+          </template>
+          
+          <v-list-item
+            v-for="ext in extensions"
+            :key="ext.name"
+            :title="ext.name"
+            :prepend-icon="ext.icon"
+            :href="ext.url"
+            target="_blank"
+          />
+        </v-list-group>
+        
+        <v-list-item>
           <div class="d-flex align-center w-100">
             <v-btn variant="text" icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
-            <v-btn variant="text" icon="mdi-logout" @click="logout" />
-          </div>
-        </v-list-item>
-        <v-list-item v-if="!isAuthenticated">
-          <div class="d-flex align-center w-100">
-            <v-btn variant="text" icon="mdi-github" href="https://github.com/gorse-io/gitrec" target="_blank" />
-            <v-btn variant="text" icon="mdi-login" @click="goTo('/login')" />
+            <v-btn v-if="isAuthenticated" variant="text" icon="mdi-logout" @click="logout" />
+            <v-btn v-if="!isAuthenticated" variant="text" icon="mdi-login" @click="goTo('/login')" />
           </div>
         </v-list-item>
       </v-list>
@@ -29,9 +44,9 @@
         <span class="route-title">GitRec</span>
         <v-spacer />
         <div class="d-none d-md-flex align-center ga-1">
-          <v-btn variant="text" :to="'/'" :active="isExploreRoute" color="white">Explore</v-btn>
-          <v-btn variant="text" :to="'/trending'" :active="isTrendingRoute" color="white">Trending</v-btn>
-          <v-btn v-if="isAuthenticated" variant="text" :to="'/favorites'" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
+          <v-btn variant="text" to="/" :active="isExploreRoute" color="white">Explore</v-btn>
+          <v-btn variant="text" to="/trending" :active="isTrendingRoute" color="white">Trending</v-btn>
+          <v-btn v-if="isAuthenticated" variant="text" to="/favorites" :active="$route.path === '/favorites'" color="white">Favorites</v-btn>
 
           <v-menu location="bottom end">
             <template #activator="{ props }">
@@ -41,18 +56,10 @@
             </template>
             <v-list density="compact">
               <v-list-item
-                title="Chrome Extension"
-                href="https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl"
-                target="_blank"
-              />
-              <v-list-item
-                title="Edge Add-on"
-                href="https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa"
-                target="_blank"
-              />
-              <v-list-item
-                title="Firefox Add-on"
-                href="https://addons.mozilla.org/addon/gitrec/"
+                v-for="ext in extensions"
+                :key="ext.name"
+                :title="ext.name"
+                :href="ext.url"
                 target="_blank"
               />
             </v-list>
@@ -117,47 +124,54 @@
 </template>
 
 <script>
-import axios from "axios";
+import authMixin from "../mixins/authMixin";
+
+const TOPICS = [
+  "all",
+  "ai",
+  "python",
+  "java",
+  "cpp",
+  "go",
+  "javascript",
+  "typescript",
+  "c",
+  "rust",
+];
+
+const LANGUAGES = [
+  "all",
+  "hackernews",
+  "python",
+  "java",
+  "cpp",
+  "go",
+  "javascript",
+  "typescript",
+  "c",
+  "rust",
+];
+
+const EXTENSIONS = [
+  { name: "Chrome Extension", icon: "mdi-google-chrome", url: "https://chrome.google.com/webstore/detail/gitrec/eihokbaeiebdenibjophfipedicippfl" },
+  { name: "Edge Add-on", icon: "mdi-microsoft-edge", url: "https://microsoftedge.microsoft.com/addons/detail/gitrec/cpcfbfpnagiffgpmfljmcdokmfjffdpa" },
+  { name: "Firefox Add-on", icon: "mdi-firefox", url: "https://addons.mozilla.org/addon/gitrec/" },
+];
 
 export default {
+  mixins: [authMixin],
   data() {
     return {
       drawer: false,
-      isAuthenticated: false,
-      topics: [
-        "all",
-        "ai",
-        "python",
-        "java",
-        "cpp",
-        "go",
-        "javascript",
-        "typescript",
-        "c",
-        "rust",
-      ],
-      languages: [
-        "all",
-        "hackernews",
-        "python",
-        "java",
-        "cpp",
-        "go",
-        "javascript",
-        "typescript",
-        "c",
-        "rust",
-      ],
+      topics: TOPICS,
+      languages: LANGUAGES,
+      extensions: EXTENSIONS,
     };
   },
   computed: {
     routeTitle() {
-      if (this.isTrendingRoute) {
-        return "Trending";
-      }
-      if (this.isExploreRoute) {
-        return "Explore";
-      }
+      if (this.isTrendingRoute) return "Trending";
+      if (this.isExploreRoute) return "Explore";
       return this.$route.name;
     },
     isExploreRoute() {
@@ -172,49 +186,11 @@ export default {
     activeLanguage() {
       return this.$route.params.language || "all";
     },
-    // Filter topics: hide 'ai' for anonymous users
     visibleTopics() {
-      if (this.isAuthenticated) {
-        return this.topics;
-      }
-      return this.topics.filter(topic => topic !== "ai");
+      return this.isAuthenticated ? this.topics : this.topics.filter(t => t !== "ai");
     },
-  },
-  async mounted() {
-    await this.checkAuth();
   },
   methods: {
-    async checkAuth() {
-      const cached = localStorage.getItem("gitrec_auth_state");
-      if (cached) {
-        try {
-          const { is_authenticated, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 5 * 60 * 1000) {
-            this.isAuthenticated = is_authenticated;
-            return;
-          }
-        } catch (error) {
-          localStorage.removeItem("gitrec_auth_state");
-        }
-      }
-      
-      try {
-        const response = await axios.get("/api/me", { withCredentials: true });
-        this.isAuthenticated = response.data.is_authenticated;
-        if (this.isAuthenticated) {
-          localStorage.setItem("gitrec_auth_state", JSON.stringify({
-            is_authenticated: true,
-            login: response.data.login,
-            timestamp: Date.now()
-          }));
-        } else {
-          localStorage.removeItem("gitrec_auth_state");
-        }
-      } catch (error) {
-        localStorage.removeItem("gitrec_auth_state");
-        this.isAuthenticated = false;
-      }
-    },
     goTo(path) {
       this.drawer = false;
       if (this.$route.path !== path) {
@@ -230,21 +206,11 @@ export default {
     topicLabel(topic) {
       return topic.replace("-", " ").toUpperCase();
     },
-    async logout() {
-      try {
-        await axios.get("/api/logout");
-        localStorage.removeItem("gitrec_auth_state");
-        this.isAuthenticated = false;
-        this.$router.push("/");
-      } catch (error) {
-        console.error("Logout failed:", error);
-      }
-    },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .route-title {
   font-weight: 300;
   font-size: 1.2rem;
