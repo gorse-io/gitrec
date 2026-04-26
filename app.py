@@ -372,8 +372,20 @@ def get_repo(category: str = ""):
         if not trending_data:
             return Response("No trending repositories available", status=404)
         
+        # Filter out already read repos from session
+        read_repos = session.get("read_repos", [])
+        available_repos = [
+            repo for repo in trending_data 
+            if repo.get("full_name", "").replace("/", ":").lower() not in read_repos
+        ]
+        
+        # If all repos have been read, reset session and use all trending repos
+        if not available_repos:
+            available_repos = trending_data
+            session["read_repos"] = []
+        
         # Randomly select a trending repo
-        random_repo = random.choice(trending_data)
+        random_repo = random.choice(available_repos)
         full_name = random_repo.get("full_name", "")
         repo_id = full_name.replace("/", ":").lower()
         
@@ -486,17 +498,28 @@ def like_repo(repo_name: str):
 
 
 @app.route("/api/read/<repo_name>", methods=["POST"])
-@login_required
 def read_repo(repo_name: str):
     """
     Insert a "read" feedback.
+    For logged-in users: insert to Gorse.
+    For anonymous users: save to session.
     """
-    try:
-        return gorse_client.insert_feedback(
-            "read", current_user.login, repo_name.lower(), datetime.now().isoformat(), 1
-        )
-    except gorse.GorseException as e:
-        return Response(e.message, status=e.status_code)
+    repo_name = repo_name.lower()
+    
+    if current_user.is_authenticated:
+        try:
+            return gorse_client.insert_feedback(
+                "read", current_user.login, repo_name, datetime.now().isoformat(), 1
+            )
+        except gorse.GorseException as e:
+            return Response(e.message, status=e.status_code)
+    else:
+        # For anonymous users, save read repos in session
+        read_repos = session.get("read_repos", [])
+        if repo_name not in read_repos:
+            read_repos.append(repo_name)
+            session["read_repos"] = read_repos
+        return Response(json.dumps({"success": True}), mimetype="application/json")
 
 
 @app.route("/api/delete/<repo_name>", methods=["POST"])
