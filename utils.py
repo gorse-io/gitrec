@@ -1,9 +1,10 @@
 import datetime
+import json
 import logging
 import os
 import re
 import sys
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any
 
 import pytz
 import requests
@@ -11,7 +12,7 @@ from dateutil import parser
 from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
-from sqlalchemy import Column, String, Integer, DateTime, JSON
+from sqlalchemy import Column, String, Integer, DateTime, JSON, Text
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
 from pydantic import BaseModel
@@ -75,6 +76,67 @@ class User(Base):
     login = Column(String)
     pulled_at = Column(DateTime)
 
+
+
+class KvCache(Base):
+    """Key-value cache model for storing API responses."""
+    __tablename__ = 'kv_cache'
+
+    k = Column(String(256), primary_key=True)
+    v = Column(Text, nullable=False)
+    expire = Column(DateTime, nullable=False)
+
+    DEFAULT_EXPIRY_HOURS = 24
+
+    def is_expired(self) -> bool:
+        """Check if cache entry has expired."""
+        return self.expire < datetime.datetime.utcnow()
+
+
+def get_cached(k: str) -> Optional[Any]:
+    """Get cached data by key. Returns None if not found or expired."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+
+    try:
+        cache = session.query(KvCache).filter(KvCache.k == k).first()
+        if cache and not cache.is_expired():
+            return json.loads(cache.v)
+        return None
+    finally:
+        session.close()
+
+
+def save_cache(k: str, v: Any, expiry_hours: int = KvCache.DEFAULT_EXPIRY_HOURS) -> None:
+    """Save data to cache with optional expiry time in hours."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+
+    engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
+    Session = sessionmaker()
+    Session.configure(bind=engine)
+    session = Session()
+
+    try:
+        cache = session.query(KvCache).filter(KvCache.k == k).first()
+        expire_time = datetime.datetime.utcnow() + datetime.timedelta(hours=expiry_hours)
+        if cache:
+            cache.v = json.dumps(v)
+            cache.expire = expire_time
+        else:
+            cache = KvCache(k=k, v=json.dumps(v), expire=expire_time)
+            session.add(cache)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 class GraphQLGitHub:
     """

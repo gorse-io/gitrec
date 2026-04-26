@@ -88,6 +88,24 @@ def insert_trending():
     )
 
 
+def cleanup_expired_cache():
+    """
+    Clean up expired KV cache entries.
+    """
+    session = Session()
+    try:
+        expired_count = session.query(KvCache).filter(
+            KvCache.expire < datetime.datetime.utcnow()
+        ).delete(synchronize_session=False)
+        session.commit()
+        logger.info(f"Cleaned up {expired_count} expired cache entries")
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
 def insert_trending_entry():
     try:
         insert_trending()
@@ -130,13 +148,16 @@ def insert_users_entry():
 @click.command()
 @click.option("--update-users", is_flag=True)
 @click.option("--insert-trending", is_flag=True)
-def main(update_users: bool, insert_trending: bool):
+@click.option("--cleanup-cache", is_flag=True)
+def main(update_users: bool, insert_trending: bool, cleanup_cache: bool):
     threads = []
-    run_all = update_users is False and insert_trending is False
+    run_all = update_users is False and insert_trending is False and cleanup_cache is False
     if run_all or insert_trending:
         threads.append(Thread(target=insert_trending_entry))
     if run_all or update_users:
         threads.append(Thread(target=insert_users_entry))
+    if run_all or cleanup_cache:
+        threads.append(Thread(target=cleanup_expired_cache))
     for thread in threads:
         thread.start()
     for thread in threads:

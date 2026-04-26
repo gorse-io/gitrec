@@ -5,7 +5,7 @@ import logging
 import requests
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import asciidoc3
@@ -34,6 +34,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull, upsert
+from utils import Base, get_cached, save_cache
 
 # create flask app
 app = Flask(__name__, static_folder="./frontend/dist", static_url_path="/")
@@ -53,6 +54,7 @@ db = SQLAlchemy(app)
 class OAuth(OAuthConsumerMixin, UserMixin, db.Model):
     login = db.Column(db.String(256), unique=True, nullable=False)
     pulled_at = db.Column(db.DateTime())
+
 
 
 # setup SQLAlchemy backend
@@ -144,11 +146,21 @@ def get_trending():
     """Fetch trending repositories from GitHub Trending API."""
     language = request.args.get("language", "all")
     since = request.args.get("since", "daily")
+
+    # Check cache first (cache key: trending:{language}:{since})
+    cache_key = f"api:trending:{language}:{since}"
+    cached = get_cached(cache_key)
+    if cached is not None:
+        response = make_response(cached)
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
+
+    # Fetch from GitHub Trending API
     url = (
         "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/"
         f"data/{since}/{language}.json"
     )
-    
+
     try:
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
@@ -172,6 +184,9 @@ def get_trending():
             f"Unexpected trending items type: {type(repos).__name__}"
         )
         return {"error": "Unexpected trending repositories response"}, 502
+
+    # Save to cache (1 hour expiry for trending data)
+    save_cache(cache_key, repos, expiry_hours=1)
 
     response = make_response(repos)
     response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
@@ -220,6 +235,14 @@ def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
 @app.route("/api/hackernews")
 def get_hackernews():
     """Fetch GitHub repositories from Hacker News"""
+    # Check cache first
+    cache_key = "api:hackernews:showstories"
+    cached = get_cached(cache_key)
+    if cached is not None:
+        response = make_response(cached)
+        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+        return response
+
     try:
         # Get top stories from Hacker News
         topstories_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
@@ -231,7 +254,12 @@ def get_hackernews():
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             repos = list(executor.map(fetch_hackernews_repo, story_ids[:50]))
 
-        response = make_response([repo for repo in repos if repo is not None])
+        result = [repo for repo in repos if repo is not None]
+
+        # Save to cache (1 hour expiry)
+        save_cache(cache_key, result, expiry_hours=1)
+
+        response = make_response(result)
         response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
         return response
     except Exception as e:
@@ -272,19 +300,34 @@ def convert_github_blob(url: str) -> str:
 @app.route("/api/repo/<category>")
 @login_required
 def get_repo(category: str = ""):
+    # Get recommended repo
+    repo_id = None
     for _ in range(2):
         try:
             repo_id = gorse_client.get_recommend(current_user.login, category)[0]
-            full_name = repo_id.replace(":", "/")
-            github_client = Github(current_user.token["access_token"])
-            repo = github_client.get_repo(full_name)
-            download_url = repo.get_readme().download_url.lower()
             break
         except UnknownObjectException:
             logging.warn("repo %s not found" % repo_id)
             gorse_client.delete_item(repo_id)
-    # convert readme to html
-    content = repo.get_readme().decoded_content.decode("utf-8")
+    
+    if repo_id is None:
+        return Response("No repository found", status=404)
+
+    # Check cache first
+    cache_key = f"repo:{repo_id}"
+    cached = get_cached(cache_key)
+    if cached is not None:
+        return cached
+
+    # Fetch from GitHub API
+    full_name = repo_id.replace(":", "/")
+    github_client = Github(current_user.token["access_token"])
+    repo = github_client.get_repo(full_name)
+    readme = repo.get_readme()
+    download_url = readme.download_url.lower()
+
+    # Convert readme to html
+    content = readme.decoded_content.decode("utf-8")
     if download_url.endswith(".rst"):
         html = publish_parts(content, writer_name="html")["html_body"]
     elif download_url.endswith((".asciidoc", ".adoc")):
@@ -319,7 +362,8 @@ def get_repo(category: str = ""):
                 )
             elif is_github_blob(src):
                 img.attrs["src"] = convert_github_blob(src)
-    return {
+    
+    result = {
         "item_id": repo_id,
         "full_name": repo.full_name,
         "html_url": repo.html_url,
@@ -331,6 +375,12 @@ def get_repo(category: str = ""):
         "language": repo.language,
         "readme": emoji.emojize(str(soup), use_aliases=True),
     }
+
+    # Save to cache (only for public repos to avoid leaking private content)
+    if not repo.private:
+        save_cache(cache_key, result)
+
+    return result
 
 
 @app.route("/api/favorites")
@@ -568,5 +618,6 @@ if __name__ == "__main__":
     if "--setup" in sys.argv:
         with app.app_context():
             db.create_all()
+            Base.metadata.create_all(bind=db.engine)
             db.session.commit()
             print("Database tables created")
