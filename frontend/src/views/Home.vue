@@ -30,19 +30,19 @@
           </span>
           <a :href="html_url + '/stargazers'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-star</v-icon>
-            {{ stargazers_count }}
+            {{ formatNumber(stargazers_count) }}
           </a>
           <a :href="html_url + '/network/members'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-source-fork</v-icon>
-            {{ forks_count }}
+            {{ formatNumber(forks_count) }}
           </a>
           <a :href="html_url + '/watchers'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-eye</v-icon>
-            {{ subscribers_count }}
+            {{ formatNumber(subscribers_count) }}
           </a>
         </div>
       </div>
-      <Preloader v-if="readme == null && error == null" />
+      <Preloader v-if="loading" />
       <v-alert v-else-if="error" type="error" variant="tonal" class="error-alert">
         <div class="error-alert__content">
           <v-icon start>mdi-alert-circle</v-icon>
@@ -53,20 +53,28 @@
           Retry
         </v-btn>
       </v-alert>
-      <article v-else class="markdown-body" v-html="readme"></article>
+      <article v-else-if="readme" class="markdown-body" v-html="readme"></article>
     </v-container>
 
     <v-btn
       icon
       size="large"
       :color="like_pressed ? 'red' : 'primary'"
+      :loading="likeLoading"
       class="fab-btn fab-like"
       @click="like"
     >
       <v-icon>{{ like_pressed ? "mdi-heart" : "mdi-heart-outline" }}</v-icon>
     </v-btn>
 
-    <v-btn icon size="large" color="primary" class="fab-btn fab-next" @click="next">
+    <v-btn 
+      icon 
+      size="large" 
+      color="primary" 
+      :loading="nextLoading"
+      class="fab-btn fab-next" 
+      @click="next"
+    >
       <v-icon>mdi-play</v-icon>
     </v-btn>
   </div>
@@ -76,118 +84,80 @@
 <script>
 import Preloader from "../components/Preloader.vue";
 import axios from "axios";
+import authMixin from "../mixins/authMixin";
 
 export default {
   components: {
     Preloader
   },
+  mixins: [authMixin],
   data() {
     return {
       like_pressed: false,
-      isAuthenticated: false,
+      likeLoading: false,
+      nextLoading: false,
+      loading: false,
       authChecked: false,
       item_id: null,
       full_name: "",
       html_url: null,
-      stargazers_url: null,
-      forks_url: null,
       stargazers_count: 0,
       forks_count: 0,
       subscribers_count: 0,
       language: "",
       readme: null,
       error: null,
-      primaryColor: "blue darken-1",
-      textColor: "white-text text-lighten-3",
       topic: "",
     };
   },
+  computed: {
+    topicPath() {
+      let path = this.topic;
+      if (path === "/cpp") {
+        path = "/c%2B%2B";
+      }
+      return path;
+    },
+  },
   watch: {
     $route() {
-      if (this.$route.params.topic != null) {
-        this.topic = "/" + this.$route.params.topic;
-      } else {
-        this.topic = "";
-      }
+      this.topic = this.$route.params.topic ? "/" + this.$route.params.topic : "";
       this.clearRepository();
       this.recommend();
     },
   },
   created() {
-    if (this.$route.params.topic != null) {
-      this.topic = "/" + this.$route.params.topic;
-    } else {
-      this.topic = "";
-    }
+    this.topic = this.$route.params.topic ? "/" + this.$route.params.topic : "";
     this.clearRepository();
   },
   async mounted() {
     await this.checkAuth();
+    this.authChecked = true;
     this.recommend();
-    
-    // Listen for auth change events from MainLayout
-    window.addEventListener('gitrec-auth-change', this.handleAuthChange);
-  },
-  beforeUnmount() {
-    window.removeEventListener('gitrec-auth-change', this.handleAuthChange);
   },
   methods: {
-    handleAuthChange(event) {
-      this.isAuthenticated = event.detail.authenticated;
-      if (!this.isAuthenticated) {
-        this.hideLoginPrompt = false;
-      }
-    },
     goToLogin() {
       this.$router.push("/login");
     },
-    async checkAuth() {
-      const cached = localStorage.getItem("gitrec_auth_state");
-      if (cached) {
-        try {
-          const { is_authenticated, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 5 * 60 * 1000) {
-            this.isAuthenticated = is_authenticated;
-            return;
-          }
-        } catch (error) {
-          localStorage.removeItem("gitrec_auth_state");
-        }
+    formatNumber(num) {
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "k";
       }
-      
-      try {
-        const response = await axios.get("/api/me", { withCredentials: true });
-        this.isAuthenticated = response.data.is_authenticated;
-        if (this.isAuthenticated) {
-          localStorage.setItem("gitrec_auth_state", JSON.stringify({
-            is_authenticated: true,
-            login: response.data.login,
-            timestamp: Date.now()
-          }));
-        } else {
-          localStorage.removeItem("gitrec_auth_state");
-        }
-      } catch (error) {
-        this.isAuthenticated = false;
-        localStorage.removeItem("gitrec_auth_state");
-      }
-      this.authChecked = true;
+      return num.toString();
     },
     recommend() {
-      let topic = this.topic;
-      if (topic == "/cpp") {
-        topic = "/c%2B%2B";
-      }
       this.error = null;
-      console.log("/api/repo" + topic);
+      this.loading = true;
       axios
-        .get("/api/repo" + topic, { withCredentials: true })
+        .get("/api/repo" + this.topicPath, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
         })
         .catch((error) => {
           this.error = error.response?.data?.error || "Failed to fetch repository. Please try again.";
-          console.error("Recommend error:", error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     retry() {
@@ -209,6 +179,7 @@ export default {
       this.full_name = "";
       this.readme = null;
       this.error = null;
+      this.loading = false;
       this.stargazers_count = 0;
       this.forks_count = 0;
       this.subscribers_count = 0;
@@ -220,39 +191,45 @@ export default {
         this.$router.push("/login");
         return;
       }
+      this.likeLoading = true;
       axios
-        .post("/api/like/" + this.item_id, { withCredentials: true })
+        .post("/api/like/" + this.item_id, null, { withCredentials: true })
         .then(() => {
           this.like_pressed = true;
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to like repository.";
+        })
+        .finally(() => {
+          this.likeLoading = false;
         });
     },
     next() {
+      if (!this.item_id) return;
+      
+      this.nextLoading = true;
       this.error = null;
       axios
-        .post("/api/read/" + this.item_id, { withCredentials: true })
+        .post("/api/read/" + this.item_id, null, { withCredentials: true })
         .then(() => {
-          // load next repo
           this.clearRepository();
-          axios
-            .get("/api/repo" + this.topic, { withCredentials: true })
-            .then((response) => {
-              this.setRepository(response.data);
-            })
-            .catch((error) => {
-              this.error = error.response?.data?.error || "Failed to fetch repository. Please try again.";
-              console.error("Next repo error:", error);
-            });
+          return axios.get("/api/repo" + this.topicPath, { withCredentials: true });
+        })
+        .then((response) => {
+          this.setRepository(response.data);
         })
         .catch((error) => {
-          this.error = error.response?.data?.error || "Failed to mark as read. Please try again.";
-          console.error("Read error:", error);
+          this.error = error.response?.data?.error || "Failed to fetch next repository.";
+        })
+        .finally(() => {
+          this.nextLoading = false;
         });
     },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .login-alert {
   cursor: pointer;
 }
@@ -282,10 +259,7 @@ export default {
   min-width: 200px;
   max-width: 980px;
   margin: 0 auto;
-  padding-left: 45px;
-  padding-right: 45px;
-  padding-top: 20px;
-  padding-bottom: 45px;
+  padding: 20px 45px 45px;
 }
 
 @media (max-width: 767px) {
@@ -296,9 +270,7 @@ export default {
 }
 
 .repo-header {
-  padding-top: 10px;
-  padding-left: 45px;
-  padding-right: 45px;
+  padding: 10px 45px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -308,9 +280,7 @@ export default {
 
 @media (max-width: 767px) {
   .repo-header {
-    padding-top: 10px;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 10px 15px 0;
   }
 }
 
