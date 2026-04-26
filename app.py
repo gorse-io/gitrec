@@ -493,7 +493,9 @@ def get_neighbors(repo_name: str):
         n = int(request.args.get("n", default="3"))
         offset = int(request.args.get("offset", default="0"))
         repo_names = gorse_client.get_neighbors(repo_name.lower(), n, offset)
-        return Response(json.dumps(repo_names), mimetype="application/json")
+        response = Response(json.dumps(repo_names), mimetype="application/json")
+        response.headers["Cache-Control"] = "public, max-age=3600"
+        return response
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
@@ -505,10 +507,13 @@ def get_neighbors_v2(repo_name: str):
         offset = int(request.args.get("offset", default="0"))
         scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
         if not current_user.is_authenticated:
-            return Response(
+            response = Response(
                 json.dumps({"is_authenticated": False, "scores": scores}),
                 mimetype="application/json",
             )
+            response.headers["Cache-Control"] = "private, max-age=3600"
+            response.headers["Vary"] = "Cookie"
+            return response
         else:
             # Upsert the repository if it doesn't exist in Gorse.
             if len(scores) == 0:
@@ -519,7 +524,7 @@ def get_neighbors_v2(repo_name: str):
                         upsert.delay(current_user.token["access_token"], repo_name.replace(":", "/"))
 
             github_client = Github(current_user.token["access_token"])
-            return Response(
+            response = Response(
                 json.dumps(
                     {
                         "is_authenticated": True,
@@ -531,6 +536,9 @@ def get_neighbors_v2(repo_name: str):
                 ),
                 mimetype="application/json",
             )
+            response.headers["Cache-Control"] = "private, max-age=3600"
+            response.headers["Vary"] = "Cookie"
+            return response
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
 
