@@ -360,7 +360,8 @@ def get_neighbors_v2(repo_name: str):
                 json.dumps({"is_authenticated": False, "scores": scores}),
                 mimetype="application/json",
             )
-            response.headers["Cache-Control"] = "public, max-age=3600"
+            response.headers["Cache-Control"] = "private, max-age=3600"
+            response.headers["Vary"] = "Cookie"
             return response
         else:
             # Upsert the repository if it doesn't exist in Gorse.
@@ -384,7 +385,8 @@ def get_neighbors_v2(repo_name: str):
                 ),
                 mimetype="application/json",
             )
-            response.headers["Cache-Control"] = "public, max-age=3600"
+            response.headers["Cache-Control"] = "private, max-age=3600"
+            response.headers["Vary"] = "Cookie"
             return response
     except gorse.GorseException as e:
         return Response(e.message, status=e.status_code)
