@@ -277,6 +277,7 @@ def page_not_found(e):
 @app.route("/api/me")
 def get_me():
     if current_user.is_authenticated:
+        session.permanent = True  # Refresh session on auth check
         return Response(
             json.dumps({"is_authenticated": True, "login": current_user.login}),
             mimetype="application/json"
