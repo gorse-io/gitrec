@@ -6,12 +6,11 @@
         <v-list-item title="Trending" :active="isTrendingRoute" @click="goTo('/trending')" />
         <v-list-item v-if="isAuthenticated" title="Favorites" :active="$route.path === '/favorites'" @click="goTo('/favorites')" />
         
-        <v-list-group value="extensions">
+        <v-list-group class="extensions-list-group" value="extensions">
           <template #activator="{ props }">
             <v-list-item
               v-bind="props"
               title="Extensions"
-              prepend-icon="mdi-puzzle"
             />
           </template>
           
@@ -19,7 +18,6 @@
             v-for="ext in extensions"
             :key="ext.name"
             :title="ext.name"
-            :prepend-icon="ext.icon"
             :href="ext.url"
             target="_blank"
           />
@@ -224,5 +222,9 @@ export default {
 .topic-tabs-container {
   padding-top: 0;
   padding-bottom: 0;
+}
+
+.extensions-list-group :deep(.v-list-group__items) {
+  --indent-padding: 0px;
 }
 </style>

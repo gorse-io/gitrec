@@ -2,7 +2,7 @@
   <div>
     <!-- Login prompt for anonymous users -->
     <v-alert
-      v-if="authChecked && !isAuthenticated"
+      v-if="authChecked && !isAuthenticated && !error"
       type="info"
       variant="tonal"
       class="login-alert"
@@ -17,7 +17,13 @@
       </div>
     </v-alert>
 
-    <v-container>
+    <v-alert v-if="!loading && error" type="error" variant="tonal">
+      <div class="login-alert__text">
+        {{ error }}
+      </div>
+    </v-alert>
+
+    <v-container v-else>
       <div v-if="full_name" class="repo-header">
         <a :href="html_url" target="_blank" class="repo-link">
           <v-icon size="18">mdi-link-variant</v-icon>
@@ -43,17 +49,7 @@
         </div>
       </div>
       <Preloader v-if="loading" />
-      <v-alert v-else-if="error" type="error" variant="tonal" class="error-alert">
-        <div class="error-alert__content">
-          <v-icon start>mdi-alert-circle</v-icon>
-          {{ error }}
-        </div>
-        <v-btn color="error" variant="text" @click="retry" class="retry-btn">
-          <v-icon start>mdi-refresh</v-icon>
-          Retry
-        </v-btn>
-      </v-alert>
-      <article v-else-if="readme" class="markdown-body" v-html="readme"></article>
+      <article v-else-if="!error && readme" class="markdown-body" v-html="readme"></article>
     </v-container>
 
     <v-btn
@@ -148,7 +144,7 @@ export default {
     recommend() {
       this.error = null;
       this.loading = true;
-      axios
+      return axios
         .get("/api/repo" + this.topicPath, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
@@ -159,10 +155,6 @@ export default {
         .finally(() => {
           this.loading = false;
         });
-    },
-    retry() {
-      this.clearRepository();
-      this.recommend();
     },
     setRepository(repo) {
       this.item_id = repo.item_id;
@@ -206,17 +198,14 @@ export default {
     },
     next() {
       if (!this.item_id) return;
-      
+
       this.nextLoading = true;
       this.error = null;
       axios
         .post("/api/read/" + this.item_id, null, { withCredentials: true })
         .then(() => {
           this.clearRepository();
-          return axios.get("/api/repo" + this.topicPath, { withCredentials: true });
-        })
-        .then((response) => {
-          this.setRepository(response.data);
+          return this.recommend();
         })
         .catch((error) => {
           this.error = error.response?.data?.error || "Failed to fetch next repository.";
@@ -237,21 +226,6 @@ export default {
 .login-alert__text {
   white-space: normal;
   line-height: 1.5;
-}
-
-.error-alert {
-  margin: 20px auto;
-  max-width: 600px;
-}
-
-.error-alert__content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.retry-btn {
-  margin-top: 12px;
 }
 
 .markdown-body {

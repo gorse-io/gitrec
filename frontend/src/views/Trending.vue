@@ -1,9 +1,15 @@
 <template>
   <div>
-    <v-container>
+    <v-alert v-if="!loading && error" type="error" variant="tonal">
+      <div class="login-alert__text">
+        {{ error }}
+      </div>
+    </v-alert>
+
+    <v-container v-else>
       <Preloader v-if="loading" />
 
-      <v-list v-else class="repo-list" lines="one">
+      <v-list v-else-if="!error" class="repo-list" lines="one">
         <v-list-item
           v-for="repo in repos"
           :key="repo.id || repo.url || repo.title || repo.full_name"
@@ -97,6 +103,7 @@ export default {
       loading: true,
       repos: [],
       language: "",
+      error: null,
     };
   },
   computed: {
@@ -119,6 +126,8 @@ export default {
   methods: {
     fetchTrending() {
       this.loading = true;
+      this.error = null;
+      this.repos = [];
       
       if (this.isHackerNews) {
         // Fetch Hacker News stories with GitHub repos
@@ -136,10 +145,11 @@ export default {
           .get("/api/trending?" + params.toString(), { withCredentials: true })
           .then((response) => {
             this.repos = response.data;
-            this.loading = false;
           })
           .catch((error) => {
-            console.error("Error fetching trending:", error);
+            this.error = error.response?.data?.error || "Failed to fetch trending repositories.";
+          })
+          .finally(() => {
             this.loading = false;
           });
       }
@@ -149,10 +159,11 @@ export default {
         .get("/api/hackernews", { withCredentials: true })
         .then((response) => {
           this.repos = response.data;
-          this.loading = false;
         })
         .catch((error) => {
-          console.error("Error fetching Hacker News:", error);
+          this.error = error.response?.data?.error || "Failed to fetch Hacker News repositories.";
+        })
+        .finally(() => {
           this.loading = false;
         });
     },
@@ -232,6 +243,11 @@ export default {
 </script>
 
 <style>
+.login-alert__text {
+  white-space: normal;
+  line-height: 1.5;
+}
+
 .repo-list {
   padding: 0;
 }

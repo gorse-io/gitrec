@@ -1,33 +1,41 @@
 <template>
-  <v-container>
-    <Preloader v-if="feedbacks == null" />
-    <div v-else>
-      <v-list class="feedback-list" lines="one">
-        <v-list-item
-          v-for="feedback in pageFeedbacks"
-          :key="feedback.FeedbackType + feedback.ItemId"
-          :href="'https://github.com/' + feedback.ItemId"
-          target="_blank"
-          rounded="lg"
-          class="feedback-item"
-        >
-          <template #prepend>
-            <v-icon size="18" class="feedback-icon">{{ feedbackIcon(feedback.FeedbackType) }}</v-icon>
-          </template>
-
-          <v-list-item-title>{{ feedback.ItemId }}</v-list-item-title>
-
-          <template #append>
-            <span class="feedback-time">{{ formatTime(feedback.Timestamp) }}</span>
-          </template>
-        </v-list-item>
-      </v-list>
-
-      <div v-if="numPage > 1" class="d-flex justify-center my-4">
-        <v-pagination v-model="currentPage" :length="numPage" :total-visible="7" color="primary" />
+  <div>
+    <v-alert v-if="feedbacks != null && error" type="error" variant="tonal">
+      <div class="login-alert__text">
+        {{ error }}
       </div>
-    </div>
-  </v-container>
+    </v-alert>
+
+    <v-container v-else>
+      <Preloader v-if="feedbacks == null" />
+      <div v-else>
+        <v-list class="feedback-list" lines="one">
+          <v-list-item
+            v-for="feedback in pageFeedbacks"
+            :key="feedback.FeedbackType + feedback.ItemId"
+            :href="'https://github.com/' + feedback.ItemId"
+            target="_blank"
+            rounded="lg"
+            class="feedback-item"
+          >
+            <template #prepend>
+              <v-icon size="18" class="feedback-icon">{{ feedbackIcon(feedback.FeedbackType) }}</v-icon>
+            </template>
+
+            <v-list-item-title>{{ feedback.ItemId }}</v-list-item-title>
+
+            <template #append>
+              <span class="feedback-time">{{ formatTime(feedback.Timestamp) }}</span>
+            </template>
+          </v-list-item>
+        </v-list>
+
+        <div v-if="numPage > 1" class="d-flex justify-center my-4">
+          <v-pagination v-model="currentPage" :length="numPage" :total-visible="7" color="primary" />
+        </div>
+      </div>
+    </v-container>
+  </div>
 </template>
 
 <script>
@@ -45,14 +53,26 @@ export default {
     return {
       currentPage: 1,
       feedbacks: null,
+      error: null,
     };
   },
   mounted() {
-    axios.get("/api/favorites", { withCredentials: true }).then((response) => {
-      this.feedbacks = response.data;
-    });
+    this.fetchFavorites();
   },
   methods: {
+    fetchFavorites() {
+      this.error = null;
+      this.feedbacks = null;
+      axios
+        .get("/api/favorites", { withCredentials: true })
+        .then((response) => {
+          this.feedbacks = response.data;
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to fetch favorites.";
+          this.feedbacks = [];
+        });
+    },
     formatTime(timestamp) {
       return timeago.format(timestamp);
     },
@@ -78,6 +98,11 @@ export default {
 </script>
 
 <style>
+.login-alert__text {
+  white-space: normal;
+  line-height: 1.5;
+}
+
 .feedback-icon {
   font-size: 16px;
   vertical-align: middle;
