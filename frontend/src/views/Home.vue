@@ -2,7 +2,7 @@
   <div>
     <!-- Login prompt for anonymous users -->
     <v-alert
-      v-if="authChecked && !isAuthenticated"
+      v-if="authChecked && !isAuthenticated && !error"
       type="info"
       variant="tonal"
       class="login-alert"
@@ -17,7 +17,13 @@
       </div>
     </v-alert>
 
-    <v-container>
+    <v-alert v-if="!loading && error" type="error" variant="tonal">
+      <div class="login-alert__text">
+        {{ error }}
+      </div>
+    </v-alert>
+
+    <v-container v-else>
       <div v-if="full_name" class="repo-header">
         <a :href="html_url" target="_blank" class="repo-link">
           <v-icon size="18">mdi-link-variant</v-icon>
@@ -30,33 +36,41 @@
           </span>
           <a :href="html_url + '/stargazers'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-star</v-icon>
-            {{ stargazers_count }}
+            {{ formatNumber(stargazers_count) }}
           </a>
           <a :href="html_url + '/network/members'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-source-fork</v-icon>
-            {{ forks_count }}
+            {{ formatNumber(forks_count) }}
           </a>
           <a :href="html_url + '/watchers'" target="_blank" class="repo-meta-link">
             <v-icon size="16">mdi-eye</v-icon>
-            {{ subscribers_count }}
+            {{ formatNumber(subscribers_count) }}
           </a>
         </div>
       </div>
-      <Preloader v-if="readme == null" />
-      <article v-else class="markdown-body" v-html="readme"></article>
+      <Preloader v-if="loading" />
+      <article v-else-if="!error && readme" class="markdown-body" v-html="readme"></article>
     </v-container>
 
     <v-btn
       icon
       size="large"
       :color="like_pressed ? 'red' : 'primary'"
+      :loading="likeLoading"
       class="fab-btn fab-like"
       @click="like"
     >
       <v-icon>{{ like_pressed ? "mdi-heart" : "mdi-heart-outline" }}</v-icon>
     </v-btn>
 
-    <v-btn icon size="large" color="primary" class="fab-btn fab-next" @click="next">
+    <v-btn 
+      icon 
+      size="large" 
+      color="primary" 
+      :loading="nextLoading"
+      class="fab-btn fab-next" 
+      @click="next"
+    >
       <v-icon>mdi-play</v-icon>
     </v-btn>
   </div>
@@ -66,100 +80,80 @@
 <script>
 import Preloader from "../components/Preloader.vue";
 import axios from "axios";
+import authMixin from "../mixins/authMixin";
 
 export default {
   components: {
     Preloader
   },
+  mixins: [authMixin],
   data() {
     return {
       like_pressed: false,
-      isAuthenticated: false,
+      likeLoading: false,
+      nextLoading: false,
+      loading: false,
       authChecked: false,
       item_id: null,
       full_name: "",
       html_url: null,
-      stargazers_url: null,
-      forks_url: null,
       stargazers_count: 0,
       forks_count: 0,
       subscribers_count: 0,
       language: "",
       readme: null,
-      primaryColor: "blue darken-1",
-      textColor: "white-text text-lighten-3",
+      error: null,
       topic: "",
     };
   },
+  computed: {
+    topicPath() {
+      let path = this.topic;
+      if (path === "/cpp") {
+        path = "/c%2B%2B";
+      }
+      return path;
+    },
+  },
   watch: {
     $route() {
-      if (this.$route.params.topic != null) {
-        this.topic = "/" + this.$route.params.topic;
-      } else {
-        this.topic = "";
-      }
+      this.topic = this.$route.params.topic ? "/" + this.$route.params.topic : "";
       this.clearRepository();
       this.recommend();
     },
   },
   created() {
-    if (this.$route.params.topic != null) {
-      this.topic = "/" + this.$route.params.topic;
-    } else {
-      this.topic = "";
-    }
+    this.topic = this.$route.params.topic ? "/" + this.$route.params.topic : "";
     this.clearRepository();
   },
   async mounted() {
     await this.checkAuth();
+    this.authChecked = true;
     this.recommend();
   },
   methods: {
     goToLogin() {
       this.$router.push("/login");
     },
-    async checkAuth() {
-      const cached = localStorage.getItem("gitrec_auth_state");
-      if (cached) {
-        try {
-          const { is_authenticated, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < 5 * 60 * 1000) {
-            this.isAuthenticated = is_authenticated;
-            return;
-          }
-        } catch (error) {
-          localStorage.removeItem("gitrec_auth_state");
-        }
+    formatNumber(num) {
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "k";
       }
-      
-      try {
-        const response = await axios.get("/api/me", { withCredentials: true });
-        this.isAuthenticated = response.data.is_authenticated;
-        if (this.isAuthenticated) {
-          localStorage.setItem("gitrec_auth_state", JSON.stringify({
-            is_authenticated: true,
-            login: response.data.login,
-            timestamp: Date.now()
-          }));
-        } else {
-          localStorage.removeItem("gitrec_auth_state");
-        }
-      } catch (error) {
-        this.isAuthenticated = false;
-        localStorage.removeItem("gitrec_auth_state");
-      }
-      this.authChecked = true;
+      return num.toString();
     },
     recommend() {
-      let topic = this.topic;
-      if (topic == "/cpp") {
-        topic = "/c%2B%2B";
-      }
-      console.log("/api/repo" + topic);
-      axios
-        .get("/api/repo" + topic, { withCredentials: true })
+      this.error = null;
+      this.loading = true;
+      return axios
+        .get("/api/repo" + this.topicPath, { withCredentials: true })
         .then((response) => {
           this.setRepository(response.data);
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to fetch repository. Please try again.";
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     setRepository(repo) {
@@ -176,6 +170,8 @@ export default {
       this.item_id = null;
       this.full_name = "";
       this.readme = null;
+      this.error = null;
+      this.loading = false;
       this.stargazers_count = 0;
       this.forks_count = 0;
       this.subscribers_count = 0;
@@ -187,30 +183,42 @@ export default {
         this.$router.push("/login");
         return;
       }
+      this.likeLoading = true;
       axios
-        .post("/api/like/" + this.item_id, { withCredentials: true })
+        .post("/api/like/" + this.item_id, null, { withCredentials: true })
         .then(() => {
           this.like_pressed = true;
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to like repository.";
+        })
+        .finally(() => {
+          this.likeLoading = false;
         });
     },
     next() {
+      if (!this.item_id) return;
+
+      this.nextLoading = true;
+      this.error = null;
       axios
-        .post("/api/read/" + this.item_id, { withCredentials: true })
+        .post("/api/read/" + this.item_id, null, { withCredentials: true })
         .then(() => {
-          // load next repo
           this.clearRepository();
-          axios
-            .get("/api/repo" + this.topic, { withCredentials: true })
-            .then((response) => {
-              this.setRepository(response.data);
-            });
+          return this.recommend();
+        })
+        .catch((error) => {
+          this.error = error.response?.data?.error || "Failed to fetch next repository.";
+        })
+        .finally(() => {
+          this.nextLoading = false;
         });
     },
   },
 };
 </script>
 
-<style>
+<style scoped>
 .login-alert {
   cursor: pointer;
 }
@@ -225,10 +233,7 @@ export default {
   min-width: 200px;
   max-width: 980px;
   margin: 0 auto;
-  padding-left: 45px;
-  padding-right: 45px;
-  padding-top: 20px;
-  padding-bottom: 45px;
+  padding: 20px 45px 45px;
 }
 
 @media (max-width: 767px) {
@@ -239,9 +244,7 @@ export default {
 }
 
 .repo-header {
-  padding-top: 10px;
-  padding-left: 45px;
-  padding-right: 45px;
+  padding: 10px 45px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -251,9 +254,7 @@ export default {
 
 @media (max-width: 767px) {
   .repo-header {
-    padding-top: 10px;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding: 10px 15px 0;
   }
 }
 
