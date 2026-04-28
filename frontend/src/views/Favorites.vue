@@ -30,8 +30,13 @@
           </v-list-item>
         </v-list>
 
-        <div v-if="numPage > 1" class="d-flex justify-center my-4">
-          <v-pagination v-model="currentPage" :length="numPage" :total-visible="7" color="primary" />
+        <div v-if="numPage > 1" class="pagination-wrapper d-flex justify-center my-4">
+          <v-pagination
+            v-model="currentPage"
+            :length="numPage"
+            :total-visible="paginationVisibleCount"
+            color="primary"
+          />
         </div>
       </div>
     </v-container>
@@ -54,12 +59,20 @@ export default {
       currentPage: 1,
       feedbacks: null,
       error: null,
+      viewportWidth: typeof window === "undefined" ? 1024 : window.innerWidth,
     };
   },
   mounted() {
+    window.addEventListener("resize", this.handleResize);
     this.fetchFavorites();
   },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.handleResize);
+  },
   methods: {
+    handleResize() {
+      this.viewportWidth = window.innerWidth;
+    },
     fetchFavorites() {
       this.error = null;
       this.feedbacks = null;
@@ -81,6 +94,15 @@ export default {
     },
   },
   computed: {
+    paginationVisibleCount: function () {
+      if (this.viewportWidth < 420) {
+        return 3;
+      }
+      if (this.viewportWidth < 600) {
+        return 5;
+      }
+      return 7;
+    },
     numPage: function () {
       if (this.feedbacks == null) {
         return 0;
@@ -116,5 +138,10 @@ export default {
 .feedback-time {
   color: #6b7280;
   font-size: 0.875rem;
+}
+
+.pagination-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
 }
 </style>
