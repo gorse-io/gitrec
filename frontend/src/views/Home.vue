@@ -2,7 +2,7 @@
   <div>
     <!-- Login prompt for anonymous users -->
     <v-alert
-      v-if="!isAuthenticated && !hideLoginPrompt"
+      v-if="authChecked && !isAuthenticated"
       type="info"
       variant="tonal"
       class="login-alert"
@@ -75,7 +75,7 @@ export default {
     return {
       like_pressed: false,
       isAuthenticated: false,
-      hideLoginPrompt: false,
+      authChecked: false,
       item_id: null,
       full_name: "",
       html_url: null,
@@ -148,6 +148,7 @@ export default {
         this.isAuthenticated = false;
         localStorage.removeItem("gitrec_auth_state");
       }
+      this.authChecked = true;
     },
     recommend() {
       let topic = this.topic;
