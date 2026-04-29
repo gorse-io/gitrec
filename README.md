@@ -6,6 +6,7 @@
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fgitrec.gorse.io)](https://gitrec.gorse.io)
 [![Discord](https://img.shields.io/discord/830635934210588743)](https://discord.gg/x6gAtNNkAE)
 [![Twitter Follow](https://img.shields.io/twitter/follow/gorse_io?label=Follow&style=social)](https://twitter.com/gorse_io)
+[![Static Badge](https://img.shields.io/badge/LINUX-DO-ffb003?labelColor=1c1c1e)](https://linux.do)
 
 [GitRec](https://gitrec.gorse.io/) is the missing recommender system for GitHub repositories based on [Gorse](https://github.com/zhenghaoz/gorse).
 
@@ -41,6 +42,7 @@
 [![Mozilla Add-on](https://img.shields.io/amo/v/gitrec)](https://addons.mozilla.org/addon/gitrec/)
 [![Mozilla Add-on](https://img.shields.io/amo/users/gitrec)](https://addons.mozilla.org/addon/gitrec/)
 [![Mozilla Add-on](https://img.shields.io/amo/stars/gitrec)](https://addons.mozilla.org/addon/gitrec/)
+[![Static Badge](https://img.shields.io/badge/LINUX-DO-ffb003?labelColor=1c1c1e)](https://linux.do/t/topic/898009)
 
 The browser extension integrates GitHub with GitRec. 
 1. Recommends repositories to GitHub users based on starred repositories.
