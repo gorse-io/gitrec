@@ -13,6 +13,7 @@ from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
 from sqlalchemy import Column, String, Integer, DateTime, JSON, Text
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
 from pydantic import BaseModel
@@ -83,7 +84,7 @@ class KvCache(Base):
     __tablename__ = 'kv_cache'
 
     k = Column(String(256), primary_key=True)
-    v = Column(Text, nullable=False)
+    v = Column(Text().with_variant(LONGTEXT, "mysql"), nullable=False)
     expire = Column(DateTime, nullable=False)
 
     DEFAULT_EXPIRY_HOURS = 24
