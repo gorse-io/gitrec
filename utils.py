@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import sys
-from threading import Lock
 from typing import List, Optional, Tuple, Dict, Any
 
 import pytz
@@ -14,30 +13,12 @@ from github import Github
 from github.GithubException import *
 from gorse import Gorse, GorseException
 from sqlalchemy import Column, String, Integer, DateTime, JSON, Text
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.orm import declarative_base
 from openai import OpenAI
 from pydantic import BaseModel
 
 MAX_COMMENT_LENGTH = 512
-_kv_cache_schema_checked = False
-_kv_cache_schema_lock = Lock()
-
-
-def ensure_kv_cache_schema(engine) -> None:
-    """Ensure kv_cache.v can store large payloads in MySQL."""
-    global _kv_cache_schema_checked
-    if _kv_cache_schema_checked:
-        return
-
-    with _kv_cache_schema_lock:
-        if _kv_cache_schema_checked:
-            return
-        if engine.dialect.name == "mysql":
-            with engine.begin() as conn:
-                conn.exec_driver_sql(
-                    "ALTER TABLE kv_cache MODIFY COLUMN v LONGTEXT NOT NULL"
-                )
-        _kv_cache_schema_checked = True
 
 
 openai_client = OpenAI(
@@ -103,7 +84,7 @@ class KvCache(Base):
     __tablename__ = 'kv_cache'
 
     k = Column(String(256), primary_key=True)
-    v = Column(Text, nullable=False)
+    v = Column(Text().with_variant(LONGTEXT, "mysql"), nullable=False)
     expire = Column(DateTime, nullable=False)
 
     DEFAULT_EXPIRY_HOURS = 24
@@ -119,7 +100,6 @@ def get_cached(k: str) -> Optional[Any]:
     from sqlalchemy.orm import sessionmaker
 
     engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
-    ensure_kv_cache_schema(engine)
     Session = sessionmaker()
     Session.configure(bind=engine)
     session = Session()
@@ -139,7 +119,6 @@ def save_cache(k: str, v: Any, expiry_hours: int = KvCache.DEFAULT_EXPIRY_HOURS)
     from sqlalchemy.orm import sessionmaker
 
     engine = create_engine(os.getenv("SQLALCHEMY_DATABASE_URI"))
-    ensure_kv_cache_schema(engine)
     Session = sessionmaker()
     Session.configure(bind=engine)
     session = Session()
