@@ -5,6 +5,7 @@ FROM node:24
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY frontend frontend
 WORKDIR /frontend
+RUN pnpm config set dangerouslyAllowAllBuilds true
 RUN pnpm install && pnpm build
 
 #################################
