@@ -1,4 +1,5 @@
 import concurrent.futures
+import hashlib
 import io
 import json
 import logging
@@ -126,20 +127,40 @@ def set_headers(response):
     return response
 
 
+def make_spa_response():
+    response = make_response(app.send_static_file("index.html"))
+    response.headers["Cache-Control"] = (
+        "public, max-age=0, s-maxage=60, stale-while-revalidate=30"
+    )
+    return response
+
+
+def make_api_cached_response(payload):
+    body = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+    etag = hashlib.sha256(body.encode("utf-8")).hexdigest()
+    if request.headers.get("If-None-Match") == etag:
+        response = Response(status=304)
+    else:
+        response = make_response(payload)
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
+    response.headers["Vary"] = "Accept-Encoding"
+    return response
+
 # Serve SPA for all page routes (CDN-friendly)
 @app.route("/")
 def index():
-    return app.send_static_file("index.html")
+    return make_spa_response()
 
 
 @app.route("/login")
 def login():
-    return app.send_static_file("index.html")
+    return make_spa_response()
 
 
 @app.route("/privacy")
 def privacy():
-    return app.send_static_file("index.html")
+    return make_spa_response()
 
 
 @app.route("/api/trending")
@@ -152,9 +173,7 @@ def get_trending():
     cache_key = f"api:trending:{language}:{since}"
     cached = get_cached(cache_key)
     if cached is not None:
-        response = make_response(cached)
-        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
-        return response
+        return make_api_cached_response(cached)
 
     # Fetch from GitHub Trending API
     url = (
@@ -189,9 +208,7 @@ def get_trending():
     # Save to cache (1 hour expiry for trending data)
     save_cache(cache_key, repos, expiry_hours=1)
 
-    response = make_response(repos)
-    response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
-    return response
+    return make_api_cached_response(repos)
 
 
 def fetch_hackernews_repo(story_id: int) -> Optional[dict]:
@@ -240,9 +257,7 @@ def get_hackernews():
     cache_key = "api:hackernews:showstories"
     cached = get_cached(cache_key)
     if cached is not None:
-        response = make_response(cached)
-        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
-        return response
+        return make_api_cached_response(cached)
 
     try:
         # Get top stories from Hacker News
@@ -260,9 +275,7 @@ def get_hackernews():
         # Save to cache (1 hour expiry)
         save_cache(cache_key, result, expiry_hours=1)
 
-        response = make_response(result)
-        response.headers["Cache-Control"] = "public, max-age=3600, s-maxage=3600"
-        return response
+        return make_api_cached_response(result)
     except Exception as e:
         app.logger.error(f"Error fetching Hacker News: {e}")
         return {"error": "Failed to fetch Hacker News stories"}, 500
@@ -270,7 +283,7 @@ def get_hackernews():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return app.send_static_file("index.html")
+    return make_spa_response()
 
 
 # API endpoint for frontend to check authentication status
