@@ -37,6 +37,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from jobs import pull, upsert
+from recommendations import recommendation_ids
 from utils import Base, get_cached, save_cache
 
 # create flask app
@@ -346,7 +347,9 @@ def get_repo(category: str = ""):
         repo_id = None
         for _ in range(2):
             try:
-                repo_id = gorse_client.get_recommend(current_user.login, category)[0]
+                repo_id = recommendation_ids(
+                    gorse_client.get_recommend(current_user.login, category)
+                )[0]
                 break
             except UnknownObjectException:
                 logging.warn("repo %s not found" % repo_id)
@@ -670,8 +673,13 @@ def extension_recommend_v2():
             mimetype="application/json",
         )
     try:
-        recommended_items = gorse_client.get_recommend(
-            current_user.login, n=3, write_back_type="read", write_back_delay="24h"
+        recommended_items = recommendation_ids(
+            gorse_client.get_recommend(
+                current_user.login,
+                n=3,
+                write_back_type="read",
+                write_back_delay="24h",
+            )
         )
         github_client = Github(current_user.token["access_token"])
         return Response(
@@ -712,7 +720,7 @@ def extension_recommend_latency(user_id: str):
         # If the user is in Gorse.
         gorse_client.get_user(user_id)
         try:
-            repo_names = gorse_client.get_recommend(user_id, n=3)
+            repo_names = recommendation_ids(gorse_client.get_recommend(user_id, n=3))
             return Response(
                 json.dumps({"has_login": True, "recommend": repo_names}),
                 mimetype="application/json",
