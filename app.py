@@ -625,6 +625,30 @@ def get_neighbors_v2(repo_name: str):
         n = int(request.args.get("n", default="3"))
         offset = int(request.args.get("offset", default="0"))
         scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
+        github_client = global_github_client
+        if current_user.is_authenticated:
+            github_client = Github(current_user.token["access_token"])
+
+        if len(scores) == 0:
+            try:
+                gorse_client.get_item(repo_name)
+            except gorse.GorseException as e:
+                if e.status_code != 404:
+                    raise
+                repo = github_client.get_repo(repo_name.replace(":", "/"))
+                items = []
+                if repo.description:
+                    items = gorse_client.search_items(repo.description, n + offset)
+                scores = [
+                    {"Id": item["ItemId"], "Score": 0}
+                    for item in items[offset : offset + n]
+                ]
+                if current_user.is_authenticated:
+                    upsert.delay(
+                        current_user.token["access_token"],
+                        repo_name.replace(":", "/"),
+                    )
+
         if not current_user.is_authenticated:
             response = Response(
                 json.dumps({"is_authenticated": False, "scores": scores}),
@@ -634,15 +658,6 @@ def get_neighbors_v2(repo_name: str):
             response.vary.add("Cookie")
             return response
         else:
-            # Upsert the repository if it doesn't exist in Gorse.
-            if len(scores) == 0:
-                try:
-                    gorse_client.get_item(repo_name)
-                except gorse.GorseException as e:
-                    if e.status_code == 404:
-                        upsert.delay(current_user.token["access_token"], repo_name.replace(":", "/"))
-
-            github_client = Github(current_user.token["access_token"])
             response = Response(
                 json.dumps(
                     {
