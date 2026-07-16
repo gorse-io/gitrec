@@ -23,7 +23,8 @@ $(document).ready(function () {
 })
 
 function loadSimilarRepos() {
-    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (result) {
+    const description = $(".BorderGrid-cell p.f4.my-3").first().text().trim();
+    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset, description: description }, function (result) {
         if (result.is_authenticated) {
             renderSimilarDiv(result);
         } else {

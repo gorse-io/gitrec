@@ -31,7 +31,11 @@ chrome.runtime.onMessage.addListener(
                 sendResponse(r);
             })
         } else if (request.neighbors) {
-            fetch(`https://gitrec.gorse.io/api/v2/neighbors/${request.neighbors}?offset=${request.offset}&n=6`, {
+            const params = new URLSearchParams({ offset: request.offset, n: 6 });
+            if (request.description) {
+                params.set('description', request.description);
+            }
+            fetch(`https://gitrec.gorse.io/api/v2/neighbors/${request.neighbors}?${params}`, {
                 credentials: 'include'
             }).then(r => r.json()).then(r => {
                 sendResponse(r);

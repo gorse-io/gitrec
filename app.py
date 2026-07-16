@@ -624,8 +624,9 @@ def get_neighbors_v2(repo_name: str):
     try:
         n = int(request.args.get("n", default="3"))
         offset = int(request.args.get("offset", default="0"))
+        description = request.args.get("description", default="")
         scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
-        github_client = global_github_client
+        github_client = None
         if current_user.is_authenticated:
             github_client = Github(current_user.token["access_token"])
 
@@ -635,10 +636,9 @@ def get_neighbors_v2(repo_name: str):
             except gorse.GorseException as e:
                 if e.status_code != 404:
                     raise
-                repo = github_client.get_repo(repo_name.replace(":", "/"))
                 items = []
-                if repo.description:
-                    items = gorse_client.search_items(repo.description, n + offset)
+                if description:
+                    items = gorse_client.search_items(description, n + offset)
                 scores = [
                     {"Id": item["ItemId"], "Score": 0}
                     for item in items[offset : offset + n]
