@@ -630,6 +630,7 @@ def get_neighbors_v2(repo_name: str):
         if current_user.is_authenticated:
             github_client = Github(current_user.token["access_token"])
 
+        # Upsert the repository if it doesn't exist in Gorse.
         if len(scores) == 0:
             try:
                 gorse_client.get_item(repo_name)
