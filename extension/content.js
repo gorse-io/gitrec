@@ -11,7 +11,20 @@ var similarPanel = null;
 var refreshTimer = null;
 
 function getRepositorySidebar() {
-    return $('[class*="CodeViewSidebar-module__borderGrid"], .Layout-sidebar .BorderGrid, #repo-content-pjax-container .BorderGrid').first();
+    const sidebar = $('[class*="CodeViewSidebar-module__borderGrid"]').first();
+    return sidebar.length ? sidebar : $('.Layout-sidebar .BorderGrid, #repo-content-pjax-container .BorderGrid').first();
+}
+
+function placeSimilarPanel() {
+    const sidebar = getRepositorySidebar();
+    const languages = sidebar.find('h2').filter(function () {
+        return $(this).text().trim() === 'Languages';
+    }).closest('.BorderGrid-row, [class*="SidebarSection-module__sidebarSection"]').first();
+    if (languages.length) {
+        if (!languages.next().is('#similar-repositories')) languages.after(similarPanel);
+    } else if (!$("#similar-repositories").length) {
+        sidebar.append(similarPanel);
+    }
 }
 
 function initialize() {
@@ -41,9 +54,7 @@ function initialize() {
             loadRecommendRepos();
         }
     }
-    if (similarPanel && !$("#similar-repositories").length) {
-        getRepositorySidebar().append(similarPanel);
-    }
+    if (similarPanel) placeSimilarPanel();
 }
 
 $(document).ready(initialize);
@@ -145,7 +156,7 @@ async function renderSimilarDiv(result) {
 </div>`;
     $("#similar-repositories").remove();
     similarPanel = $($.parseHTML(template));
-    sidebar.append(similarPanel);
+    placeSimilarPanel();
     similarPanel.find("a#previous-button").click(function () {
         $("#previous-button").remove();
         $("#next-button").remove();
