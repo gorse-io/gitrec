@@ -71,15 +71,3 @@ cd frontend
 yarn install
 yarn serve --port 5000
 ```
-
-### Browser Extension
-
-Load the `extension` directory as an unpacked extension in `chrome://extensions`.
-After changing extension scripts, reload the extension and refresh the GitHub tab.
-
-Run the extension regression tests with Node.js 18 or later:
-
-```bash
-npm --prefix extension install
-npm --prefix extension test
-```

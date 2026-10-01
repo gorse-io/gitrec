@@ -16,15 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-
-    - name: Test the browser extension
-      run: |
-        npm --prefix extension ci
-        npm --prefix extension test
-
     - name: Build the stack
       run: docker compose up -d --build
 
