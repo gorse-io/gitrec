@@ -11,15 +11,14 @@ var similarPanel = null;
 var refreshTimer = null;
 
 function getRepositorySidebar() {
-    const sidebar = $('[class*="CodeViewSidebar-module__borderGrid"]').first();
-    return sidebar.length ? sidebar : $('.Layout-sidebar .BorderGrid, #repo-content-pjax-container .BorderGrid').first();
+    return $('[class*="CodeViewSidebar-module__borderGrid"]').first();
 }
 
 function placeSimilarPanel() {
     const sidebar = getRepositorySidebar();
     const languages = sidebar.find('h2').filter(function () {
         return $(this).text().trim() === 'Languages';
-    }).closest('.BorderGrid-row, [class*="SidebarSection-module__sidebarSection"]').first();
+    }).closest('[class*="SidebarSection-module__sidebarSection"]').first();
     if (languages.length) {
         if (!languages.next().is('#similar-repositories')) languages.after(similarPanel);
     } else if (!$("#similar-repositories").length) {
@@ -145,11 +144,9 @@ async function renderSimilarDiv(result) {
     } else {
         rows = '<div class="text-small color-fg-muted">No similar repositories found</div>'
     }
-    const sidebar = getRepositorySidebar();
-    const legacySidebar = sidebar.hasClass('BorderGrid');
     template = `
-<div class="${legacySidebar ? 'BorderGrid-row' : 'border-top color-border-muted pt-3 mt-3'}" id="similar-repositories">
-    <div class="${legacySidebar ? 'BorderGrid-cell' : ''}">
+<div class="border-top color-border-muted pt-3 mt-3" id="similar-repositories">
+    <div>
         <h2 class="h4 mb-3">Related repositories</h2>
         ${rows}${previous}${next}
     </div>
