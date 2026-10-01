@@ -346,7 +346,7 @@ def get_repo(category: str = ""):
         repo_id = None
         for _ in range(2):
             try:
-                repo_id = gorse_client.get_recommend(current_user.login, category)[0]
+                repo_id = gorse_client.get_recommend(current_user.login, category)[0].id
                 break
             except UnknownObjectException:
                 logging.warn("repo %s not found" % repo_id)
@@ -624,8 +624,22 @@ def get_neighbors_v2(repo_name: str):
     try:
         n = int(request.args.get("n", default="3"))
         offset = int(request.args.get("offset", default="0"))
+        description = request.args.get("description", default="")
         scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
         if not current_user.is_authenticated:
+            if len(scores) == 0:
+                try:
+                    gorse_client.get_item(repo_name)
+                except gorse.GorseException as e:
+                    if e.status_code != 404:
+                        raise
+                    items = []
+                    if description:
+                        items = gorse_client.search_items(description, n + offset)
+                    scores = [
+                        {"Id": item["ItemId"], "Score": 0}
+                        for item in items[offset : offset + n]
+                    ]
             response = Response(
                 json.dumps({"is_authenticated": False, "scores": scores}),
                 mimetype="application/json",
@@ -641,6 +655,15 @@ def get_neighbors_v2(repo_name: str):
                 except gorse.GorseException as e:
                     if e.status_code == 404:
                         upsert.delay(current_user.token["access_token"], repo_name.replace(":", "/"))
+                        items = []
+                        if description:
+                            items = gorse_client.search_items(description, n + offset)
+                        scores = [
+                            {"Id": item["ItemId"], "Score": 0}
+                            for item in items[offset : offset + n]
+                        ]
+                    else:
+                        raise
 
             github_client = Github(current_user.token["access_token"])
             response = Response(
@@ -670,9 +693,15 @@ def extension_recommend_v2():
             mimetype="application/json",
         )
     try:
-        recommended_items = gorse_client.get_recommend(
-            current_user.login, n=3, write_back_type="read", write_back_delay="24h"
-        )
+        recommended_items = [
+            score.id
+            for score in gorse_client.get_recommend(
+                current_user.login,
+                n=3,
+                write_back_type="read",
+                write_back_delay="24h",
+            )
+        ]
         github_client = Github(current_user.token["access_token"])
         return Response(
             json.dumps(
@@ -712,7 +741,9 @@ def extension_recommend_latency(user_id: str):
         # If the user is in Gorse.
         gorse_client.get_user(user_id)
         try:
-            repo_names = gorse_client.get_recommend(user_id, n=3)
+            repo_names = [
+                score.id for score in gorse_client.get_recommend(user_id, n=3)
+            ]
             return Response(
                 json.dumps({"has_login": True, "recommend": repo_names}),
                 mimetype="application/json",

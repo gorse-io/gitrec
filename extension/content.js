@@ -67,7 +67,8 @@ $(window).on('popstate', initialize);
 
 function loadSimilarRepos() {
     const path = location.pathname;
-    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (result) {
+    const description = $(".BorderGrid-cell p.f4.my-3").first().text().trim();
+    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset, description: description }, function (result) {
         if (location.pathname !== path) return;
         if (result.is_authenticated) {
             renderSimilarDiv(result);
