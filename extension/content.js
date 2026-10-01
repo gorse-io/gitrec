@@ -1,13 +1,45 @@
+(function () {
+if (window.gitrecContentInitialized) return;
+window.gitrecContentInitialized = true;
+
 var itemId = null;
 var similarOffset = 0;
 var exploreContent = null;
 var loaded = false;
+var currentPath = null;
+var similarPanel = null;
+var refreshTimer = null;
 
-$(document).ready(function () {
+function getRepositorySidebar() {
+    return $('[class*="CodeViewSidebar-module__borderGrid"]').first();
+}
+
+function placeSimilarPanel() {
+    const sidebar = getRepositorySidebar();
+    const languages = sidebar.find('h2').filter(function () {
+        return $(this).text().trim() === 'Languages';
+    }).closest('[class*="SidebarSection-module__sidebarSection"]').first();
+    if (languages.length) {
+        if (!languages.next().is('#similar-repositories')) languages.after(similarPanel);
+    } else if (!$("#similar-repositories").length) {
+        sidebar.append(similarPanel);
+    }
+}
+
+function initialize() {
+    if (currentPath !== location.pathname) {
+        currentPath = location.pathname;
+        loaded = false;
+        similarOffset = 0;
+        similarPanel = null;
+        $("#similar-repositories").remove();
+    }
     if (!loaded) {
-        loaded = true;
         const splits = location.pathname.split('/').filter(s => s);
-        if (splits.length >= 2 && $("#repo-stars-counter-star").length > 0) {
+        const repository = $('meta[name="octolytics-dimension-repository_nwo"]').attr('content');
+        if (splits.length >= 2 && repository &&
+            repository.toLowerCase() === splits.slice(0, 2).join('/').toLowerCase() && getRepositorySidebar().length > 0) {
+            loaded = true;
             itemId = splits[0] + ':' + splits[1];
             // mark read
             if (splits.length == 2) {
@@ -16,14 +48,27 @@ $(document).ready(function () {
             // get neighbors
             loadSimilarRepos();
         } else if (splits.length === 0) {
+            loaded = true;
             // get recommend
             loadRecommendRepos();
         }
     }
-})
+    if (similarPanel) placeSimilarPanel();
+}
+
+$(document).ready(initialize);
+// Wait for React to render the sidebar, and handle navigation without a reload.
+new MutationObserver(function () {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(initialize, 100);
+}).observe(document.documentElement, { childList: true, subtree: true });
+$(document).on('turbo:load turbo:render', initialize);
+$(window).on('popstate', initialize);
 
 function loadSimilarRepos() {
+    const path = location.pathname;
     chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (result) {
+        if (location.pathname !== path) return;
         if (result.is_authenticated) {
             renderSimilarDiv(result);
         } else {
@@ -34,6 +79,7 @@ function loadSimilarRepos() {
                 responses.push(fetchRepo(full_name));
             }
             Promise.all(responses).then((repos) => {
+                if (location.pathname !== path) return;
                 result.repos = repos;
                 for (const [i, score] of result.scores.entries()) {
                     if (repos[i].full_name) {
@@ -99,22 +145,23 @@ async function renderSimilarDiv(result) {
         rows = '<div class="text-small color-fg-muted">No similar repositories found</div>'
     }
     template = `
-<div class="BorderGrid-row" id="similar-repositories">
-    <div class="BorderGrid-cell">
+<div class="border-top color-border-muted pt-3 mt-3" id="similar-repositories">
+    <div>
         <h2 class="h4 mb-3">Related repositories</h2>
         ${rows}${previous}${next}
     </div>
 </div>`;
     $("#similar-repositories").remove();
-    $(".BorderGrid:first").append($($.parseHTML(template)));
-    $("a#previous-button").click(function () {
+    similarPanel = $($.parseHTML(template));
+    placeSimilarPanel();
+    similarPanel.find("a#previous-button").click(function () {
         $("#previous-button").remove();
         $("#next-button").remove();
         similarOffset -= 3;
         loadSimilarRepos();
         return false;
     });
-    $("a#next-button").click(function () {
+    similarPanel.find("a#next-button").click(function () {
         $("#previous-button").remove();
         $("#next-button").remove();
         similarOffset += 3;
@@ -229,3 +276,5 @@ function renderLanguageSpan(language) {
         return '';
     }
 }
+
+})();
