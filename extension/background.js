@@ -35,7 +35,9 @@ chrome.runtime.onMessage.addListener(
                 credentials: 'include'
             }).then(r => r.json()).then(r => {
                 sendResponse(r);
-            })
+            }).catch(() => {
+                sendResponse({ message: 'Unable to load related repositories. Please reload the page to retry.' });
+            });
         } else if (request.recommend) {
             if (request.recommend instanceof Array && request.recommend.length > 0) {
                 fetch('https://gitrec.gorse.io/api/session/recommend?n=6', {
@@ -56,20 +58,17 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
-var url = '';
 chrome.webNavigation.onHistoryStateUpdated.addListener(function (details) {
-    if (details.url != url) {
-        url = details.url;
-        chrome.scripting.executeScript({
-            target: { tabId: details.tabId },
-            files: ['content.js'],
+    if (details.frameId === 0) {
+        chrome.tabs.sendMessage(details.tabId, { navigation: true }, () => {
+            // A tab can navigate before its content script is available.
+            void chrome.runtime.lastError;
         });
     }
-});
+}, { url: [{ hostEquals: 'github.com' }] });
 
 chrome.action.onClicked.addListener(() => {
-    let creating = chrome.tabs.create({
+    chrome.tabs.create({
         url: "https://gitrec.gorse.io/"
     });
-    creating.then(onCreated, onError);
 });

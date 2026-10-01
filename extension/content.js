@@ -1,54 +1,115 @@
+(function () {
+if (window.gitrecContentInitialized) return;
+window.gitrecContentInitialized = true;
+
 var itemId = null;
 var similarOffset = 0;
-var exploreContent = null;
 var loaded = false;
 
-$(document).ready(function () {
-    if (!loaded) {
-        loaded = true;
-        const splits = location.pathname.split('/').filter(s => s);
-        if (splits.length >= 2 && $("#repo-stars-counter-star").length > 0) {
-            itemId = splits[0] + ':' + splits[1];
-            // mark read
-            if (splits.length == 2) {
+// GitHub can replace the repository view without reloading the document.
+// Keep one controller even if an older background script injects this file again.
+var similarPanel = null;
+var requestVersion = 0;
+var currentPath = null;
+var refreshTimer = null;
+
+function getRepositorySidebar() {
+    return document.querySelector('[class*="CodeViewSidebar-module__borderGrid"]') ||
+        document.querySelector('.Layout-sidebar .BorderGrid') ||
+        document.querySelector('#repo-content-pjax-container .BorderGrid');
+}
+
+function refreshPage() {
+    const path = location.pathname;
+    if (currentPath !== path) {
+        currentPath = path;
+        itemId = null;
+        similarOffset = 0;
+        similarPanel = null;
+        requestVersion++;
+        loaded = false;
+        $("#similar-repositories").remove();
+        $("[aria-label='GitRec']").remove();
+    }
+
+    const splits = path.split('/').filter(Boolean);
+    const repository = document.querySelector('meta[name="octolytics-dimension-repository_nwo"]');
+    // Metadata may briefly refer to the previous repository during navigation.
+    const fullName = splits.slice(0, 2).join('/');
+    const isRepository = splits.length >= 2 && repository &&
+        repository.content.toLowerCase() === fullName.toLowerCase();
+    const sidebar = isRepository && getRepositorySidebar();
+    if (sidebar) {
+        if (!loaded) {
+            loaded = true;
+            itemId = fullName.replace('/', ':').toLowerCase();
+            if (splits.length === 2) {
                 chrome.runtime.sendMessage({ read: itemId }, () => { });
             }
-            // get neighbors
             loadSimilarRepos();
-        } else if (splits.length === 0) {
-            // get recommend
-            loadRecommendRepos();
+        } else if (similarPanel && !sidebar.contains(similarPanel)) {
+            // React may recreate the sidebar after our response has rendered.
+            $("#similar-repositories").remove();
+            sidebar.append(similarPanel);
         }
+    } else if (splits.length === 0 && !loaded &&
+        document.querySelector("[aria-label='Explore']")) {
+        loaded = true;
+        loadRecommendRepos();
     }
-})
+}
+
+function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refreshPage, 100);
+}
+
+var pageObserver = new MutationObserver(scheduleRefresh);
+pageObserver.observe(document.documentElement, { childList: true, subtree: true });
+document.addEventListener('turbo:load', scheduleRefresh);
+document.addEventListener('turbo:render', scheduleRefresh);
+window.addEventListener('popstate', scheduleRefresh);
+chrome.runtime.onMessage.addListener(function (message) {
+    if (message.navigation) scheduleRefresh();
+});
+$(document).ready(refreshPage);
 
 function loadSimilarRepos() {
-    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset }, function (result) {
-        if (result.is_authenticated) {
-            renderSimilarDiv(result);
+    const repositoryId = itemId;
+    const path = location.pathname;
+    const version = ++requestVersion;
+    const isCurrent = () => version === requestVersion && itemId === repositoryId &&
+        location.pathname === path;
+    const render = result => {
+        if (isCurrent()) renderSimilarDiv(result);
+    };
+    chrome.runtime.sendMessage({ neighbors: repositoryId, offset: similarOffset }, function (result) {
+        const error = chrome.runtime.lastError;
+        if (!isCurrent()) return;
+        if (error || !result) {
+            render({ message: 'Unable to load related repositories. Please reload the page to retry.' });
+        } else if (result.message || result.is_authenticated) {
+            render(result);
         } else {
-            // Fetch repos in client-side
-            let responses = [];
-            for (const score of result.scores) {
-                const full_name = score.Id.replace(':', '/');
-                responses.push(fetchRepo(full_name));
-            }
-            Promise.all(responses).then((repos) => {
-                result.repos = repos;
-                for (const [i, score] of result.scores.entries()) {
-                    if (repos[i].full_name) {
+            const scores = result.scores || [];
+            Promise.all(scores.map(score => fetchRepo(score.Id.replace(':', '/'))))
+                .then(repos => {
+                    result.repos = repos;
+                    for (const [i, score] of scores.entries()) {
                         result.repos[i].item_id = score.Id;
-                    } else {
-                        result.message = repos[i].message;
+                        if (!repos[i].full_name && repos[i].message !== 'Not Found') {
+                            result.message = repos[i].message;
+                        }
                     }
-                }
-                renderSimilarDiv(result);
-            })
+                    render(result);
+                })
+                .catch(() => render({ message: 'Unable to load related repositories. Please reload the page to retry.' }));
         }
     });
 }
 
-async function renderSimilarDiv(result) {
+function renderSimilarDiv(result) {
+    const sidebar = getRepositorySidebar();
     let count = 0;
     let rows = "";
     let previous = "";
@@ -61,7 +122,7 @@ async function renderSimilarDiv(result) {
             errorMessage = result.message;
         }
         rows = `<div class="text-small color-fg-muted">${errorMessage}</div>`
-    } else if (result.repos.length > 0) {
+    } else if (result.repos && result.repos.length > 0) {
         for (const repo of result.repos) {
             if (repo.full_name) {
                 if (repo.item_id != repo.full_name.replace('/', ':').toLowerCase()) {
@@ -98,15 +159,17 @@ async function renderSimilarDiv(result) {
     } else {
         rows = '<div class="text-small color-fg-muted">No similar repositories found</div>'
     }
-    template = `
-<div class="BorderGrid-row" id="similar-repositories">
-    <div class="BorderGrid-cell">
+    const legacySidebar = sidebar && sidebar.classList.contains("BorderGrid");
+    const template = `
+<div class="${legacySidebar ? 'BorderGrid-row' : 'border-top color-border-muted pt-3 mt-3'}" id="similar-repositories">
+    <div class="${legacySidebar ? 'BorderGrid-cell' : ''}">
         <h2 class="h4 mb-3">Related repositories</h2>
         ${rows}${previous}${next}
     </div>
 </div>`;
     $("#similar-repositories").remove();
-    $(".BorderGrid:first").append($($.parseHTML(template)));
+    similarPanel = $.parseHTML(template.trim())[0];
+    if (sidebar) sidebar.append(similarPanel);
     $("a#previous-button").click(function () {
         $("#previous-button").remove();
         $("#next-button").remove();
@@ -158,6 +221,7 @@ function loadRecommendRepos() {
 }
 
 async function showRecommend(result) {
+    if (location.pathname !== "/") return;
     let exploreDiv = $("[aria-label='Explore']");
     exploreDiv.children("[aria-label='GitRec']").remove();
     let template = `
@@ -229,3 +293,5 @@ function renderLanguageSpan(language) {
         return '';
     }
 }
+
+})();
