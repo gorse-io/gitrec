@@ -1,11 +1,24 @@
-set -e
+#!/usr/bin/env bash
+set -eo pipefail
+
+# MariaDB's dump client can emit explicit values for MySQL generated columns.
+# Use the MySQL client so INSERTs omit those columns and remain importable.
+if mysqldump --version | grep -qi mariadb; then
+    echo "Backup requires MySQL mysqldump; rebuild the backup image to replace the MariaDB client." >&2
+    exit 1
+fi
 
 while true; do
 
     SQL_FILE=$(date '+%Y-%m-%d.%H').sql.gz
 
     # Dump and compress database in one stream
-    mysqldump --no-tablespaces -h ${MYSQL_HOST:=127.0.0.1} -u ${MYSQL_USER:=gorse} -p${MYSQL_PASSWORD:=gorse_pass} --ssl-verify-server-cert=0 ${MYSQL_DATABASE:=gorse} users items feedback flask_dance_oauth | gzip > $SQL_FILE
+    MYSQL_PWD="${MYSQL_PASSWORD:=gorse_pass}" mysqldump \
+        --no-tablespaces --single-transaction --complete-insert \
+        --column-statistics=0 --set-gtid-purged=OFF --ssl-mode=PREFERRED \
+        -h "${MYSQL_HOST:=127.0.0.1}" -u "${MYSQL_USER:=gorse}" \
+        "${MYSQL_DATABASE:=gorse}" users items feedback flask_dance_oauth \
+        | gzip > "$SQL_FILE"
 
     # Upload SQL file
     s3cmd --access_key=$S3_ACCESS_KEY \

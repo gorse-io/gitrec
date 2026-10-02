@@ -1,13 +1,15 @@
-FROM python:3.12
+FROM mysql:8.4
 
-# Install MySQL client.
-RUN apt-get update && apt-get install -y mariadb-client
+# Use the official MySQL dump client for MySQL generated-column support.
+# Install Python and gzip for the S3 client and compressed backups.
+RUN microdnf install -y python3-pip gzip && microdnf clean all
 
 # Install S3 client.
-RUN pip install s3cmd
+RUN pip3 install --no-cache-dir s3cmd
 
 # Copy files.
 COPY scripts/backup.sh ./
 
 # Run backup task.
-CMD bash backup.sh
+ENTRYPOINT []
+CMD ["bash", "backup.sh"]
