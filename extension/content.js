@@ -3,6 +3,7 @@ if (window.gitrecContentInitialized) return;
 window.gitrecContentInitialized = true;
 
 var itemId = null;
+var repositoryDescription = null;
 var similarOffset = 0;
 var exploreContent = null;
 var loaded = false;
@@ -12,6 +13,15 @@ var refreshTimer = null;
 
 function getRepositorySidebar() {
     return $('[class*="CodeViewSidebar-module__borderGrid"]').first();
+}
+
+function getRepositoryDescription() {
+    const sidebar = getRepositorySidebar();
+    const description = sidebar.find('p[class*="SidebarAbout-module__description"]').first();
+    if (description.length) return description.text().trim() || null;
+    // These elements mean About has rendered without a description.
+    if (sidebar.find('[class*="SidebarAbout-module__noDescription"], [class*="SidebarAbout-module__websiteRow"]').length) return '';
+    return null;
 }
 
 function placeSimilarPanel() {
@@ -30,6 +40,7 @@ function initialize() {
     if (currentPath !== location.pathname) {
         currentPath = location.pathname;
         loaded = false;
+        repositoryDescription = null;
         similarOffset = 0;
         similarPanel = null;
         $("#similar-repositories").remove();
@@ -39,6 +50,8 @@ function initialize() {
         const repository = $('meta[name="octolytics-dimension-repository_nwo"]').attr('content');
         if (splits.length >= 2 && repository &&
             repository.toLowerCase() === splits.slice(0, 2).join('/').toLowerCase() && getRepositorySidebar().length > 0) {
+            repositoryDescription = getRepositoryDescription();
+            if (repositoryDescription === null) return;
             loaded = true;
             itemId = splits[0] + ':' + splits[1];
             // mark read
@@ -57,18 +70,17 @@ function initialize() {
 }
 
 $(document).ready(initialize);
-// Wait for React to render the sidebar, and handle navigation without a reload.
+// Wait for React to render About, and handle navigation without a reload.
 new MutationObserver(function () {
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(initialize, 100);
-}).observe(document.documentElement, { childList: true, subtree: true });
+}).observe(document.documentElement, { childList: true, characterData: true, subtree: true });
 $(document).on('turbo:load turbo:render', initialize);
 $(window).on('popstate', initialize);
 
 function loadSimilarRepos() {
     const path = location.pathname;
-    const description = getRepositorySidebar().find('p[class*="SidebarAbout-module__description"]').first().text().trim();
-    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset, description: description }, function (result) {
+    chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset, description: repositoryDescription }, function (result) {
         if (location.pathname !== path) return;
         if (result.is_authenticated) {
             renderSimilarDiv(result);
