@@ -67,7 +67,8 @@ $(window).on('popstate', initialize);
 
 function loadSimilarRepos() {
     const path = location.pathname;
-    const description = $(".BorderGrid-cell p.f4.my-3").first().text().trim();
+    const description = getRepositorySidebar().find('p[class*="SidebarAbout-module__description"]').first().text().trim() ||
+        $(".BorderGrid-cell p.f4.my-3").first().text().trim();
     chrome.runtime.sendMessage({ neighbors: itemId, offset: similarOffset, description: description }, function (result) {
         if (location.pathname !== path) return;
         if (result.is_authenticated) {

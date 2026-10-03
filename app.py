@@ -625,7 +625,7 @@ def get_neighbors_v2(repo_name: str):
         n = int(request.args.get("n", default="3"))
         offset = int(request.args.get("offset", default="0"))
         description = request.args.get("description", default="")
-        scores = gorse_client.get_neighbors(repo_name.lower(), n, offset)
+        scores = gorse_client.get_neighbors(repo_name.lower(), n, offset) or []
         if not current_user.is_authenticated:
             if len(scores) == 0:
                 try:
@@ -635,7 +635,7 @@ def get_neighbors_v2(repo_name: str):
                         raise
                     items = []
                     if description:
-                        items = gorse_client.search_items(description, n + offset)
+                        items = gorse_client.search_items(description, n + offset) or []
                     scores = [
                         {"Id": item["ItemId"], "Score": 0}
                         for item in items[offset : offset + n]
@@ -657,7 +657,7 @@ def get_neighbors_v2(repo_name: str):
                         upsert.delay(current_user.token["access_token"], repo_name.replace(":", "/"))
                         items = []
                         if description:
-                            items = gorse_client.search_items(description, n + offset)
+                            items = gorse_client.search_items(description, n + offset) or []
                         scores = [
                             {"Id": item["ItemId"], "Score": 0}
                             for item in items[offset : offset + n]
