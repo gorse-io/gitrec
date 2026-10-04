@@ -1,7 +1,7 @@
 {
     "name": "GitRec",
     "description": "A recommender system for GitHub repositories based on Gorse",
-    "version": "0.11",
+    "version": "0.12",
     "manifest_version": 3,
     "permissions": [
         "scripting",
@@ -25,7 +25,7 @@
                 "*://github.com/*"
             ],
             "js": [
-                "jquery-3.6.1.min.js",
+                "jquery-4.0.0.min.js",
                 "colors.js",
                 "content.js"
             ],
