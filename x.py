@@ -185,7 +185,7 @@ def upgrade_items():
                         description = tldr(
                             repo.get_readme().decoded_content.decode("utf-8")
                         )
-                        print("QWEN:", description)
+                        print("GPT::", description)
                     description_embedding = embedding(description)
                 except BadRequestError as e:
                     print("FAIL " + repo.full_name + " " + str(e))

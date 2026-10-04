@@ -25,8 +25,8 @@ openai_client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"), base_url=os.getenv("OPENAI_API_BASE")
 )
 
-# OpenAI model for chat completions (default: qwen-turbo)
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "qwen-turbo")
+# OpenAI model for chat completions (default: gpt-6-luna)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-6-luna")
 
 
 class LogFormatter(logging.Formatter):
@@ -228,7 +228,7 @@ class GraphQLGitHub:
 
 def embedding(text: str) -> list:
     resp = openai_client.embeddings.create(
-        model="text-embedding-v3",
+        model="text-embedding-3-small",
         input=text,
         dimensions=512,
     )
@@ -314,7 +314,7 @@ def get_repo_info(github_client: Github, full_name: str) -> Optional[Dict]:
     description = repo.description
     if description is None:
         description = tldr(repo.get_readme().decoded_content.decode("utf-8"))
-        print("QWEN:", description)
+        print("GPT:", description)
 
     # Check if repository is AI-related and add "ai" category
     if isai(description):

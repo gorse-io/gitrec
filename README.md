@@ -80,10 +80,10 @@ S3_BUCKET_LOCATION=US
 S3_HOST_BASE=s3.amazonaws.com
 S3_HOST_BUCKET=%(bucket)s.s3.amazonaws.com
 
-# Open AI (Aliyun)
-OPENAI_API_BASE=https://dashscope.aliyuncs.com/compatible-mode/v1
+# Open AI
+OPENAI_API_BASE=https://api.openai.com/v1
 OPENAI_API_KEY=********
-OPENAI_MODEL=qwen-turbo
+OPENAI_MODEL=gpt-6-luna
 ```
 
 - Generate a [personal access token](https://github.com/settings/tokens) from GitHub and fill the `GITHUB_ACCESS_TOKEN`
