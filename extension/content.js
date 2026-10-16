@@ -18,24 +18,31 @@ function escapeHTML(value) {
     });
 }
 
+function getRepositorySection(sidebar, title) {
+    return sidebar.find('h2').filter(function () {
+        return $(this).text().trim() === title;
+    }).first().parent();
+}
+
 function getRepositorySidebar() {
-    return $('[class*="CodeViewSidebar-module__borderGrid"]').first();
+    // Scope About to the sidebar pane, not its duplicate in the mobile header.
+    // GitHub's generated CSS-module class names are not stable selectors.
+    const pane = $('[data-component="SplitPageLayout.Pane"], [data-component="PageLayout.Pane"]');
+    return getRepositorySection(pane, 'About').parent();
 }
 
 function getRepositoryDescription() {
-    const sidebar = getRepositorySidebar();
-    const description = sidebar.find('p[class*="SidebarAbout-module__description"]').first();
+    const about = getRepositorySection(getRepositorySidebar(), 'About');
+    const description = about.children('p').first();
     if (description.length) return description.text().trim() || null;
-    // These elements mean About has rendered without a description.
-    if (sidebar.find('[class*="SidebarAbout-module__noDescription"], [class*="SidebarAbout-module__websiteRow"]').length) return '';
+    // Only use local class fragments for the optional, rendered-empty state.
+    if (about.find('[class*="noDescription"], [class*="websiteRow"]').length) return '';
     return null;
 }
 
 function placeSimilarPanel() {
     const sidebar = getRepositorySidebar();
-    const languages = sidebar.find('h2').filter(function () {
-        return $(this).text().trim() === 'Languages';
-    }).closest('[class*="SidebarSection-module__sidebarSection"]').first();
+    const languages = getRepositorySection(sidebar, 'Languages');
     if (languages.length) {
         if (!languages.next().is('#similar-repositories')) languages.after(similarPanel);
     } else if (!$("#similar-repositories").length) {
