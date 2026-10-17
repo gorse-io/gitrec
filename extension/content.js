@@ -19,15 +19,21 @@ function escapeHTML(value) {
 }
 
 function getRepositorySidebar() {
-    return $('[class*="CodeViewSidebar-module__borderGrid"]').first();
+    // GitHub's generated CSS class names change between deployments.
+    return $('[data-component="SplitPageLayout.Pane"] h2').filter(function () {
+        return $(this).text().trim() === 'About';
+    }).first().parent().parent();
 }
 
 function getRepositoryDescription() {
     const sidebar = getRepositorySidebar();
-    const description = sidebar.find('p[class*="SidebarAbout-module__description"]').first();
+    if (sidebar.find('[class*="noDescription__"]').length) return '';
+    const description = sidebar.find('h2').filter(function () {
+        return $(this).text().trim() === 'About';
+    }).first().next('p');
     if (description.length) return description.text().trim() || null;
     // These elements mean About has rendered without a description.
-    if (sidebar.find('[class*="SidebarAbout-module__noDescription"], [class*="SidebarAbout-module__websiteRow"]').length) return '';
+    if (sidebar.find('[class*="websiteRow__"]').length) return '';
     return null;
 }
 
@@ -35,7 +41,7 @@ function placeSimilarPanel() {
     const sidebar = getRepositorySidebar();
     const languages = sidebar.find('h2').filter(function () {
         return $(this).text().trim() === 'Languages';
-    }).closest('[class*="SidebarSection-module__sidebarSection"]').first();
+    }).first().parent();
     if (languages.length) {
         if (!languages.next().is('#similar-repositories')) languages.after(similarPanel);
     } else if (!$("#similar-repositories").length) {
@@ -288,7 +294,7 @@ function renderLanguageSpan(language) {
         return `
 <span class="mr-2 f6 color-fg-muted text-normal">
     <span class="">
-        <span class="repo-language-color" style="background-color: ${renderLanguageColor(language)}"></span>
+        <span class="gitrec-language-color" aria-hidden="true" style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: ${renderLanguageColor(language)}"></span>
         <span itemprop="programmingLanguage">${escapeHTML(language)}</span>
     </span>
 </span>`;
